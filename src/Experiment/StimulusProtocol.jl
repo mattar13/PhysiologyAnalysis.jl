@@ -24,3 +24,27 @@ function StimulusProtocol(type::Symbol, sweep::Int64, channel::Union{Int64,Strin
     t2 = t[index_range[2]]
     StimulusProtoco(type, sweep, channel, index_range, (t1, t2))
 end
+
+"""
+this function utilizes all julia to extract ABF file data
+"""
+
+function extract_stimulus(abfInfo::Dict{String,Any}; sweep::Int64=-1, stimulus_name::String="IN 7", stimulus_threshold::Float64=2.5)
+    dt = abfInfo["dataSecPerPoint"]
+    stimulus_waveform = getWaveform(abfInfo, stimulus_name)
+    if sweep == -1 #We want to extract info about all of the stimuli vs just one
+        Stimuli = StimulusProtocol[]
+        for sweep in 1:size(abfInfo["data"], 1)
+            idx1 = findfirst(stimulus_waveform[sweep, :] .> stimulus_threshold)
+            idx2 = findlast(stimulus_waveform[sweep, :] .> stimulus_threshold)
+            push!(Stimuli, StimulusProtocol(:test, sweep, stimulus_name, (idx1, idx2), (idx1 * dt, (idx2 + 1) * dt)))
+        end
+        return Stimuli
+    else
+        idx1 = findfirst(stimulus_waveform[sweep, :] .> stimulus_threshold)
+        idx2 = findlast(stimulus_waveform[sweep, :] .> stimulus_threshold)
+        return StimulusProtocol(:test, sweep, stimulus_name, (idx1, idx2), (idx1 * dt, (idx2 + 1) * dt))
+    end
+end
+
+extract_stimulus(abf_path::String; kwargs...) = extract_stimulus(readABFInfo(abf_path); kwargs...)
