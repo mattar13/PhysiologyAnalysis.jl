@@ -11,7 +11,7 @@ This function adjusts the baseline, similar to how it is done in clampfit.
     - (start, end) -> a custom region
 It catches the baseline if the stimulus is at the beginning of the 
     """
-function baseline_cancel(trace::Experiment; mode::Symbol = :slope, region = :prestim)
+function baseline_adjust(trace::Experiment; mode::Symbol = :slope, region = :prestim)
     data = deepcopy(trace)
     if isempty(trace.stim_protocol)
         #println("No Stim protocol exists")
@@ -60,7 +60,7 @@ function baseline_cancel(trace::Experiment; mode::Symbol = :slope, region = :pre
     end
 end
 
-function baseline_cancel!(trace::Experiment; mode::Symbol = :slope, region = :prestim)
+function baseline_adjust!(trace::Experiment; mode::Symbol = :slope, region = :prestim)
     if isempty(trace.stim_protocol)
         #println("No stim protocol exists")
     else
@@ -369,4 +369,4 @@ function filter_data(data::Tuple{Experiment{T},Experiment{T}}; kwargs...) where 
 end
 
 
-cone_filter(data) = filter_data(data, t_pre = 1.0, t_post = 1.0) #This should put the data right in the middle of the cone stimuli
+cone_filter(data) = filter_data(data, t_pre = 1.0, t_post = 1.0) #This should put the data right in the middle of the cone stimuli(data, t_pre = 1.0, t_post = 1.0) #This should put the data right in the middle of the cone stimuli
