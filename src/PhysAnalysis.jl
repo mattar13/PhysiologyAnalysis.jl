@@ -2,8 +2,14 @@ module PhysAnalysis
 
 println("Testing package works")
 
+#======================Import all ABF extension imports======================#
+using ABFReader
+export readABF #Eventually this will be folded into a file that automatically determines how to open the extension
+
 #=======================Import all experiment objects=======================#
-include("Analysis\\Experiments.jl") #This file contains the Experiment structure. 
+include("Experiment\\Experiments.jl") #This file contains the Experiment structure. 
+
+include("Utilites\\experiment_utilities.jl")
 
 include("Analysis\\Filtering.jl")
 #export filter_data #Don't export this one explicitly
@@ -17,9 +23,7 @@ export dwt_filter
 export average_sweeps, average_sweeps!
 export normalize, normalize!
 
-#======================Import all ABF extension imports======================#
-using ABFReader
-export readABF #Eventually this will be folded into a file that automatically determines how to open the extension
+
 
 
 end
