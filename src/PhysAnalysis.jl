@@ -5,7 +5,7 @@ println("Testing package works")
 #=======================Import all experiment objects=======================#
 include("Analysis\\Experiments.jl") #This file contains the Experiment structure. 
 
-include("Analysis\\filtering.jl")
+include("Analysis\\Filtering.jl")
 #export filter_data #Don't export this one explicitly
 export baseline_cancel, baseline_cancel!
 export lowpass_filter, lowpass_filter!
