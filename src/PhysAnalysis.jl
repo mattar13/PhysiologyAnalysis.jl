@@ -43,6 +43,8 @@ export dwt_filter
 export average_sweeps, average_sweeps!
 export normalize, normalize!
 
+#====================Import all the tools needed to analyze the data====================#
+using Distributions, StatsBase
 include("Analysis/ERGAnalysis.jl")
 export RSQ
 export calculate_basic_stats
