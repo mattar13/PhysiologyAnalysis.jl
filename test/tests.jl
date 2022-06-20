@@ -1,5 +1,3 @@
 using PhysAnalysis
 
-#=Testing .abf file opening=#
-test_file = "test\\to_analyze.abf"
-data = readABF(test_file)
+include("testABF.jl") #Test the opening and data analysis of ABF files

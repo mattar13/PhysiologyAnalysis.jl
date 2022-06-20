@@ -2,7 +2,6 @@ using Revise
 using PhysAnalysis
 
 #file to open
-
 test_file = "test\\to_analyze.abf"
 data = readABFInfo(test_file)
 
