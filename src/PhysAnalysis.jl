@@ -1,17 +1,35 @@
 module PhysAnalysis
 
 println("Testing package works")
+#=================== Here are the imports from other files ===================#
+#using Statistics
+#using Polynomials
+#using Distributions
+#using StatsBase #Used for polynomial fitting
+#using LsqFit #Used for fitting amplification and Intensity Response models
+#using DSP
+#using ContinuousWavelets
+#using Wavelets
+#using FFTW #Used for filtering
 
 #======================Import all ABF extension imports======================#
 using ABFReader
-export readABF #Eventually this will be folded into a file that automatically determines how to open the extension
 
 #=======================Import all experiment objects=======================#
-include("Experiment\\Experiments.jl") #This file contains the Experiment structure. 
+include("Experiment/StimulusProtocol.jl")
+include("Experiment/Experiments.jl") #This file contains the Experiment structure. 
 
-include("Utilites\\experiment_utilities.jl")
 
-include("Analysis\\Filtering.jl")
+#===============================ABF utilities===============================#
+include("OpeningFiles/OpeningABF.jl")
+export readABF
+
+
+include("Utilities/ExperimentUtilities.jl")
+include("Utilities/DataUtilities.jl")
+export truncate_data, truncate_data!
+
+include("Analysis/Filtering.jl")
 #export filter_data #Don't export this one explicitly
 export baseline_cancel, baseline_cancel!
 export lowpass_filter, lowpass_filter!
@@ -23,7 +41,22 @@ export dwt_filter
 export average_sweeps, average_sweeps!
 export normalize, normalize!
 
+include("Analysis/ERGAnalysis.jl")
+export RSQ
+export calculate_basic_stats
+export saturated_response, dim_response, minima_to_peak, time_to_peak
+export get_response
+export pepperburg_analysis
+export integral
+export recovery_tau
+export amplification
+export curve_fit #curve fitting from LsqFit
+export IR_curve
 
-
+include("Analysis/WholeCellAnalysis.jl")
+export calculate_threshold
+export get_timestamps
+export max_interval_algorithim
+export timescale_analysis
 
 end
