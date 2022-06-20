@@ -29,9 +29,11 @@ include("Utilities/ExperimentUtilities.jl")
 include("Utilities/DataUtilities.jl")
 export truncate_data, truncate_data!
 
+#=Add filtering capability=#
+using Polynomials, DSP
 include("Analysis/Filtering.jl")
 #export filter_data #Don't export this one explicitly
-export baseline_cancel, baseline_cancel!
+export baseline_adjust, baseline_adjust!
 export lowpass_filter, lowpass_filter!
 export highpass_filter, highpass_filter!
 export notch_filter, notch_filter!
