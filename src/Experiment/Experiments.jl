@@ -29,7 +29,7 @@ import Base: +, -, *, / #Import these basic functions to help
 *(trace::Experiment, val::Real) = trace.data_array = trace.data_array .* val
 /(trace::Experiment, val::Real) = trace.data_array = trace.data_array ./ val
 #if the value provided is different
-function /(trace::Experiment{T}, vals::Matrix{T}) where T<:Real
+function /(trace::Experiment{T}, vals::Matrix{T}) where {T<:Real}
     #This function has not been worked out yet
     if size(trace, 1) == size(vals, 1) && size(trace, 3) == size(vals, 2) #Sweeps and channels of divisor match
         println("Both Sweeps and channels")
@@ -96,25 +96,25 @@ maximum(trace::Experiment; kwargs...) = maximum(trace.data_array; kwargs...)
 
 cumsum(trace::Experiment; kwargs...) = cumsum(trace.data_array; kwargs...)
 
-argmin(trace::Experiment; dims = 2) = argmin(trace.data_array, dims = dims)
+argmin(trace::Experiment; dims=2) = argmin(trace.data_array, dims=dims)
 
-argmax(trace::Experiment; dims = 2) = argmax(trace.data_array, dims = dims)
+argmax(trace::Experiment; dims=2) = argmax(trace.data_array, dims=dims)
 
-function push!(nt::Experiment{T}, item::AbstractArray{T}; new_name = "Unnamed") where {T<:Real}
+function push!(nt::Experiment{T}, item::AbstractArray{T}; new_name="Unnamed") where {T<:Real}
 
     #All of these options assume the new data point length matches the old one
     if size(item, 2) == size(nt, 2) && size(item, 3) == size(nt, 3)
         #item = (new_sweep, datapoints, channels)
-        nt.data_array = cat(nt.data_array, item, dims = 1)
+        nt.data_array = cat(nt.data_array, item, dims=1)
 
     elseif size(item, 1) == size(nt, 2) && size(item, 2) == size(nt, 3)
         #item = (datapoints, channels) aka a single sweep
         item = reshape(item, 1, size(item, 1), size(item, 2))
-        nt.data_array = cat(nt.data_array, item, dims = 1)
+        nt.data_array = cat(nt.data_array, item, dims=1)
 
     elseif size(item, 1) == size(nt, 1) && size(item, 2) == size(nt, 2)
         #item = (sweeps, datapoints, new_channels) 
-        nt.data_array = cat(nt.data_array, item, dims = 3)
+        nt.data_array = cat(nt.data_array, item, dims=3)
         #Because we are adding in a new channel, add the channel name
         push!(nt.chNames, new_name)
 
