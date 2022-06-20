@@ -1,9 +1,5 @@
 using PhysAnalysis
 
-print("Opening data: ")
-test_file = "test/to_analyze.abf"
-@time data = readABF(test_file);
-
 println("Testing baseline adjust... ")
 print("Inplace completed: ")
 @time baseline_adjust!(data);
