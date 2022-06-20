@@ -1,3 +1,6 @@
+import ABFReader.readABFInfo #We will get all the information for the abf files here
+import ABFReader.getWaveform #This is used for getting the waveform
+
 """
     julia> using NeuroPhys
     julia> target_path1 = "test\\to_filter.abf"
@@ -79,7 +82,7 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
         stim_protocol_by_sweep = Vector{StimulusProtocol{Float64}}([stim_protocol_by_sweep[1]])
     end
     #With our new file structure we probably need to reorganize this a bit
-    #return Experiment(abfInfo, dt, t, data, ch_names, ch_units, ch_telegraph, stim_protocol_by_sweep)
+    return Experiment(abfInfo, dt, t, data, ch_names, ch_units, ch_telegraph, stim_protocol_by_sweep)
 end
 
 readABF(abf_path::Union{String,Vector{UInt8}}; kwargs...) = readABF(Float64, abf_path; kwargs...)
