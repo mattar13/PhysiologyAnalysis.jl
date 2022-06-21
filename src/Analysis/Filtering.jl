@@ -11,21 +11,21 @@ This function adjusts the baseline, similar to how it is done in clampfit.
     - (start, end) -> a custom region
 It catches the baseline if the stimulus is at the beginning of the 
     """
-function baseline_adjust(trace::Experiment; mode::Symbol = :slope, region = :prestim)
+function baseline_adjust(trace::Experiment; mode::Symbol=:slope, region=:prestim)
     data = deepcopy(trace)
     if isempty(trace.stim_protocol)
         #println("No Stim protocol exists")
         return data
     else
-        for swp in 1:size(trace,1)
-            if isa(region, Tuple{Float64, Float64})
-                rng_begin = round(Int, region[1]/trace.dt)+1
+        for swp in 1:size(trace, 1)
+            if isa(region, Tuple{Float64,Float64})
+                rng_begin = round(Int, region[1] / trace.dt) + 1
                 if region[2] > trace.t[end]
                     rng_end = length(trace.t)
                 else
-                    rng_end = round(Int, region[2]/trace.dt)+1
+                    rng_end = round(Int, region[2] / trace.dt) + 1
                 end
-            elseif isa(region, Tuple{Int64, Int64})
+            elseif isa(region, Tuple{Int64,Int64})
                 rng_begin, rng_end = region
             elseif region == :whole
                 rng_begin = 1
@@ -34,12 +34,12 @@ function baseline_adjust(trace::Experiment; mode::Symbol = :slope, region = :pre
                 rng_begin = 1
                 rng_end = trace.stim_protocol[swp].index_range[1] #Get the first stimulus index
             end
-            for ch in 1:size(trace,3)
+            for ch in 1:size(trace, 3)
                 if mode == :mean
                     if (rng_end - rng_begin) != 0
-                        baseline_adjust = sum(trace.data_array[swp, rng_begin:rng_end, ch])/(rng_end-rng_begin)
+                        baseline_adjust = sum(trace.data_array[swp, rng_begin:rng_end, ch]) / (rng_end - rng_begin)
                         #Now subtract the baseline scaling value
-                        data.data_array[swp,:, ch] .= trace.data_array[swp,:,ch] .- baseline_adjust
+                        data.data_array[swp, :, ch] .= trace.data_array[swp, :, ch] .- baseline_adjust
                     else
                         if verbose
                             #println("no pre-stimulus range exists")
@@ -47,7 +47,7 @@ function baseline_adjust(trace::Experiment; mode::Symbol = :slope, region = :pre
                     end
                 elseif mode == :slope
                     if (rng_end - rng_begin) != 0
-                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end , ch], 1)
+                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end, ch], 1)
                         #Now offset the array by the linear range
                         data.data_array[swp, :, ch] .= trace[swp, :, ch] - pfit.(trace.t)
                     else
@@ -60,19 +60,19 @@ function baseline_adjust(trace::Experiment; mode::Symbol = :slope, region = :pre
     end
 end
 
-function baseline_adjust!(trace::Experiment; mode::Symbol = :slope, region = :prestim)
+function baseline_adjust!(trace::Experiment; mode::Symbol=:slope, region=:prestim)
     if isempty(trace.stim_protocol)
         #println("No stim protocol exists")
     else
-        for swp in 1:size(trace,1)
-            if isa(region, Tuple{Float64, Float64})
-                rng_begin = round(Int, region[1]/trace.dt)+1
+        for swp in 1:size(trace, 1)
+            if isa(region, Tuple{Float64,Float64})
+                rng_begin = round(Int, region[1] / trace.dt) + 1
                 if region[2] > trace.t[end]
                     rng_end = length(trace.t)
                 else
-                    rng_end = round(Int, region[2]/trace.dt)+1
+                    rng_end = round(Int, region[2] / trace.dt) + 1
                 end
-            elseif isa(region, Tuple{Int64, Int64})
+            elseif isa(region, Tuple{Int64,Int64})
                 rng_begin, rng_end = region
             elseif region == :whole
                 rng_begin = 1
@@ -81,19 +81,19 @@ function baseline_adjust!(trace::Experiment; mode::Symbol = :slope, region = :pr
                 rng_begin = 1
                 rng_end = trace.stim_protocol[swp].index_range[1] #Get the first stimulus index
             end
-            for ch in 1:size(trace,3)
+            for ch in 1:size(trace, 3)
                 if mode == :mean
                     if (rng_end - rng_begin) != 0
-                        baseline_adjust = sum(trace.data_array[swp, rng_begin:rng_end, ch])/(rng_end-rng_begin)
+                        baseline_adjust = sum(trace.data_array[swp, rng_begin:rng_end, ch]) / (rng_end - rng_begin)
                         #Now subtract the baseline scaling value
-                        trace.data_array[swp,:, ch] .= trace.data_array[swp,:,ch] .- baseline_adjust
+                        trace.data_array[swp, :, ch] .= trace.data_array[swp, :, ch] .- baseline_adjust
                     else
                         #println("no pre-stimulus range exists")
                     end
                 elseif mode == :slope
                     #println(rng_begin)
                     if (rng_end - rng_begin) != 0 # && rng_begin != 1
-                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end , ch], 1)
+                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end, ch], 1)
                         #Now offset the array by the linear range
                         trace.data_array[swp, :, ch] .= trace[swp, :, ch] - pfit.(trace.t)
                     else
@@ -111,90 +111,90 @@ end
 """
 This function applies a n-pole lowpass filter
 """
-function lowpass_filter(trace::Experiment; freq = 40.0, pole = 8)
-    
-    responsetype = Lowpass(freq; fs =  1/trace.dt)
+function lowpass_filter(trace::Experiment; freq=40.0, pole=8)
+
+    responsetype = Lowpass(freq; fs=1 / trace.dt)
     designmethod = Butterworth(8)
     digital_filter = digitalfilter(responsetype, designmethod)
     data = deepcopy(trace)
-    for swp in 1:size(trace,1)
-        for ch in 1:size(trace,3)
-        #never adjust the stim
-            data.data_array[swp,:,ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
-    end
-    return data
-end
-
-function lowpass_filter!(trace::Experiment; freq = 40.0, pole = 8)
-    
-    responsetype = Lowpass(freq; fs =  1/trace.dt)
-    designmethod = Butterworth(pole)
-    digital_filter = digitalfilter(responsetype, designmethod)
-    for swp in 1:size(trace,1)
-        for ch in 1:size(trace,3)
-            trace.data_array[swp,:,ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
-    end
-end
-
-lowpass_filter(trace::Experiment, freq; pole = 8) = lowpass_filter(trace; freq = freq, pole = pole)
-
-function highpass_filter(trace::Experiment; freq = 40.0, pole = 8)
-    
-    responsetype = Highpass(freq; fs =  1/trace.dt)
-    designmethod = Butterworth(8)
-    digital_filter = digitalfilter(responsetype, designmethod)
-    data = deepcopy(trace)
-    for swp in 1:size(trace,1)
-        for ch in 1:size(trace,3)
-        #never adjust the stim
-            data.data_array[swp,:,ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
-    end
-    return data
-end
-
-function highpass_filter!(trace::Experiment; freq = 40.0, pole = 8)
-    
-    responsetype = Highpass(freq; fs =  1/trace.dt)
-    designmethod = Butterworth(pole)
-    digital_filter = digitalfilter(responsetype, designmethod)
-    for swp in 1:size(trace,1)
-        for ch in 1:size(trace,3)
-            trace.data_array[swp,:,ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
-    end
-end
-
-highpass_filter(trace::Experiment, freq; pole = 8) = highpass_filter(trace; freq = freq, pole = pole)
-
-function notch_filter(trace::Experiment; center = 60.0, std = 30.0)
-    digital_filter = iirnotch(center, std, fs = 1/trace.dt)
-    data = deepcopy(trace)
-    for swp in 1:size(trace,1)
-        for ch in 1:size(trace,3)
+    for swp in 1:size(trace, 1)
+        for ch in 1:size(trace, 3)
             #never adjust the stim
-            data.data_array[swp,:,ch] .= filt(digital_filter, trace[swp, :, ch])
+            data.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
         end
     end
     return data
 end
 
-function notch_filter!(trace::Experiment;  center = 60.0, std = 10.0)
-    digital_filter = iirnotch(center, std, fs = 1/trace.dt)
-    for swp in 1:size(trace,1)
-        for ch in 1:size(trace,3)
-            trace.data_array[swp,:,ch] .= filt(digital_filter, trace[swp, :, ch])
+function lowpass_filter!(trace::Experiment; freq=40.0, pole=8)
+
+    responsetype = Lowpass(freq; fs=1 / trace.dt)
+    designmethod = Butterworth(pole)
+    digital_filter = digitalfilter(responsetype, designmethod)
+    for swp in 1:size(trace, 1)
+        for ch in 1:size(trace, 3)
+            trace.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
         end
     end
 end
 
-function cwt_filter(trace::Experiment; wave = cDb2, β = 2, dual_window = NaiveDelta(), period_window::Tuple{Int64,Int64} = (1, 9))
+lowpass_filter(trace::Experiment, freq; pole=8) = lowpass_filter(trace; freq=freq, pole=pole)
+
+function highpass_filter(trace::Experiment; freq=40.0, pole=8)
+
+    responsetype = Highpass(freq; fs=1 / trace.dt)
+    designmethod = Butterworth(8)
+    digital_filter = digitalfilter(responsetype, designmethod)
+    data = deepcopy(trace)
+    for swp in 1:size(trace, 1)
+        for ch in 1:size(trace, 3)
+            #never adjust the stim
+            data.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
+        end
+    end
+    return data
+end
+
+function highpass_filter!(trace::Experiment; freq=40.0, pole=8)
+
+    responsetype = Highpass(freq; fs=1 / trace.dt)
+    designmethod = Butterworth(pole)
+    digital_filter = digitalfilter(responsetype, designmethod)
+    for swp in 1:size(trace, 1)
+        for ch in 1:size(trace, 3)
+            trace.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
+        end
+    end
+end
+
+highpass_filter(trace::Experiment, freq; pole=8) = highpass_filter(trace; freq=freq, pole=pole)
+
+function notch_filter(trace::Experiment; center=60.0, std=30.0)
+    digital_filter = iirnotch(center, std, fs=1 / trace.dt)
+    data = deepcopy(trace)
+    for swp in 1:size(trace, 1)
+        for ch in 1:size(trace, 3)
+            #never adjust the stim
+            data.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
+        end
+    end
+    return data
+end
+
+function notch_filter!(trace::Experiment; center=60.0, std=10.0)
+    digital_filter = iirnotch(center, std, fs=1 / trace.dt)
+    for swp in 1:size(trace, 1)
+        for ch in 1:size(trace, 3)
+            trace.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
+        end
+    end
+end
+
+function cwt_filter(trace::Experiment; wave=cDb2, β=2, dual_window=NaiveDelta(), period_window::Tuple{Int64,Int64}=(1, 9))
     data = deepcopy(trace)
     for swp = 1:size(trace, 1)
         for ch = 1:size(trace, 3)
-            c = wavelet(wave, β = β)
+            c = wavelet(wave, β=β)
             y = ContinuousWavelets.cwt(trace[swp, :, ch], c)
             reconstruct = zeros(size(y))
             reconstruct[:, period_window[1]:period_window[2]] .= y[:, period_window[1]:period_window[2]]
@@ -204,11 +204,11 @@ function cwt_filter(trace::Experiment; wave = cDb2, β = 2, dual_window = NaiveD
     data
 end
 
-function cwt_filter!(trace::Experiment; wave = cDb2, β::Int64 = 2, period_window::Tuple{Int64, Int64} = (1,9))
+function cwt_filter!(trace::Experiment; wave=cDb2, β::Int64=2, period_window::Tuple{Int64,Int64}=(1, 9))
 
     for swp = 1:size(trace, 1)
         for ch = 1:size(trace, 3)
-            c = wavelet(wave, β = β)
+            c = wavelet(wave, β=β)
             y = ContinuousWavelets.cwt(trace[swp, :, ch], c)
             reconstruct = zeros(size(y))
             reconstruct[:, period_window[1]:period_window[2]] .= y[:, period_window[1]:period_window[2]]
@@ -217,7 +217,7 @@ function cwt_filter!(trace::Experiment; wave = cDb2, β::Int64 = 2, period_windo
     end
 end
 
-function dwt_filter(trace::Experiment; wave = WT.db4, period_window::Tuple{Int64, Int64} = (1, 8))
+function dwt_filter(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,Int64}=(1, 8))
     #In this case we have to limit the analyis to the window of dyadic time
     #This means that we can only analyze sizes if they are equal to 2^dyadic
     data = deepcopy(trace)
@@ -241,17 +241,17 @@ This is from the adaptive line interface filter in the Clampfit manual
 
 This takes notch filters at every harmonic
 """
-function EI_filter(trace; reference_filter = 60.0, bandpass = 10.0, cycles = 5)
+function EI_filter(trace; reference_filter=60.0, bandpass=10.0, cycles=5)
     data = deepcopy(trace)
-    for cycle in 1:cycles 
-        notch_filter!(data, center = reference_filter*cycle, std = bandpass)
+    for cycle in 1:cycles
+        notch_filter!(data, center=reference_filter * cycle, std=bandpass)
     end
     return data
 end
 
-function EI_filter!(trace; reference_filter = 60.0, bandpass = 10.0, cycles = 5)
-    for cycle in 1:cycles 
-        notch_filter!(trace, center = reference_filter*cycle, std = bandpass)
+function EI_filter!(trace; reference_filter=60.0, bandpass=10.0, cycles=5)
+    for cycle in 1:cycles
+        notch_filter!(trace, center=reference_filter * cycle, std=bandpass)
     end
 end
 
@@ -260,41 +260,41 @@ end
 If the traces contain multiple runs, then this file averages the data
 """
 function average_sweeps(trace::Experiment)
-    
+
     data = deepcopy(trace)
-    for ch in 1:size(trace,3)
-        data[:,:,ch] .= sum(trace.data_array[:,:,ch], dims = 1)/size(trace,1)
+    for ch in 1:size(trace, 3)
+        data[:, :, ch] .= sum(trace.data_array[:, :, ch], dims=1) / size(trace, 1)
     end
     return data
 end
 
-average_sweeps!(trace::Experiment) = trace.data_array = sum(trace, dims = 1)/size(trace,1) 
+average_sweeps!(trace::Experiment) = trace.data_array = sum(trace, dims=1) / size(trace, 1)
 
-function normalize(trace::Experiment; rng = (-1,0))
+function normalize(trace::Experiment; rng=(-1, 0))
     data = deepcopy(trace)
-    for swp in 1:size(trace,1)
-        for ch in 1:size(trace,3)
-            data[swp,:,ch] .= (trace[swp,:,ch] ./ minimum(trace[swp,:,ch], dims = 2))
+    for swp in 1:size(trace, 1)
+        for ch in 1:size(trace, 3)
+            data[swp, :, ch] .= (trace[swp, :, ch] ./ minimum(trace[swp, :, ch], dims=2))
         end
     end
     return data
 end
 
-function normalize!(trace::Experiment; rng = (-1,0))
-    for swp in 1:size(trace,1)
-        for ch in 1:size(trace,3)
+function normalize!(trace::Experiment; rng=(-1, 0))
+    for swp in 1:size(trace, 1)
+        for ch in 1:size(trace, 3)
             if rng[1] < 0
-                trace.data_array[swp,:,ch] .= (trace[swp,:,ch] ./ minimum(trace[swp,:,ch], dims = 2))
+                trace.data_array[swp, :, ch] .= (trace[swp, :, ch] ./ minimum(trace[swp, :, ch], dims=2))
             else
-                trace.data_array[swp,:,ch] .= (trace[swp,:,ch] ./ maximum(trace[swp,:,ch], dims = 2))
+                trace.data_array[swp, :, ch] .= (trace[swp, :, ch] ./ maximum(trace[swp, :, ch], dims=2))
             end
         end
     end
 end
 
-function rolling_mean(trace::Experiment; window = 2)
+function rolling_mean(trace::Experiment; window=2)
     data = deepcopy(trace)
-    for swp in 1:size(trace,1), ch in 1:size(trace,3)
+    for swp in 1:size(trace, 1), ch in 1:size(trace, 3)
 
     end
 end
@@ -304,51 +304,51 @@ function fft_spectrum(data::Experiment)
     #FFTW filtering
     t = data.t
     dt = t[2] - t[1]
-    freqs = FFTW.fftfreq(length(t), 1.0/dt) |> fftshift
-    over_0 = findall(freqs .> 0);
+    freqs = FFTW.fftfreq(length(t), 1.0 / dt) |> fftshift
+    over_0 = findall(freqs .> 0)
     n_sweep, n_data, n_ch = size(data)
-	fft_data = zeros(Complex, n_sweep, n_data, n_ch)
-	for swp in 1:n_sweep
-		for ch in 1:n_ch
-			fft_data[swp, :, ch] = fft(data.data_array[swp, :, ch]) |> fftshift
-		end
-	end
-    return freqs[over_0], fft_data[:, over_0, :] 
+    fft_data = zeros(Complex, n_sweep, n_data, n_ch)
+    for swp in 1:n_sweep
+        for ch in 1:n_ch
+            fft_data[swp, :, ch] = fft(data.data_array[swp, :, ch]) |> fftshift
+        end
+    end
+    return freqs[over_0], fft_data[:, over_0, :]
 end
 
 #%% a common filter function for simplification. Remember that this is an inplace version
 function filter_data!(data::Experiment;
-        t_pre = 1.0, t_post = 4.0,
-        highpass = false, EI_bandpass = 100.0, lowpass = 300.0,
-        dwt_periods = false, #dwt_periods = (1,9),
-        cwt_periods = false, #cwt_periods = (1,9)
-    )
+    t_pre=1.0, t_post=4.0,
+    highpass=false, EI_bandpass=100.0, lowpass=300.0,
+    dwt_periods=false, #dwt_periods = (1,9),
+    cwt_periods=false #cwt_periods = (1,9)
+)
     #println(t_post)
-    truncate_data!(data, t_pre = t_pre, t_post = t_post)
-    baseline_cancel!(data, mode = :slope)
+    truncate_data!(data, t_pre=t_pre, t_post=t_post)
+    baseline_cancel!(data, mode=:slope)
 
     #We will apply several filters consecutively
     if highpass != false
-        highpass_filter!(data, freq = highpass) #Highpass 0.5hz
+        highpass_filter!(data, freq=highpass) #Highpass 0.5hz
     end
 
     if EI_bandpass != false
-        EI_filter!(data, bandpass = EI_bandpass) #adaptive line interference according to Clampfit
+        EI_filter!(data, bandpass=EI_bandpass) #adaptive line interference according to Clampfit
     end
 
     if lowpass != false
-        lowpass_filter!(data, freq = lowpass) #cutout all high frequency noise
+        lowpass_filter!(data, freq=lowpass) #cutout all high frequency noise
     end
 
     if cwt_periods != false
         data = cwt_filter(data;
-            period_window = cwt_periods
+            period_window=cwt_periods
         )
     end
 
     if dwt_periods != false
         data = dwt_filter(data;
-            period_window = dwt_periods
+            period_window=dwt_periods
         )
     end
 
@@ -356,17 +356,72 @@ function filter_data!(data::Experiment;
     return data
 end
 
-function filter_data(data::Experiment; kwargs...) 
+function filter_data(data::Experiment; kwargs...)
     data_copy = deepcopy(data)
     filter_data!(data_copy; kwargs...)
     return data_copy
 end
 
-function filter_data(data::Tuple{Experiment{T},Experiment{T}}; kwargs...) where T <: Real
+function filter_data(data::Tuple{Experiment{T},Experiment{T}}; kwargs...) where {T<:Real}
     data_copy = deepcopy(data[1])
     filter_data!(data_copy; kwargs...)
     return data_copy
 end
 
 
-cone_filter(data) = filter_data(data, t_pre = 1.0, t_post = 1.0) #This should put the data right in the middle of the cone stimuli(data, t_pre = 1.0, t_post = 1.0) #This should put the data right in the middle of the cone stimuli
+#This should put the data right in the middle of the cone stimuli(data, t_pre = 1.0, t_post = 1.0) #This should put the data right in the middle of the cone stimuli
+cone_filter(data) = filter_data(data, t_pre=1.0, t_post=1.0)
+
+"""
+These are common and typical data filtering functions
+"""
+function data_filter!(data::Experiment;
+    t_pre=1.0, t_post=4.0, truncate_based_on=:stimulus_beginning,
+    highpass=false, EI_bandpass=100.0, lowpass=300.0,
+    dwt_periods=false, #dwt_periods = (1,9),
+    cwt_periods=false #cwt_periods = (1,9)
+)
+    #println(t_post)
+    truncate_data!(data, t_pre=t_pre, t_post=t_post, truncate_based_on=truncate_based_on)
+    baseline_cancel!(data, mode=:slope)
+
+    #We will apply several filters consecutively
+    if highpass != false
+        highpass_filter!(data, freq=highpass) #Highpass 0.5hz
+    end
+
+    if EI_bandpass != false
+        EI_filter!(data, bandpass=EI_bandpass) #adaptive line interference according to Clampfit
+    end
+
+    if lowpass != false
+        lowpass_filter!(data, freq=lowpass) #cutout all high frequency noise
+    end
+
+    if cwt_periods != false
+        data = cwt_filter(data;
+            period_window=cwt_periods
+        )
+    end
+
+    if dwt_periods != false
+        data = dwt_filter(data;
+            period_window=dwt_periods
+        )
+    end
+
+    data * 1000
+    return data
+end
+
+function data_filter(data::Experiment; kwargs...)
+    data_copy = deepcopy(data)
+    data_filter!(data_copy; kwargs...)
+    return data_copy
+end
+
+function data_filter(data::Tuple{Experiment{T},Experiment{T}}; kwargs...) where {T<:Real}
+    data_copy = deepcopy(data[1])
+    data_filter!(data_copy; kwargs...)
+    return data_copy
+end
