@@ -44,11 +44,12 @@ export average_sweeps, average_sweeps!
 export normalize, normalize!
 
 #====================Import all the tools needed to analyze the data====================#
-using Distributions, StatsBase
 #First import models necessary for the analysis
+using RCall, StatsBase #These functions use R functions as well as StatsBase
 include("Analysis/Stats.jl")
 export RSQ
 
+using Distributions
 include("Analysis/Models.jl")
 include("Analysis/ERGAnalysis.jl")
 export calculate_basic_stats
