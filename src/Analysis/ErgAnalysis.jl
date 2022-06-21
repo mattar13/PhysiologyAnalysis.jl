@@ -93,42 +93,6 @@ function time_to_peak(data::Experiment{T}) where {T<:Real}
     data.t[lowest_val] .* 1000
 end
 
-#Pepperburg analysis
-"""
-This function conducts a Pepperburg analysis on a single data. 
-
-    Two dispatches are available. 
-    1) A rmax is provided, does not need to calculate rmaxes
-    2) No rmax is provided, so one is calculated
-"""
-function pepperburg_analysis(data::Experiment{T}, rmaxes::Array{T,1};
-    recovery_percent=0.60, kwargs...
-) where {T<:Real}
-    if size(data, 1) == 1
-        throw(error("Pepperburg will not work on single sweeps"))
-    end
-    r_rec = rmaxes .* recovery_percent
-    #try doing this  different way
-    t_dom = zeros(T, size(data, 1), size(data, 3))
-    for swp in 1:size(data, 1)
-        for ch in 1:size(data, 3)
-            not_recovered = findall(data[swp, :, ch] .< r_rec[ch])
-            if isempty(not_recovered)
-                #println("data never exceeded $(recovery_percent*100)% the Rmax")
-                t_dom[swp, ch] = NaN
-            elseif isempty(data.stim_protocol)
-                #println("No stimulus protocol exists")
-                t_dom[swp, ch] = data.t[not_recovered[end]]
-            else
-                t_dom[swp, ch] = data.t[not_recovered[end]] - data.t[data.stim_protocol[swp].index_range[1]]
-            end
-        end
-    end
-    t_dom
-end
-
-pepperburg_analysis(data::Experiment{T}; kwargs...) where {T<:Real} = pepperburg_analysis(data, saturated_response(data; kwargs...); kwargs...)
-
 """
 This function is the amount of time that a certain trace spends in a particular bandwith. 
     I think it will be similar to the pepperburg, So this may become that function
@@ -147,7 +111,7 @@ This function is the amount of time that a certain trace spends in a particular 
 """
 function percent_recovery_interval(data::Experiment{T}, rmaxes::Matrix{T}; iᵣ::T=0.50) where {T<:Real}
     #first we can normalize the data to a range
-    @assert size(data,3) == size(rmaxes, 1)
+    @assert size(data,3) == size(rmaxes, 2) #rmax data matches data channels
     #Tᵣ = fill(NaN, size(data,1), size(data,3))
     Tᵣ = zeros(size(data,1), size(data,3))
     for swp in 1:size(data, 1), ch in 1:size(data, 3)
@@ -164,6 +128,7 @@ function percent_recovery_interval(data::Experiment{T}, rmaxes::Matrix{T}; iᵣ:
     end
     return Tᵣ
 end
+
 """
 The integration time is fit by integrating the dim flash response and dividing it by the dim flash response amplitude
 - A key to note here is that the exact f(x) of the ERG data is not completely known
@@ -181,22 +146,12 @@ function integral(data::Experiment{T}) where {T<:Real}
 end
 
 # The below functions are created by fitting a model 
-"""
-# Recovery Time Constant (τRec)
 
-This function is a single exponential. 
-
-### Function usage
-[IN 1]:  Recovery(t, V⁰, τRec)
-
-[OUT 1]: Response  
-"""
-REC(t, V⁰, τRec) = V⁰ * exp(-t / τRec)
 
 """
-The dominant time constant is calculated by fitting the normalized Rdim with the response recovery equation
+The recovery time constant is calculated by fitting the normalized Rdim with the response recovery equation
 """
-function recovery_tau(data::Experiment{T}, resp::Union{T,Matrix{T}};
+function recovery_time_constant(data::Experiment{T}, resp::Union{T,Matrix{T}};
     τRec::T=1.0
 ) where {T<:Real}
     #Make sure the sizes are the same
@@ -245,33 +200,6 @@ function recovery_tau(data::Experiment{T}, resp::Union{T,Matrix{T}};
     end
     return trec, gofs
 end
-
-#Function to fit Amplification
-"""
-# Amplification 
-
-Amplification is a time series, therefore it is a function of time
-
-## The relationship is demonstrated by
-\$R = f(t)\$
-
-\$f(t) = R_{max}(1-e^{-\\alpha(t-t_{eff})^2})\$
-
-### Variables
-- R: The response is the dependent variable
-- t: Time is the independent variable.
-
-### Parameters
-- (\$t_{eff}\$): The effective time delay is a short delay between stimulus onset and response onset indicative of the biomolecuar diffusion rates
-- (\$\\alpha\$): The amplification coefficient  represents the rate of the response increases from the biomolecular processes. 
-
-### Function usage
-[IN 1]:  AMP(t, α, t_eff, rmax)
-
-[OUT 1]: Response
-
-"""
-AMP(t, α, t_eff, rmax) = t > t_eff ? rmax * (1 - exp(-α * (t - t_eff)^2)) : 0.0
 
 function amplification(data::Experiment{T}, resp::Union{T,Matrix{T}}; #This argument should be offloaded to a single value 
     time_cutoff=0.1,
