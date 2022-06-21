@@ -45,14 +45,19 @@ export normalize, normalize!
 
 #====================Import all the tools needed to analyze the data====================#
 using Distributions, StatsBase
-include("Analysis/ERGAnalysis.jl")
+#First import models necessary for the analysis
+include("Analysis/Stats.jl")
 export RSQ
+
+include("Analysis/Models.jl")
+include("Analysis/ERGAnalysis.jl")
 export calculate_basic_stats
-export saturated_response, dim_response, minima_to_peak, time_to_peak
+export saturated_response, dim_response
+export minima_to_peak, time_to_peak
+export percent_recovery_interval #This finds the dominant time constant
+export recovery_time_constant #This finds the recovery time constant
+export integral #This finds the integration time
 export get_response
-export pepperburg_analysis
-export integral
-export recovery_tau
 export amplification
 export curve_fit #curve fitting from LsqFit
 export IR_curve
