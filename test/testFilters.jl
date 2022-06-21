@@ -7,7 +7,10 @@ print("Function completed: ")
 @time data_baseline = baseline_adjust(data);
 println("Completed! ")
 
-
+print("Testing Truncate functions")
+@time data_trunc = truncate_data(data);
+print("Inplace: ")
+@time truncate_data!(data);
 println("Testing filtering functions.")
 
 print("Lowpass filter inplace:")
