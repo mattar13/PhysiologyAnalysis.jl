@@ -75,8 +75,8 @@ export max_interval_algorithim
 export timescale_analysis
 
 #========================================Plotting utilities========================================#
-using Plots, RecipesBase
-#using PyPlot, PyCall
+using Plots, RecipesBase #All the base utilities for plotting
+using PyPlot, PyCall #ALl the necessary utilites for PyPlots
 include("Plotting/PhysPlotting.jl")
 
 end
