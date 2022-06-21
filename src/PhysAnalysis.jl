@@ -80,6 +80,6 @@ using Plots, RecipesBase #All the base utilities for plotting
 using PyPlot, PyCall #ALl the necessary utilites for PyPlots
 using Colors, StatsPlots
 include("Plotting/PhysPlotting.jl")
-export plot
+export Plot.plot
 
 end
