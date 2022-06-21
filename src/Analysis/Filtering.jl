@@ -255,21 +255,6 @@ function EI_filter!(trace; reference_filter=60.0, bandpass=10.0, cycles=5)
     end
 end
 
-
-"""
-If the traces contain multiple runs, then this file averages the data
-"""
-function average_sweeps(trace::Experiment)
-
-    data = deepcopy(trace)
-    for ch in 1:size(trace, 3)
-        data[:, :, ch] .= sum(trace.data_array[:, :, ch], dims=1) / size(trace, 1)
-    end
-    return data
-end
-
-average_sweeps!(trace::Experiment) = trace.data_array = sum(trace, dims=1) / size(trace, 1)
-
 function normalize(trace::Experiment; rng=(-1, 0))
     data = deepcopy(trace)
     for swp in 1:size(trace, 1)

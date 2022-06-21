@@ -3,7 +3,7 @@ This function truncates the data based on the amount of time.
     In most cases we want to truncate this data by the start of the stimulus. 
     This is because the start of the stimulus should be the same response in all experiments. (0.0) 
 """
-function truncate_data(trace::Experiment; t_pre = 1.0, t_post = 4.0, truncate_based_on = :stimulus_beginning)
+function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, truncate_based_on=:stimulus_beginning)
     dt = trace.dt
     data = deepcopy(trace)
     size_of_array = 0
@@ -57,12 +57,12 @@ function truncate_data(trace::Experiment; t_pre = 1.0, t_post = 4.0, truncate_ba
             end
         end
         data.data_array = trace.data_array[:, 1:size_of_array, :] #remake the array with only the truncated data
-        data.t = range(-t_pre, t_post, length = size_of_array)
+        data.t = range(-t_pre, t_post, length=size_of_array)
         return data
     end
 end
 
-function truncate_data!(trace::Experiment; t_pre = 1.0, t_post = 4.0, truncate_based_on = :stimulus_beginning)
+function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, truncate_based_on=:stimulus_beginning)
     dt = trace.dt
     size_of_array = 0
     overrun_time = 0 #This is for if t_pre is set too far before the stimulus
@@ -78,7 +78,7 @@ function truncate_data!(trace::Experiment; t_pre = 1.0, t_post = 4.0, truncate_b
         println("No explicit stimulus has been set")
         size_of_array = round(Int64, t_post / dt)
         trace.data_array = trace.data_array[:, 1:size_of_array, :] #remake the array with only the truncated data
-        trace.t = range(0.0, t_post, length = size_of_array)
+        trace.t = range(0.0, t_post, length=size_of_array)
     else
         for swp = 1:size(trace, 1)
             stim_protocol = trace.stim_protocol[swp]
@@ -141,7 +141,7 @@ function truncate_data!(trace::Experiment; t_pre = 1.0, t_post = 4.0, truncate_b
         #while testing, don't change anything
         #println(size_of_array)
         trace.data_array = trace.data_array[:, 1:size_of_array, :] #remake the array with only the truncated data
-        trace.t = range(-t_pre + overrun_time, t_post, length = size_of_array)
+        trace.t = range(-t_pre + overrun_time, t_post, length=size_of_array)
     end
 end
 
@@ -151,7 +151,7 @@ end
 
 This function splits the data 
 """
-function split_data(exp::Experiment; split_by = :channel)
+function split_data(exp::Experiment; split_by=:channel)
     if split_by == :channel
         split_exp = Array{Experiment}([])
         for ch = 1:size(exp, 3)
@@ -168,3 +168,17 @@ function split_data(exp::Experiment; split_by = :channel)
 end
 
 exclude(A, exclusions) = A[filter(x -> !(x ∈ exclusions), eachindex(A))]
+
+"""
+If the traces contain multiple runs, then this file averages the data
+"""
+function average_sweeps(trace::Experiment)
+
+    data = deepcopy(trace)
+    for ch in 1:size(trace, 3)
+        data[:, :, ch] .= sum(trace.data_array[:, :, ch], dims=1) / size(trace, 1)
+    end
+    return data
+end
+
+average_sweeps!(trace::Experiment) = trace.data_array = sum(trace, dims=1) / size(trace, 1)
