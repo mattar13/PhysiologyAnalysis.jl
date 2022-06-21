@@ -1,5 +1,3 @@
-println("This module is exported")
-using RecipesBase
 """
 This function helps us to determine sweeps and channels in a layout for plotting
 """
