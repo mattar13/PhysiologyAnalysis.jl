@@ -1,3 +1,4 @@
+include("DefaultSettings.jl") #This imports all the default plotting settings for PyPlot
 """
 This function helps us to determine sweeps and channels in a layout for plotting
 """
