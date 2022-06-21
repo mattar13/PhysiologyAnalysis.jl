@@ -1,6 +1,6 @@
 module PhysAnalysis
 
-println("Testing package works")
+#println("Testing package works")
 #=================== Here are the imports from other files ===================#
 #using Statistics
 #using Polynomials
@@ -14,6 +14,7 @@ println("Testing package works")
 
 #======================Import all ABF extension imports======================#
 using ABFReader
+export parseABF
 
 #=======================Import all experiment objects=======================#
 include("Experiment/StimulusProtocol.jl")
@@ -43,6 +44,10 @@ export dwt_filter
 export average_sweeps, average_sweeps!
 export normalize, normalize!
 
+#===============================Import all Datasheet tools==============================#
+using DataFrames, Query, XLSX
+include("Datasheets/DatasheetFunctions.jl")
+
 #====================Import all the tools needed to analyze the data====================#
 #First import models necessary for the analysis
 using RCall, StatsBase #These functions use R functions as well as StatsBase
@@ -68,5 +73,10 @@ export calculate_threshold
 export get_timestamps
 export max_interval_algorithim
 export timescale_analysis
+
+#========================================Plotting utilities========================================#
+using Plots, RecipesBase
+#using PyPlot, PyCall
+include("Plotting/PhysPlotting.jl")
 
 end
