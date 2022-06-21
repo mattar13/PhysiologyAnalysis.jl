@@ -31,7 +31,8 @@ include("Utilities/DataUtilities.jl")
 export truncate_data, truncate_data!
 
 #=Add filtering capability=#
-using Polynomials, DSP
+using DSP
+import Polynomials
 include("Analysis/Filtering.jl")
 #export filter_data #Don't export this one explicitly
 export baseline_adjust, baseline_adjust!
@@ -77,6 +78,8 @@ export timescale_analysis
 #========================================Plotting utilities========================================#
 using Plots, RecipesBase #All the base utilities for plotting
 using PyPlot, PyCall #ALl the necessary utilites for PyPlots
+using Colors, StatsPlots
 include("Plotting/PhysPlotting.jl")
+export plot
 
 end
