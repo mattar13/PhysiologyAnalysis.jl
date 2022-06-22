@@ -2,15 +2,14 @@ module PhysAnalysis
 
 #println("Testing package works")
 #=================== Here are the imports from other files ===================#
-#using Statistics
-#using Polynomials
-#using Distributions
-#using StatsBase #Used for polynomial fitting
 #using LsqFit #Used for fitting amplification and Intensity Response models
 #using DSP
 #using ContinuousWavelets
 #using Wavelets
 #using FFTW #Used for filtering
+
+import RCall as R #This allows us to use some R functionality
+import PyCall as py #This allows us to use Python to call somethings (for )
 
 #======================Import all ABF extension imports======================#
 using ABFReader
@@ -32,7 +31,7 @@ export truncate_data, truncate_data!
 
 #=Add filtering capability=#
 using DSP
-import Polynomials
+import Polynomials as PN #Import this (there are a few functions that get in the way)
 include("Analysis/Filtering.jl")
 #export filter_data #Don't export this one explicitly
 export baseline_adjust, baseline_adjust!
@@ -51,7 +50,8 @@ include("Datasheets/DatasheetFunctions.jl")
 
 #====================Import all the tools needed to analyze the data====================#
 #First import models necessary for the analysis
-using RCall, StatsBase #These functions use R functions as well as StatsBase
+
+using StatsBase #These functions use R functions as well as StatsBase
 include("Analysis/Stats.jl")
 export RSQ
 
@@ -76,10 +76,7 @@ export max_interval_algorithim
 export timescale_analysis
 
 #========================================Plotting utilities========================================#
-using Plots, RecipesBase #All the base utilities for plotting
-using PyPlot, PyCall #ALl the necessary utilites for PyPlots
-using Colors, StatsPlots
 include("Plotting/PhysPlotting.jl")
-export Plot.plot
+export plot, plt
 
 end
