@@ -11,7 +11,7 @@ This function adjusts the baseline, similar to how it is done in clampfit.
     - (start, end) -> a custom region
 It catches the baseline if the stimulus is at the beginning of the 
     """
-function baseline_adjust(trace::Experiment; mode::Symbol=:slope, region=:prestim)
+function baseline_adjust(trace::Experiment; mode::Symbol=:slope, polyN = 1, region=:prestim)
     data = deepcopy(trace)
     if isempty(trace.stim_protocol)
         #println("No Stim protocol exists")
@@ -47,7 +47,7 @@ function baseline_adjust(trace::Experiment; mode::Symbol=:slope, region=:prestim
                     end
                 elseif mode == :slope
                     if (rng_end - rng_begin) != 0
-                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end, ch], 1)
+                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end, ch], polyN)
                         #Now offset the array by the linear range
                         data.data_array[swp, :, ch] .= trace[swp, :, ch] - pfit.(trace.t)
                     else
@@ -60,7 +60,7 @@ function baseline_adjust(trace::Experiment; mode::Symbol=:slope, region=:prestim
     end
 end
 
-function baseline_adjust!(trace::Experiment; mode::Symbol=:slope, region=:prestim)
+function baseline_adjust!(trace::Experiment; mode::Symbol=:slope, polyN = 1, region=:prestim)
     if isempty(trace.stim_protocol)
         #println("No stim protocol exists")
     else
@@ -93,7 +93,7 @@ function baseline_adjust!(trace::Experiment; mode::Symbol=:slope, region=:presti
                 elseif mode == :slope
                     #println(rng_begin)
                     if (rng_end - rng_begin) != 0 # && rng_begin != 1
-                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end, ch], 1)
+                        pfit = PN.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end, ch], polyN)
                         #Now offset the array by the linear range
                         trace.data_array[swp, :, ch] .= trace[swp, :, ch] - pfit.(trace.t)
                     else
