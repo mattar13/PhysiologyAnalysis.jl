@@ -1,5 +1,5 @@
 Plots.pyplot() #Switch the backend to pyplot
-pygui(true) #Make the GUI external to vscode
+plt.pygui(true) #Make the GUI external to vscode
 #@pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
 #@pyimport matplotlib.ticker as TICK #add the ticker interface
 #MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
@@ -8,7 +8,7 @@ pygui(true) #Make the GUI external to vscode
 #==============================These are the default parameters for plotting==============================#
 
 #print("Default plotting parameters loading... ")
-rcParams = PyDict(matplotlib["rcParams"])
+rcParams = py.PyDict(matplotlib["rcParams"])
 
 #Settings related the the DPI of the current plot interface
 rcParams["figure.dpi"] = 60 #This is used to display the plot
