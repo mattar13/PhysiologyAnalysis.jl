@@ -10,7 +10,7 @@ module PhysAnalysis
 
 import RCall as R #This allows us to use some R functionality
 import PyCall as py #This allows us to use Python to call somethings (for )
-
+export R, py
 #======================Import all ABF extension imports======================#
 using ABFReader
 export parseABF
@@ -77,6 +77,7 @@ export timescale_analysis
 
 #========================================Plotting utilities========================================#
 include("Plotting/PhysPlotting.jl")
-export plot, plt
+export plot, plot!
+export plt
 
 end
