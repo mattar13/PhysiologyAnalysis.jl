@@ -13,7 +13,8 @@ import PyCall as py #This allows us to use Python to call somethings (for )
 export R, py
 #======================Import all ABF extension imports======================#
 using ABFReader
-#export parseABF
+import parseABF
+export parseABF
 
 #=======================Import all experiment objects=======================#
 include("Experiment/StimulusProtocol.jl")
