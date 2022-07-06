@@ -70,7 +70,7 @@ export amplification
 export curve_fit #curve fitting from LsqFit
 export IR_curve
 
-include("Analysis/WholeCellAnalysis.jl")
+include("Analysis/TimescaleAnalysis.jl")
 export calculate_threshold
 export get_timestamps
 export max_interval_algorithim
