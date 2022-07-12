@@ -19,3 +19,4 @@ print("Finding the dominant time constant... ")
 println("Finding the integration time")
 @time int_time = integral(data);
 
+println("Extracting some patch clamp data")

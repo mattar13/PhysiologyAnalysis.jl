@@ -7,24 +7,29 @@ module ePhys
 #using ContinuousWavelets
 #using Wavelets
 #using FFTW #Used for filtering
-
+using Dates
+using Base: String, println
 import RCall as R #This allows us to use some R functionality
 import PyCall as py #This allows us to use Python to call somethings (for )
 export R, py
-#======================Import all ABF extension imports======================#
-using ABFReader
-export parseABF
 
 #=======================Import all experiment objects=======================#
 include("Experiment/StimulusProtocol.jl")
 include("Experiment/Experiments.jl") #This file contains the Experiment structure. 
 
+exp_readme = """
+Experiment contains all of the necessary things to define an experiment. 
+
+This must be included first before the files can be opened as it contains the base experiment object
+
+"""
+
+#======================Import all ABF extension imports======================#
+include("Readers/ABFReader/ABFReader.jl") 
+export readABF
+export parseABF
 
 #===============================ABF utilities===============================#
-include("OpeningFiles/OpeningABF.jl")
-export readABF
-
-
 include("Utilities/ExperimentUtilities.jl")
 include("Utilities/DataUtilities.jl")
 export truncate_data, truncate_data!
