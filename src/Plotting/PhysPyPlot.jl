@@ -1,3 +1,5 @@
+import PyCall.PyObject
+
 function plot_experiment(axis::PyObject, exp::Experiment;
     channel=1, axes_off=false, yaxes_off=false, xaxes_off=false,
     #cmap = nothing, cmap_direction = :sweeps,
@@ -8,7 +10,8 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     #        println(swp)
     #    end
     #else
-
+    axis.spines["top"].set_visible(false)
+    axis.spines["right"].set_visible(false)
     axis.plot(plot_prep(exp; channel=channel)...; kwargs...)
     if yaxes_off || axes_off
         axis.spines["left"].set_visible(false)
