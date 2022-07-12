@@ -1,6 +1,10 @@
-import ABFReader.readABFInfo #We will get all the information for the abf files here
-import ABFReader.getWaveform #This is used for getting the waveform
+include("ByteMaps.jl") #These functions deal with the bytemap extractions
+include("Epochs.jl") #These functions deal with the Epochs
+include("WaveformExtraction.jl") #This imports the bytemaps for extracting the waveforms
+include("ReadHeaders.jl")
+include("ReadABFInfo.jl")
 
+println("ABF utilites imported")
 """
     julia> using NeuroPhys
     julia> target_path1 = "test\\to_filter.abf"
@@ -96,4 +100,25 @@ function readABF(abf_folder::AbstractArray{String}; average_sweeps=false, kwargs
     end
 
     return data
+end
+
+
+"""
+This function walks through the directory tree and locates any .abf file. 
+The extension can be changed with the keyword argument extension
+"""
+function parseABF(super_folder::String; extension::String = ".abf", verbose = false)
+    file_list = String[]
+    for (root, dirs, files) in walkdir(super_folder)
+        for file in files
+            if file[end-3:end] == extension
+                path = joinpath(root, file)
+                if verbose
+                    println(path) # path to files
+                end
+                push!(file_list, path)
+            end
+        end
+    end
+    file_list
 end
