@@ -1,9 +1,11 @@
+import Base.NamedTuple
+
 date_regex = r"(?'Year'\d{2,4})_(?'Month'\d{1,2})_(?'Date'\d{1,2})_(?'Description'.+)"
 animal_regex = r"(?'Animal'\D+)(?'Number'\d)_(?'Age'.+)_(?'Genotype'.+)"
 nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
 
 
-function findmatch(str_array::Vector{String}, reg_format; verbose = false, first = true)
+function findmatch(str_array::Vector{String}, reg_format; verbose=false, first=true)
     matches = map(r -> match(reg_format, r), str_array)
     if any(!isnothing(matches))
         if verbose
@@ -20,3 +22,45 @@ function findmatch(str_array::Vector{String}, reg_format; verbose = false, first
         end
     end
 end
+
+function find_condition(str_array; possible_conds=["BaCl", "BaCl_LAP4", "NoDrugs"])
+    for cond in possible_conds
+        val = findall(str_array .== cond)
+        if !isempty(val)
+            cond = str_array[val]
+            return cond[1]
+        end
+    end
+end
+
+"""
+These functions keep only things parsed as the object T, which defaults to Int64
+"""
+filter_string(::Type{T}, str::String) where {T} = filter(!isnothing, map(c -> tryparse(T, c), split(str, ""))) |> join
+filter_string(str::String) = filter(!isnothing, map(c -> tryparse(Int64, c), split(str, ""))) |> join
+filter_string(::Type{T}, ::Nothing) where {T} = nothing
+
+"""
+This function takes a named tuple that contains numbers and cleans those numbers
+"""
+function parseNamedTuple(::Type{T}, nt::NamedTuple{keys}) where {T <: Real, keys}
+    nt_vals = [values(nt)...] #Fill nt_vals with the values of the NamedTuple
+    new_vals = []
+    for itm in nt_vals
+        if isa(itm, String) #If the item is not nothing
+            #We only want to parse the item if all of it is a number
+            val = tryparse(T, itm) #Try to parse the item as a Int64
+            if !isnothing(val)
+                push!(new_vals, val)
+            else
+                push!(new_vals, itm)
+            end
+        else
+            push!(new_vals, itm)
+        end
+    end
+    NamedTuple{keys}(new_vals)
+end
+
+#If no type is provided the namedtuple is parsed as a Int64
+parseNamedTuple(nt::NamedTuple{keys}) where {keys} = parseNamedTuple(Int64, nt)
