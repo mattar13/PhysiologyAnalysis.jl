@@ -1,4 +1,4 @@
-module PhysAnalysis
+module ePhys
 
 #println("Testing package works")
 #=================== Here are the imports from other files ===================#
@@ -13,7 +13,6 @@ import PyCall as py #This allows us to use Python to call somethings (for )
 export R, py
 #======================Import all ABF extension imports======================#
 using ABFReader
-import parseABF
 export parseABF
 
 #=======================Import all experiment objects=======================#
