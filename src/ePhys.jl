@@ -15,7 +15,7 @@ export R, py
 
 #=======================Import all experiment objects=======================#
 include("Experiment/StimulusProtocol.jl")
-include("Experiment/Experiments.jl") #This file contains the Experiment structure. 
+include("Experiment/experiments.jl") #This file contains the Experiment structure. 
 
 exp_readme = """
 Experiment contains all of the necessary things to define an experiment. 
@@ -37,7 +37,7 @@ export truncate_data, truncate_data!
 #=Add filtering capability=#
 using DSP
 import Polynomials as PN #Import this (there are a few functions that get in the way)
-include("Analysis/Filtering.jl")
+include("Filtering/filtering.jl")
 #export filter_data #Don't export this one explicitly
 export baseline_adjust, baseline_adjust!
 export lowpass_filter, lowpass_filter!
@@ -56,7 +56,7 @@ include("Datasheets/DatasheetFunctions.jl")
 #====================Import all the tools needed to analyze the data====================#
 #First import models necessary for the analysis
 
-using StatsBase #These functions use R functions as well as StatsBase
+using Statistics, StatsBase #These functions use R functions as well as StatsBase
 include("Analysis/Stats.jl")
 export RSQ
 
