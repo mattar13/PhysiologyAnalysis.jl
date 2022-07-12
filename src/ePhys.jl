@@ -7,6 +7,7 @@ module ePhys
 #using ContinuousWavelets
 #using Wavelets
 #using FFTW #Used for filtering
+using Requires #This will help us load only the things we need
 using Dates
 using Base: String, println
 import RCall as R #This allows us to use some R functionality
@@ -38,6 +39,7 @@ export truncate_data, truncate_data!
 using DSP
 import Polynomials as PN #Import this (there are a few functions that get in the way)
 include("Filtering/filtering.jl")
+include("Filtering/filteringPipelines.jl")
 #export filter_data #Don't export this one explicitly
 export baseline_adjust, baseline_adjust!
 export lowpass_filter, lowpass_filter!
