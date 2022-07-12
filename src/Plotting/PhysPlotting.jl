@@ -9,3 +9,4 @@ include("PhysRecipes.jl")
 #include("PhysPyPlot.jl") #Imports all the PyPlot utilities
 
 export plt #Export plotting utilities
+export plot_experiment
