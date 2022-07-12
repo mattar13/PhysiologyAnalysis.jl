@@ -3,14 +3,6 @@
 julia_version = "1.7.1"
 manifest_format = "2.0"
 
-[[deps.ABFReader]]
-deps = ["Dates"]
-git-tree-sha1 = "6475768f901276e7ee70bca288c0d14d1e7a4032"
-repo-rev = "master"
-repo-url = "https://github.com/mattar13/ABFReader"
-uuid = "0612f44b-defb-466c-a561-fff8bd3ecefc"
-version = "0.1.0"
-
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
 git-tree-sha1 = "6f1d9bc1c08f9f4a8fa92e3ea3cb50153a1b40d4"
