@@ -4,8 +4,7 @@ module ePhys
 #=================== Here are the imports from other files ===================#
 #using LsqFit #Used for fitting amplification and Intensity Response models
 #using DSP
-#using ContinuousWavelets
-#using Wavelets
+
 #using FFTW #Used for filtering
 using Requires #This will help us load only the things we need
 using Dates
@@ -40,6 +39,7 @@ export truncate_data, truncate_data!
 using DSP
 import Polynomials as PN #Import this (there are a few functions that get in the way)
 using FFTW #This is for the FFT spectrum
+using ContinuousWavelets, Wavelets
 include("Filtering/filtering.jl")
 include("Filtering/filteringPipelines.jl")
 #export filter_data #Don't export this one explicitly
