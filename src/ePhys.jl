@@ -39,6 +39,7 @@ export truncate_data, truncate_data!
 #=Add filtering capability=#
 using DSP
 import Polynomials as PN #Import this (there are a few functions that get in the way)
+using FFTW #This is for the FFT spectrum
 include("Filtering/filtering.jl")
 include("Filtering/filteringPipelines.jl")
 #export filter_data #Don't export this one explicitly
