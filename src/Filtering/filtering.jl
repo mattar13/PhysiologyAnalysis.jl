@@ -220,7 +220,7 @@ end
 """
 
 """
-function dwt_filter(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,Int64}=(1, 8), direction = :forward)
+function dwt_filter(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,Int64}=(1, 8), direction = :bidirectional)
     #In this case we have to limit the analyis to the window of dyadic time
     #This means that we can only analyze sizes if they are equal to 2^dyadic
     #We can fix this by taking a 
