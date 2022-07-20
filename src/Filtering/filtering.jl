@@ -217,21 +217,53 @@ function cwt_filter!(trace::Experiment; wave=cDb2, β::Int64=2, period_window::T
     end
 end
 
-function dwt_filter(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,Int64}=(1, 8))
+"""
+
+"""
+function dwt_filter(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,Int64}=(1, 8), direction = :forward)
     #In this case we have to limit the analyis to the window of dyadic time
     #This means that we can only analyze sizes if they are equal to 2^dyadic
+    #We can fix this by taking a 
     data = deepcopy(trace)
     dyad_n = trunc(Int64, log(2, size(data, 2)))
+    println(2^dyad_n)
+    println(length(trace.t) - 2^dyad_n+1)
     if period_window[2] > dyad_n
         println("Period Window larger than dyad")
         period_window = (period_window[1], dyad_n)
     end
     for swp = 1:size(data, 1), ch = 1:size(data, 3)
-        x = data[swp, 1:2^dyad_n, ch]
-        xt = dwt(x, wavelet(wave), dyad_n)
-        reconstruct = zeros(size(xt))
-        reconstruct[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
-        data.data_array[swp, 1:2^dyad_n, ch] .= idwt(reconstruct, wavelet(wave))
+        if direction == :forward
+            x = data[swp, 1:2^dyad_n, ch]
+            xt = dwt(x, wavelet(wave), dyad_n)
+            reconstruct = zeros(size(xt))
+            reconstruct[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
+            data.data_array[swp, 1:2^dyad_n, ch] .= idwt(reconstruct, wavelet(wave))
+        elseif direction == :reverse
+            start_idx = length(trace.t) - (2^dyad_n) + 1
+        
+            x = data[swp, start_idx:length(data), ch]
+            xt = dwt(x, wavelet(wave), dyad_n)
+            reconstruct = zeros(size(xt))
+            reconstruct[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
+            data.data_array[swp, start_idx:length(data), ch] .= idwt(reconstruct, wavelet(wave))
+        elseif direction == :bidirectional
+            #do the reconstruction in the forward direction
+            x = data[swp, 1:2^dyad_n, ch]
+            xt = dwt(x, wavelet(wave), dyad_n)
+            reconstruct_for = zeros(size(xt))
+            reconstruct_for[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
+        
+            #Do the reconstruction in the reverse direction
+            start_idx = length(trace.t) - (2^dyad_n) + 1
+            x = data[swp, start_idx:length(data), ch]
+            xt = dwt(x, wavelet(wave), dyad_n)
+            reconstruct_rev = zeros(size(xt))
+            reconstruct_rev[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
+        
+            data.data_array[swp, start_idx:length(data), ch] .= idwt(reconstruct_rev, wavelet(wave)) #We want to do reverse first 
+            data.data_array[swp, 1:start_idx-1, ch] .= idwt(reconstruct_for, wavelet(wave))[1:start_idx-1] #And use the forward to fill in the first chunk
+        end
     end
     data
 end
