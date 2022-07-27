@@ -1,5 +1,5 @@
 using ePhys
 
-include("testABF.jl") #Test the opening and data analysis of ABF files
+include("testABF.jl") #This file opens .abf files in julia
 include("testFilters.jl")
 include("testAnalysis.jl")
