@@ -1,16 +1,12 @@
-using ePhys
-
 #First we can test opening the files.
 print("Testing opening the files... ")
 test_file = "test/to_analyze.abf"
 @time data = readABF(test_file);
 #Test opening different test_files
 println("Completed")
-
+filtered_data = ePhys.dwt_filter(data, direction = :reverse)
 
 data2 = readABF(test_file; channels=["Vm_prime", "Vm_prime4"]);
-
-
 #=println("Testing base functionality of ABF extraction")
 abf_1swp = ePhys.readABFInfo(target_path1)
 abf_12swp = ePhys.readABFInfo(target_path2)
