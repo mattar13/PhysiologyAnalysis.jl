@@ -182,3 +182,22 @@ function average_sweeps(trace::Experiment)
 end
 
 average_sweeps!(trace::Experiment) = trace.data_array = sum(trace, dims=1) / size(trace, 1)
+
+function downsample(trace::Experiment{T}, sample_rate::T) where T <: Real
+    data = deepcopy(trace)
+    new_dt = 1 / sample_rate
+    data.dt = new_dt
+
+    data.t = trace.t[1]:new_dt:trace.t[end]
+    new_data_idxs = round.(Int64, data.t ./ trace.dt).+1
+    data.data_array = trace.data_array[:, new_data_idxs, :]
+    return data
+end
+
+function downsample!(trace::Experiment{T}, sample_rate::T) where {T<:Real}
+    new_dt = 1 / sample_rate
+    new_data_idxs = round.(Int64, trace.t ./ trace.dt) .+ 1
+    trace.dt = new_dt
+    trace.t = trace.t[1]:new_dt:trace.t[end]
+    trace.data_array = trace.data_array[:, new_data_idxs, :]
+end

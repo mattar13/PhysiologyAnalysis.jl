@@ -34,7 +34,7 @@ export parseABF
 include("Utilities/ExperimentUtilities.jl")
 include("Utilities/DataUtilities.jl")
 export truncate_data, truncate_data!
-
+export downsample, downsample!
 #=Add filtering capability=#
 using DSP
 import Polynomials as PN #Import this (there are a few functions that get in the way)
