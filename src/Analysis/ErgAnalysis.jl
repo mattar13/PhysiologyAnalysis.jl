@@ -1,4 +1,21 @@
 """
+    calculate_threshold(vm_arr::AbstractArray; Z = 4, dims = -1)
+
+Finds the threshold of a trace by calculating the average and then adding the 4x the standard deviation. 
+If using a differential solution, make sure dt is set, otherwise the standard deviation will be unevenly sampled
+"""
+function calculate_threshold(x::Array{T, N}; Z::T = 4.0, dims = -1) where {T <: Real, N}
+    if dims == -1
+        return [sum(x)/length(x) + Z*std(x)]
+    else
+        n = size(x, dims)
+        mean = sum(x, dims = dims)./n
+        dev = Z * std(x, dims = dims)
+        return mean + dev #We want these all to come out as vectors vs matrices
+    end
+end
+
+"""
 This is useful for finding sequences of items. Requires a bitvector
 """
 function findsequential(sequence::BitVector; seq_to_find=:all)
