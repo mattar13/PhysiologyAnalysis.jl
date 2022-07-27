@@ -67,7 +67,10 @@ function get_timestamps(tseries::Vector{T}, spike_array::Array{Bool,N}; dim=2) w
     return tstamps
 end
 
+get_timestamps(trng::StepRangeLen{T,Base.TwicePrecision{T},Base.TwicePrecision{T}}, spike_array::Array{Bool, N}) where {T<:Real, N} = get_timestamps(collect(trng), spike_array)
 
+
+#get_timestamps()
 
 function extract_interval(timestamps::Matrix{T};
     max_duration=10e5, max_interval=10e5,
@@ -303,6 +306,7 @@ function timeseries_analysis(t, vm_array;
         return timestamps, data
     end
 end
+
 
 
 function timeseries_analysis(t::AbstractArray{T}, vm_array::Array{T,N}, save_file::String;
