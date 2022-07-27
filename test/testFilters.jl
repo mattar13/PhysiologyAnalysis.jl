@@ -1,5 +1,3 @@
-using ePhys
-
 println("Testing baseline adjust... ")
 print("Inplace completed: ")
 @time baseline_adjust!(data);
