@@ -26,7 +26,7 @@ This must be included first before the files can be opened as it contains the ba
 """
 
 #======================Import all ABF extension imports======================#
-include("Readers/ABFReader/ABFReader.jl") 
+include("Readers/ABFReader/ABFReader.jl")
 export readABF
 export parseABF
 
@@ -41,7 +41,7 @@ import Polynomials as PN #Import this (there are a few functions that get in the
 using FFTW #This is for the FFT spectrum
 using ContinuousWavelets, Wavelets
 include("Filtering/filtering.jl")
-include("Filtering/filteringPipelines.jl")
+#include("Filtering/filteringPipelines.jl") #Not ready to uncomment this one yet
 #export filter_data #Don't export this one explicitly
 export baseline_adjust, baseline_adjust!
 export lowpass_filter, lowpass_filter!
@@ -67,7 +67,7 @@ export RSQ
 using Distributions
 include("Analysis/Models.jl")
 include("Analysis/ERGAnalysis.jl")
-export calculate_basic_stats
+#export calculate_basic_stats
 export saturated_response, dim_response
 export minima_to_peak, time_to_peak
 export percent_recovery_interval #This finds the dominant time constant
@@ -77,12 +77,12 @@ export get_response
 export amplification
 export curve_fit #curve fitting from LsqFit
 export IR_curve
+export calculate_threshold
 
 include("Analysis/TimescaleAnalysis.jl")
-export calculate_threshold
-export get_timestamps
-export max_interval_algorithim
-export timescale_analysis
+
+export get_timestamps, extract_interval
+export max_interval_algorithim, timeseries_analysis
 
 #========================================Plotting utilities========================================#
 include("Plotting/PhysPlotting.jl")
