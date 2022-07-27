@@ -79,6 +79,7 @@ export curve_fit #curve fitting from LsqFit
 export IR_curve
 export calculate_threshold
 
+using JLD2
 include("Analysis/TimescaleAnalysis.jl")
 
 export get_timestamps, extract_interval

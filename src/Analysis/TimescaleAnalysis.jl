@@ -197,19 +197,16 @@ end
 
 function max_interval_algorithim(timestamp_arr::VecOrMat{Matrix{T}}; reshape_back=true, kwargs...) where {T<:Real}
     n_sizes = size(timestamp_arr)
+    n_flat = *(n_sizes...)
+    bursts = Vector{Matrix{T}}(undef, n_flat)
+    spd = Vector{Vector{T}}(undef, n_flat)
     if length(n_sizes) > 1
-        n_flat = *(n_sizes...)
         resize_arr = reshape(timestamp_arr, n_flat)
-        bursts = Vector{Matrix{T}}(undef, n_flat)
-        spd = Vector{Vector{T}}(undef, n_flat)
     else
         #We don't need to reshape the array back since it is only 1D
         reshape_back = false
         resize_arr = timestamp_arr
-        bursts = Matrix{T}[]
-        spd = T[]
     end
-    #println(bursts)
     for idx in 1:length(timestamp_arr)
         if isassigned(timestamp_arr, idx)
             result = max_interval_algorithim(resize_arr[idx]; kwargs...)
@@ -217,7 +214,6 @@ function max_interval_algorithim(timestamp_arr::VecOrMat{Matrix{T}}; reshape_bac
             spd[idx] = (result[2])
         end
     end
-    #println(bursts)
     if reshape_back
         return reshape(bursts, n_sizes...), reshape(spd, n_sizes...)
     else
@@ -309,6 +305,7 @@ end
 
 
 
+#Eventually I will add a @require loop here
 function timeseries_analysis(t::AbstractArray{T}, vm_array::Array{T,N}, save_file::String;
     tstamps_name="timestamps", data_name="data",
     verbose=false,
