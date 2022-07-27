@@ -67,7 +67,7 @@ function get_timestamps(tseries::Vector{T}, spike_array::Array{Bool,N}; dim=2) w
     return tstamps
 end
 
-get_timestamps(trng::StepRangeLen{T,Base.TwicePrecision{T},Base.TwicePrecision{T}}, spike_array::Array{Bool, N}) where {T<:Real, N} = get_timestamps(collect(trng), spike_array)
+get_timestamps(trng::StepRangeLen{T,P,P}, spike_array::Array{Bool, N}) where {T<:Real, P, N} = get_timestamps(collect(trng), spike_array)
 
 
 #get_timestamps()
