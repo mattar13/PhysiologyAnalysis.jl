@@ -2,7 +2,6 @@ module ePhys
 
 #println("Testing package works")
 #=================== Here are the imports from other files ===================#
-#using LsqFit #Used for fitting amplification and Intensity Response models
 #using DSP
 
 #using FFTW #Used for filtering
@@ -35,8 +34,10 @@ include("Utilities/ExperimentUtilities.jl")
 include("Utilities/DataUtilities.jl")
 export truncate_data, truncate_data!
 export downsample, downsample!
+export split_data
 #=Add filtering capability=#
 using DSP
+using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 import Polynomials as PN #Import this (there are a few functions that get in the way)
 using FFTW #This is for the FFT spectrum
 using ContinuousWavelets, Wavelets
@@ -51,8 +52,17 @@ export EI_filter, EI_filter!
 export cwt_filter, cwt_filter!
 export dwt_filter
 export average_sweeps, average_sweeps!
+export rolling_mean
 export normalize, normalize!
 
+include("Fitting/fitting.jl")
+export MeanSquaredError
+
+using DifferentialEquations #This can be changed to @require later
+using DiffEqParamEstim, Optim
+
+include("Filtering/artifactRemoval.jl")
+export RCArtifact
 #===============================Import all Datasheet tools==============================#
 using DataFrames, Query, XLSX
 include("Datasheets/DatasheetFunctions.jl")
@@ -88,6 +98,6 @@ export max_interval_algorithim, timeseries_analysis
 #========================================Plotting utilities========================================#
 include("Plotting/PhysPlotting.jl")
 export plot, plot!
-export plt
+export plt, Colors
 
 end
