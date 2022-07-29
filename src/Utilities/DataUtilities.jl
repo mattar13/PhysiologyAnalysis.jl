@@ -164,24 +164,33 @@ function split_data(exp::Experiment; split_by=:channel)
             push!(split_exp, new_data)
         end
         split_exp
+    elseif split_by == :sweep
+        split_exp = Array{Experiment}([])
+        for ch = 1:size(exp, 1)
+            new_data = deepcopy(exp)
+            split_trace = reshape(exp[:, :, ch], (size(exp, 1), size(exp, 2), 1))
+            println(size(split_trace))
+            new_data.data_array = split_trace
+            new_data.chNames = [exp.chNames[ch]]
+            new_data.chUnits = [exp.chUnits[ch]]
+            push!(split_exp, new_data)
+        end
+        split_exp
     end
 end
 
 exclude(A, exclusions) = A[filter(x -> !(x ∈ exclusions), eachindex(A))]
 
+average_sweeps!(trace::Experiment) = trace.data_array = sum(trace, dims=1) / size(trace, 1)
+
 """
 If the traces contain multiple runs, then this file averages the data
 """
 function average_sweeps(trace::Experiment)
-
     data = deepcopy(trace)
-    for ch in 1:size(trace, 3)
-        data[:, :, ch] .= sum(trace.data_array[:, :, ch], dims=1) / size(trace, 1)
-    end
+    average_sweeps!(data)
     return data
 end
-
-average_sweeps!(trace::Experiment) = trace.data_array = sum(trace, dims=1) / size(trace, 1)
 
 function downsample(trace::Experiment{T}, sample_rate::T) where T <: Real
     data = deepcopy(trace)
