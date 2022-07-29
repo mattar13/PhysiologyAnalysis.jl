@@ -140,7 +140,7 @@ end
 
 lowpass_filter(trace::Experiment, freq; pole=8) = lowpass_filter(trace; freq=freq, pole=pole)
 
-function highpass_filter(trace::Experiment; freq=40.0, pole=8)
+function highpass_filter(trace::Experiment; freq=0.01, pole=8)
 
     responsetype = Highpass(freq; fs=1 / trace.dt)
     designmethod = Butterworth(8)
@@ -155,7 +155,7 @@ function highpass_filter(trace::Experiment; freq=40.0, pole=8)
     return data
 end
 
-function highpass_filter!(trace::Experiment; freq=40.0, pole=8)
+function highpass_filter!(trace::Experiment; freq=0.01, pole=8)
 
     responsetype = Highpass(freq; fs=1 / trace.dt)
     designmethod = Butterworth(pole)
@@ -272,6 +272,9 @@ end
 This is from the adaptive line interface filter in the Clampfit manual
 
 This takes notch filters at every harmonic
+
+#Stimulus artifacts have a very specific harmonic
+250, 500, 750, 1000 ... 250n
 """
 function EI_filter(trace; reference_filter=60.0, bandpass=10.0, cycles=5)
     data = deepcopy(trace)
@@ -309,12 +312,16 @@ function normalize!(trace::Experiment; rng=(-1, 0))
     end
 end
 
-function rolling_mean(trace::Experiment; window=2)
+function rolling_mean(trace::Experiment; window::Int64=10)
     data = deepcopy(trace)
     for swp in 1:size(trace, 1), ch in 1:size(trace, 3)
-
+        for i in 1:window:size(data, 2)-window
+            data.data_array[swp, i, ch] = sum(data.data_array[swp, i:i+window, ch])/window
+        end
     end
+    return data
 end
+
 
 ################## Check these functions because they might be deprecated #####################################
 function fft_spectrum(data::Experiment)
