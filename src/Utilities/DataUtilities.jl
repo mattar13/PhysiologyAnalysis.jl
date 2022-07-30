@@ -205,8 +205,8 @@ end
 
 function downsample!(trace::Experiment{T}, sample_rate::T) where {T<:Real}
     new_dt = 1 / sample_rate
-    new_data_idxs = round.(Int64, trace.t ./ trace.dt) .+ 1
     trace.dt = new_dt
     trace.t = trace.t[1]:new_dt:trace.t[end]
+    new_data_idxs = round.(Int64, trace.t ./ trace.dt) .+ 1
     trace.data_array = trace.data_array[:, new_data_idxs, :]
 end
