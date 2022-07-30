@@ -15,8 +15,13 @@ end
 #u = [ui, uc] ui = stimulus, uc = artifact response
 #P = [A, C] A = Amplitude, C = Capacitance 
 RC(du, u, p, t) = du[2] = ((u[1] - u[2]) / (p[2]))
+function CapModel(du, u, p, t)
 
-function RCArtifact(data::Experiment, p0)
+
+
+end
+
+function RCArtifact(data::Experiment, p0; model = :RC)
      u0 = [0.0, 0.0]
      tstops = data.stim_protocol[1].timestamps
      tspan = (data.t[1], data.t[end])
@@ -28,7 +33,8 @@ function RCArtifact(data::Experiment, p0)
      return artifact
 end
 
-function fitArtifact(data::Experiment; p0 = [150.0, 1.0e-3]; swp = 1, ch = 2)
+function fitArtifact(data::Experiment; p0 = [150.0, 1.0e-3], swp = 1, ch = 2)
+     println(size(data))
      min_func(x) = MeanSquaredError(RCArtifact(data, x), data.data_array[swp,:,ch])
      results = optimize(min_func, p0)
      pOPT = Optim.minimizer(results)
