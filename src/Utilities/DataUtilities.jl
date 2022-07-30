@@ -194,19 +194,18 @@ end
 
 function downsample(trace::Experiment{T}, sample_rate::T) where T <: Real
     data = deepcopy(trace)
-    new_dt = 1 / sample_rate
-    data.dt = new_dt
-
-    data.t = trace.t[1]:new_dt:trace.t[end]
-    new_data_idxs = round.(Int64, data.t ./ trace.dt).+1
-    data.data_array = trace.data_array[:, new_data_idxs, :]
+    downsample!(data, sample_rate)
     return data
 end
 
+"""
+Downsample will reduce the sampling rate of the data
+"""
 function downsample!(trace::Experiment{T}, sample_rate::T) where {T<:Real}
-    new_dt = 1 / sample_rate
+    #round the sample rate to a number
+    new_dt = 1/sample_rate
+    sample_reduction = round(Int64, new_dt/trace.dt)
     trace.dt = new_dt
     trace.t = trace.t[1]:new_dt:trace.t[end]
-    new_data_idxs = round.(Int64, trace.t ./ trace.dt) .+ 1
-    trace.data_array = trace.data_array[:, new_data_idxs, :]
+    trace.data_array = trace.data_array[:, 1:sample_reduction:size(trace, 2), :]
 end
