@@ -9,7 +9,7 @@ using Requires #This will help us load only the things we need
 using Dates
 using Base: String, println
 import RCall as R #This allows us to use some R functionality
-import PyCall as py #This allows us to use Python to call somethings (for )
+import PyCall as py #This allows us to use Python to call somethings 
 
 export R, py
 
@@ -58,11 +58,13 @@ export normalize, normalize!
 include("Fitting/fitting.jl")
 export MeanSquaredError
 
-using DifferentialEquations #This can be changed to @require later
-using DiffEqParamEstim, Optim
-
-include("Filtering/artifactRemoval.jl")
-export RCArtifact
+#This is a good section to try using @Requires
+@require DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa" begin
+     #using DifferentialEquations #For require, do we actually need to import this? 
+     using DiffEqParamEstim, Optim
+     include("Filtering/artifactRemoval.jl")
+     export RCArtifact
+end
 #===============================Import all Datasheet tools==============================#
 using DataFrames, Query, XLSX
 include("Datasheets/DatasheetFunctions.jl")
@@ -96,6 +98,11 @@ export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
 #========================================Plotting utilities========================================#
+using Plots, RecipesBase
+using Colors, StatsPlots
+import PyPlot as plt #All the base utilities for plotting
+import PyPlot.matplotlib
+
 include("Plotting/PhysPlotting.jl")
 export plot, plot!
 export plt, Colors
