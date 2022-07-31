@@ -4,7 +4,7 @@
 Finds the threshold of a trace by calculating the average and then adding the 4x the standard deviation. 
 If using a differential solution, make sure dt is set, otherwise the standard deviation will be unevenly sampled
 """
-function calculate_threshold(x::Array{T, N}; Z::T = 4.0, dims = -1) where {T <: Real, N}
+function calculate_threshold(x::Array{T, N}; Z = 4.0, dims = -1) where {T <: Real, N}
     if dims == -1
         return [sum(x)/length(x) + Z*std(x)]
     else
