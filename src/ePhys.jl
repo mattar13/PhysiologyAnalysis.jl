@@ -39,7 +39,7 @@ export split_data
 using DSP
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 import Polynomials as PN #Import this (there are a few functions that get in the way)
-using FFTW #This is for the FFT spectrum
+
 using ContinuousWavelets, Wavelets
 include("Filtering/filtering.jl")
 #include("Filtering/filteringPipelines.jl") #Not ready to uncomment this one yet
@@ -55,6 +55,10 @@ export average_sweeps, average_sweeps!
 export rolling_mean
 export normalize, normalize!
 
+@require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
+     include("Filtering/make_spectrum.jl")
+end
+
 include("Fitting/fitting.jl")
 export MeanSquaredError
 
@@ -66,9 +70,11 @@ export MeanSquaredError
      export RCArtifact
 end
 #===============================Import all Datasheet tools==============================#
-using DataFrames, Query, XLSX
-include("Datasheets/DatasheetFunctions.jl")
-
+#Only import if DataFrames has been loaded
+@require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
+     using Query, XLSX
+     include("Datasheets/DatasheetFunctions.jl")
+end
 #====================Import all the tools needed to analyze the data====================#
 #First import models necessary for the analysis
 
@@ -100,6 +106,8 @@ export max_interval_algorithim, timeseries_analysis
 #========================================Plotting utilities========================================#
 using Plots, RecipesBase
 using Colors, StatsPlots
+using PyPlot
+#@require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
 import PyPlot as plt #All the base utilities for plotting
 import PyPlot.matplotlib
 
