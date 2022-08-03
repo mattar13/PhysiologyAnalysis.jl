@@ -5,6 +5,8 @@ animal_regex = r"(?'Animal'\D+)(?'Number'\d)_(?'Age'.+)_(?'Genotype'.+)"
 nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
 
 
+NamedTuple(m::RegexMatch) = NamedTuple{Symbol.(Tuple(keys(m)))}(values(m.captures))
+
 function findmatch(str_array::Vector{String}, reg_format; verbose=false, first=true)
     matches = map(r -> match(reg_format, r), str_array)
     if any(!isnothing(matches))
@@ -36,19 +38,23 @@ end
 """
 These functions keep only things parsed as the object T, which defaults to Int64
 """
+
 filter_string(::Type{T}, str::String) where {T} = filter(!isnothing, map(c -> tryparse(T, c), split(str, ""))) |> join
+filter_string(::Type{T}, str::SubString{String}) where {T} = filter_string(T, str |> string)
 filter_string(str::String) = filter(!isnothing, map(c -> tryparse(Int64, c), split(str, ""))) |> join
 filter_string(::Type{T}, ::Nothing) where {T} = nothing
 
 """
 This function takes a named tuple that contains numbers and cleans those numbers
 """
-function parseNamedTuple(::Type{T}, nt::NamedTuple{keys}) where {T <: Real, keys}
+function parseNamedTuple(::Type{T}, nt::NamedTuple{keys}) where {T<:Real,keys}
     nt_vals = [values(nt)...] #Fill nt_vals with the values of the NamedTuple
     new_vals = []
     for itm in nt_vals
-        if isa(itm, String) #If the item is not nothing
+        #println(itm |> typeof)
+        if isa(itm, String) || isa(itm, SubString{String})#If the item is not nothing
             #We only want to parse the item if all of it is a number
+            #println(itm)
             val = tryparse(T, itm) #Try to parse the item as a Int64
             if !isnothing(val)
                 push!(new_vals, val)
