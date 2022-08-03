@@ -9,7 +9,6 @@ using Requires #This will help us load only the things we need
 using Dates
 using Base: String, println
 import RCall as R #This allows us to use some R functionality
-import PyCall as py #This allows us to use Python to call somethings 
 
 export R, py
 
@@ -99,20 +98,31 @@ export calculate_threshold
 
 using JLD2
 include("Analysis/TimescaleAnalysis.jl")
-
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
 #========================================Plotting utilities========================================#
-using Plots, RecipesBase
-using Colors, StatsPlots
-using PyPlot
-#@require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
-import PyPlot as plt #All the base utilities for plotting
-import PyPlot.matplotlib
+include("Plotting/PlottingUtilities.jl") #This imports all the plotting utilites
 
-include("Plotting/PhysPlotting.jl")
-export plot, plot!
-export plt, Colors
+@require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
+     using Colors, StatsPlots
+     import PyPlot as plt #All the base utilities for plotting
+     import PyPlot.matplotlib
+     import PyCall as py #This allows us to use Python to call somethings 
+     import PyCall.PyObject
+     @pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
+     @pyimport matplotlib.ticker as TICK #add the ticker interface
+     MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
+     LogLocator = TICK.LogLocator #This is for formatting the log axis
+     include("Plotting/DefaultSettings.jl") #This requires PyPlot
+     include("Plotting/PhysRecipes.jl")
+     export plt #Export plotting utilities
+     export plot_experiment
+end
+
+@requires Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
+     using RecipesBase
+     include("Plotting/PhysPlotting.jl")     
+end
 
 end

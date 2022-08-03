@@ -1,5 +1,3 @@
-import PyCall.PyObject
-
 function plot_experiment(axis::PyObject, exp::Experiment;
     channel=1, axes_off=false, yaxes_off=false, xaxes_off=false,
     #cmap = nothing, cmap_direction = :sweeps,

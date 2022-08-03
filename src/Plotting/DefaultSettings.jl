@@ -1,12 +1,7 @@
-Plots.pyplot() #Switch the backend to pyplot
-plt.pygui(true) #Make the GUI external to vscode
-#@pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
-#@pyimport matplotlib.ticker as TICK #add the ticker interface
-#MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
-#LogLocator = TICK.LogLocator #This is for formatting the log axis
+#Plots.pyplot() #Switch the backend to pyplot
+pygui(true) #Make the GUI external to vscode
 
 #==============================These are the default parameters for plotting==============================#
-
 #print("Default plotting parameters loading... ")
 rcParams = py.PyDict(matplotlib["rcParams"])
 
