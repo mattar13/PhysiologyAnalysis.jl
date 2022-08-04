@@ -18,3 +18,14 @@ function photon_lookup(wavelength::Real, nd::Real, percent::Real, calibration_fi
         return Qi.value[1]
     end
 end
+
+function createDatasheet(all_files::Vector{String}; )
+     println("Revised")
+     dataframe = DataFrame()
+     for file in all_files
+          println("Analyzing file: $file")
+          entry = DataPathExtraction(file)
+          push!(dataframe, entry)
+     end
+     dataframe
+end
