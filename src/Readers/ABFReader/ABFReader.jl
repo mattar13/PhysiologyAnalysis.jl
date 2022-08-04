@@ -4,18 +4,44 @@ include("WaveformExtraction.jl") #This imports the bytemaps for extracting the w
 include("ReadHeaders.jl")
 include("ReadABFInfo.jl")
 
-println("ABF utilites imported")
+#println("ABF utilites imported")
+
 """
-    julia> using NeuroPhys
-    julia> target_path1 = "test\\to_filter.abf"
-    julia> readABF(target_path1)
+==================================================================
+This is the baseline function for reading ABF files. 
+==================================================================
+    readABF(type, filename)
+    readABF(filename)
+
+ARGS:
+type::Type = The type in which all data will be converted to. Defaults to Float64. 
+filename::String = The filename that will be read
+
+KWARGS:
+sweeps::Union{Int64,Vector{Int64}}
+    [DEFAULT, -1]
+    The sweeps that will be saved. By default -1 allows all sweeps to be read. However specific sweeps can be chosen
+
+channels::Vector{String}
+    [DEFAULT, ["Vm_prime", "Vm_prime4"]] 
+    The channels that will be recorded. These can be specified as a string
+    By default, these are set to Vm_prime and Vm_prime4 which are voltage channels 0 and 4. 
+
+average_sweeps::Bool 
+    [DEFAULT, false]
+    Specifies whether or not the function will automatically average the sweeps. This can be useful in cases where multiple files are averaged
+
+stimulus_name::Union{String, Vector{String}}
+        [DEFAULT, "IN 7"]
+        This channel stores information about the stimulus. Note that this is different from the digital channel
+
 
 """
 function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
-    sweeps=-1,
+    sweeps::Union{Int64,Vector{Int64}}=-1,
     channels::Vector{String}=["Vm_prime", "Vm_prime4"],
     average_sweeps::Bool=false,
-    stimulus_name="IN 7",  #One of the best places to store digital stimuli
+    stimulus_name::Union{String,Vector{String}}="IN 7",  #One of the best places to store digital stimuli
     stimulus_threshold::T=2.5, #This is the normal voltage rating on digital stimuli
     warn_bad_channel=false, #This will warn if a channel is improper
     flatten_episodic::Bool=false, #If the stimulation is episodic and you want it to be continuous
@@ -107,7 +133,7 @@ end
 This function walks through the directory tree and locates any .abf file. 
 The extension can be changed with the keyword argument extension
 """
-function parseABF(super_folder::String; extension::String = ".abf", verbose = false)
+function parseABF(super_folder::String; extension::String=".abf", verbose=false)
     file_list = String[]
     for (root, dirs, files) in walkdir(super_folder)
         for file in files
