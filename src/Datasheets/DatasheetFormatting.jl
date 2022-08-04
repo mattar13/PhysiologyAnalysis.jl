@@ -25,9 +25,6 @@ function DataPathExtraction(path::String, calibration_file::String;
           nt_keys = keys(animal_info)
           nt_vals = [values(animal_info)...]
           idx = findall(nt_keys .== :Age)[1]
-          println(nt_vals)
-          println(idx)
-          println(nt_vals[idx])
           if nt_vals[idx] == "Adult"
                nt_vals[idx] = "30"
           else
@@ -41,7 +38,6 @@ function DataPathExtraction(path::String, calibration_file::String;
 
      #now lets look for a condition in the possible conds
      cond = find_condition(path_array; possible_conds=["BaCl", "BaCl_LAP4", "NoDrugs"])
-     println(nt.Age)
      nt = merge(nt, (Condition=cond,))
 
      pc = find_condition(path_array; possible_conds=["Rods", "Cones"])
