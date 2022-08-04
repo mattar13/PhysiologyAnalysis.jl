@@ -18,15 +18,16 @@ end
 
 rolling_mean(arr::AbstractArray; radius = 5) = [sum(arr[i:i+radius]) / radius for i = 1:length(arr)-radius]
 
-ENV["R_HOME"] = raw"C:\Program Files\R\R-4.1.2"
-#Have to point to the correct R path first
-using RCall #used for calculating Two-Way ANOVAs
 
 """
 This function calculates the standard error of the Mean and is safe for querying
 """
 sem(x) = std(x) / sqrt(length(x))
 
+#=
+ENV["R_HOME"] = raw"C:\Program Files\R\R-4.1.2"
+#Have to point to the correct R path first
+using RCall #used for calculating Two-Way ANOVAs
 """
 #This function calls R and computes Two-Way ANOVA
 #How to call R objects
@@ -76,3 +77,4 @@ function R_T_TEST(data::DataFrame)
      ptt = @rget pairTTest
      return ptt
 end
+=#
