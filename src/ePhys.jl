@@ -48,16 +48,16 @@ using ContinuousWavelets, Wavelets
 include("Filtering/filtering.jl")
 #include("Filtering/filteringPipelines.jl") #Not ready to uncomment this one yet
 #export filter_data #Don't export this one explicitly
-export baseline_adjust, baseline_adjust!
-export lowpass_filter, lowpass_filter!
-export highpass_filter, highpass_filter!
-export notch_filter, notch_filter!
-export EI_filter, EI_filter!
-export cwt_filter, cwt_filter!
-export dwt_filter
-export average_sweeps, average_sweeps!
-export rolling_mean
-export normalize, normalize!
+#export baseline_adjust, baseline_adjust!
+#export lowpass_filter, lowpass_filter!
+#export highpass_filter, highpass_filter!
+#export notch_filter, notch_filter!
+#export EI_filter, EI_filter!
+#export cwt_filter, cwt_filter!
+#export dwt_filter
+#export average_sweeps, average_sweeps!
+#export rolling_mean
+#export normalize, normalize!
 
 include("Filtering/filteringPipelines.jl")
 export data_filter!, data_filter
