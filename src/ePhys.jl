@@ -1,27 +1,32 @@
 module ePhys
 
-#println("Testing package works")
-#=================== Here are the imports from other files ===================#
-#using DSP
+#==============================================================================
 
-#using FFTW #Used for filtering
+This packages base functionality is to do these things: 
+1) Open neurophysiological data
+2) Filter that data
+3) Analyze the data
+
+Some other things this package can do:
+a) Process the data as an alternative to excel. 
+b) Plot the data into graphs
+c) Do more complicated machine learning and cancellation
+
+==============================================================================#
+
+
+#=================== Here are the imports from other files ===================#
 using Requires #This will help us load only the things we need
 using Dates
 using Base: String, println
 import RCall as R #This allows us to use some R functionality
-
+using PyCall
+import PyCall as py
 export R, py
 
 #=======================Import all experiment objects=======================#
 include("Experiment/StimulusProtocol.jl")
 include("Experiment/experiments.jl") #This file contains the Experiment structure. 
-
-exp_readme = """
-Experiment contains all of the necessary things to define an experiment. 
-
-This must be included first before the files can be opened as it contains the base experiment object
-
-"""
 
 #======================Import all ABF extension imports======================#
 include("Readers/ABFReader/ABFReader.jl")
@@ -54,26 +59,13 @@ export average_sweeps, average_sweeps!
 export rolling_mean
 export normalize, normalize!
 
-@require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
-     include("Filtering/make_spectrum.jl")
-end
+include("Filtering/filteringPipelines.jl")
+export data_filter!, data_filter
 
 include("Fitting/fitting.jl")
 export MeanSquaredError
 
-#This is a good section to try using @Requires
-@require DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa" begin
-     #using DifferentialEquations #For require, do we actually need to import this? 
-     using DiffEqParamEstim, Optim
-     include("Filtering/artifactRemoval.jl")
-     export RCArtifact
-end
-#===============================Import all Datasheet tools==============================#
-#Only import if DataFrames has been loaded
-@require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
-     using Query, XLSX
-     include("Datasheets/DatasheetFunctions.jl")
-end
+
 #====================Import all the tools needed to analyze the data====================#
 #First import models necessary for the analysis
 
@@ -104,25 +96,58 @@ export max_interval_algorithim, timeseries_analysis
 #========================================Plotting utilities========================================#
 include("Plotting/PlottingUtilities.jl") #This imports all the plotting utilites
 
-@require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
-     using Colors, StatsPlots
-     import PyPlot as plt #All the base utilities for plotting
-     import PyPlot.matplotlib
-     import PyCall as py #This allows us to use Python to call somethings 
-     import PyCall.PyObject
-     @pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
-     @pyimport matplotlib.ticker as TICK #add the ticker interface
-     MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
-     LogLocator = TICK.LogLocator #This is for formatting the log axis
-     include("Plotting/DefaultSettings.jl") #This requires PyPlot
-     include("Plotting/PhysRecipes.jl")
-     export plt #Export plotting utilities
-     export plot_experiment
-end
+using DataFrames
+println("Dataframe utilities are loaded")
+using Query, XLSX #Load these extra utilites immediately
+include("Datasheets/RegexFunctions.jl")
+include("Datasheets/DatasheetFormatting.jl")
+include("Datasheets/DatasheetFunctions.jl")
+export DataPathExtraction
 
-@requires Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-     using RecipesBase
-     include("Plotting/PhysPlotting.jl")     
+# This function will load all of the functions that need a require
+function __init__()
+     @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
+          include("Filtering/make_spectrum.jl")
+     end
+
+     #This is a good section to try using @Requires
+     @require DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa" begin
+          println("Differential equation utilities are loaded")
+          #using DifferentialEquations #For require, do we actually need to import this? 
+          using DiffEqParamEstim, Optim
+          include("Filtering/artifactRemoval.jl")
+          export RCArtifact
+     end
+     #===============================Import all Datasheet tools==============================#
+     #Only import if DataFrames has been loaded
+
+     @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
+
+     end
+
+     @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
+          println("Pyplot utilites are loaded")
+          using Colors, StatsPlots
+          import PyPlot as plt #All the base utilities for plotting
+          import PyPlot.matplotlib
+          import PyCall as py #This allows us to use Python to call somethings 
+          import PyCall: @pyimport, PyObject
+          @pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
+          @pyimport matplotlib.ticker as TICK #add the ticker interface
+          MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
+          LogLocator = TICK.LogLocator #This is for formatting the log axis
+          include("Plotting/DefaultSettings.jl") #This requires PyPlot
+          include("Plotting/PhysRecipes.jl")
+          export plt #Export plotting utilities
+          export plot_experiment
+     end
+
+     @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
+          using RecipesBase
+          include("Plotting/PhysRecipes.jl")
+     end
+
+
 end
 
 end
