@@ -34,8 +34,8 @@ rcParams["legend.borderaxespad"] = 0.1
 rcParams["legend.loc"] = "upper left"
 rcParams["errorbar.capsize"] = 1.0 #Set the length of the errorbar cap
 #set the background color for 
-rcParams["figure.facecolor"] = (0.0, 0.0, 0.0, 0.0) #Make the figure background transparent white
-rcParams["axes.facecolor"] = (0.0, 0.0, 0.0, 0.0) #Make the axes background transparent white
+rcParams["figure.facecolor"] = (1.0, 1.0, 1.0, 1.0) #Red, Green, Blue, Alpha #Make the figure background transparent white
+rcParams["axes.facecolor"] = (1.0, 1.0, 1.0, 1.0) #Red, Green, Blue, Alpha #Make the axes background transparent white
 
 #These are the savefig params
 rcParams["savefig.pad_inches"] = 0.0

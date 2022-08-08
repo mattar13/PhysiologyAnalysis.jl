@@ -20,7 +20,8 @@ begin
 	using Pkg
 	Pkg.activate("../../")
 	using Dates, PlutoUI
-	using PhysAnalysis
+	using ePhys
+	using PyPlot
 	#Use pyplot? for plotting
 end
 
@@ -36,7 +37,10 @@ md"
 
 # ╔═╡ 7b14b019-7545-4441-833b-f7e660c23dc6
 #enter in the file path of the file you would like to analyze here
-path = raw"C:\Users\mtarc\OneDrive\Documents\GithubRepositories\PhysAnalysis\test\to_filter.abf"
+path = raw"C:\Users\mtarc\OneDrive\Documents\GithubRepositories\ePhys\test\to_filter.abf"
+
+# ╔═╡ 971d6f11-2936-4d75-9641-36f81a94c2c4
+channels = ["Vm_prime", "Vm_prime4"]
 
 # ╔═╡ b400dd0c-5a40-4ee7-9116-7339939b7456
 md"""
@@ -45,9 +49,6 @@ md"""
 a) Type in the channels you want to analyze here: 
 
 """
-
-# ╔═╡ 971d6f11-2936-4d75-9641-36f81a94c2c4
-channels = ["Vm_prime", "Vm_prime4"]
 
 # ╔═╡ 05e38576-9650-4287-bac0-6d281db2ea9c
 if path != ""
@@ -92,19 +93,35 @@ $(@bind WT_hi_val Slider(1:50; default = 9, show_value = true))
 
 """
 
-# ╔═╡ a1ff2491-73a1-4114-a2bc-3bc6375c583a
-#Now we can plot the data here
+# ╔═╡ 12065ee8-1f11-4bb9-b11c-89f3a1e484c5
+begin
+	#This will act like the filtering pipeline. The pipeline goes as follows
+	#A) Truncate, Average, and Baseline
+	truncate_data!(data, t_pre = t_pre_pick, t_post = t_post_pick)
+	
+	#C) Plot the data
+	ePhys.rcParams["figure.facecolor"] = (1.0, 1.0, 1.0, 1.0) #RGBA 
+	ePhys.rcParams["axes.facecolor"] = (1.0, 1.0, 1.0, 1.0) #RGBA 
+	fig, ax = plt.subplots(2);
+	ax[1].plot(data.t, data.data_array[:, :, 1]')
+	ax[2].plot(data.t, data.data_array[:, :, 2]')
+	
+end;
 
-# ╔═╡ ab425ca0-65ac-4372-a4c8-3d23c8b2f4fb
+# ╔═╡ 71b3d7e1-e4e3-4107-9b09-f23f3e311b30
+fig
 
+# ╔═╡ ea9710cb-5ef9-4bac-9ad8-02338c605793
+plt.close("all")
 
 # ╔═╡ Cell order:
 # ╠═a442e068-06ef-4d90-9228-0a03bc6d9379
-# ╟─e2fcae6f-d795-4258-a328-1aad5ea64195
-# ╟─7b14b019-7545-4441-833b-f7e660c23dc6
+# ╠═e2fcae6f-d795-4258-a328-1aad5ea64195
+# ╠═7b14b019-7545-4441-833b-f7e660c23dc6
+# ╟─971d6f11-2936-4d75-9641-36f81a94c2c4
 # ╟─b400dd0c-5a40-4ee7-9116-7339939b7456
 # ╟─05e38576-9650-4287-bac0-6d281db2ea9c
-# ╟─971d6f11-2936-4d75-9641-36f81a94c2c4
 # ╟─c8b4c855-64b8-4e18-9b2d-231260c67813
-# ╠═a1ff2491-73a1-4114-a2bc-3bc6375c583a
-# ╠═ab425ca0-65ac-4372-a4c8-3d23c8b2f4fb
+# ╠═12065ee8-1f11-4bb9-b11c-89f3a1e484c5
+# ╠═71b3d7e1-e4e3-4107-9b09-f23f3e311b30
+# ╠═ea9710cb-5ef9-4bac-9ad8-02338c605793
