@@ -24,7 +24,11 @@ function createDatasheet(all_files::Vector{String};)
      for (idx, file) in enumerate(all_files)
           println("Analyzing file $idx of $(size(all_files, 1)): $file")
           entry = DataPathExtraction(file)
-          push!(dataframe, entry)
+          if isnothing(entry) #Throw this in the case that the entry cannot be fit
+               println(entry)
+          else
+               push!(dataframe, entry)
+          end
      end
      dataframe
 end
@@ -184,10 +188,10 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=false)
                   DataFrame
 
           data_AB = readABF(qData.Path)
-          filt_data_AB = filter_data(data_AB, t_post=0.5)
+          filt_data_AB = data_filter(data_AB, t_post=0.5)
 
           data_A = readABF(qData.A_Path)
-          filt_data_A = filter_data(data_A, t_post=0.5)
+          filt_data_A = data_filter(data_A, t_post=0.5)
           #if we want to subtract we need to filter first
           sub_data = filt_data_AB - filt_data_A
           if verbose
@@ -326,9 +330,9 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                   ) |>
                   DataFrame
           data_ABG = readABF(qData.Path)
-          filt_data_ABG = filter_data(data_ABG, t_post=0.5)
+          filt_data_ABG = data_filter(data_ABG, t_post=0.5)
           data_AB = readABF(qData.AB_Path)
-          filt_data_AB = filter_data(data_AB, t_post=0.5)
+          filt_data_AB = data_filter(data_AB, t_post=0.5)
           #if we want to subtract we need to filter first
           #println(qData.Path)
           #println(qData.AB_Path)
@@ -422,4 +426,44 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                    DataFrame
 
      return qTrace, qExperiment, qConditions
+end
+
+function add_analysis_sheets(results, save_file::String; append="A")
+     trace, experiments, conditions = results
+     XLSX.openxlsx(save_file, mode="rw") do xf
+          try
+               sheet = xf["trace_$(append)"] #try to open the sheet
+          catch #the sheet is not made and must be created
+               println("Adding sheets")
+               XLSX.addsheet!(xf, "trace_$(append)")
+          end
+          XLSX.writetable!(xf["trace_$(append)"],
+               collect(DataFrames.eachcol(trace)),
+               DataFrames.names(trace))
+     end
+     #Extract experiments for A wave
+
+     XLSX.openxlsx(save_file, mode="rw") do xf
+          try
+               sheet = xf["experiments_$(append)"]
+          catch #the sheet is not made and must be created
+               println("Adding sheets")
+               XLSX.addsheet!(xf, "experiments_$(append)")
+          end
+          XLSX.writetable!(xf["experiments_$(append)"],
+               collect(DataFrames.eachcol(experiments)),
+               DataFrames.names(experiments))
+     end
+
+     XLSX.openxlsx(save_file, mode="rw") do xf
+          try
+               sheet = xf["conditions_$(append)"]
+          catch
+               println("Adding sheets")
+               XLSX.addsheet!(xf, "conditions_$(append)")
+          end
+          XLSX.writetable!(xf["conditions_$(append)"],
+               collect(DataFrames.eachcol(conditions)),
+               DataFrames.names(conditions))
+     end
 end
