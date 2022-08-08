@@ -96,6 +96,7 @@ export max_interval_algorithim, timeseries_analysis
 #========================================Plotting utilities========================================#
 include("Plotting/PlottingUtilities.jl") #This imports all the plotting utilites
 
+#Once this is all ready, move this into the 
 using DataFrames
 println("Dataframe utilities are loaded")
 using Query, XLSX #Load these extra utilites immediately
@@ -128,7 +129,7 @@ function __init__()
      @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
           println("Pyplot utilites are loaded")
           using Colors, StatsPlots
-          import PyPlot as plt #All the base utilities for plotting
+          #import PyPlot as plt #All the base utilities for plotting
           import PyPlot.matplotlib
           import PyCall as py #This allows us to use Python to call somethings 
           import PyCall: @pyimport, PyObject
@@ -138,7 +139,7 @@ function __init__()
           LogLocator = TICK.LogLocator #This is for formatting the log axis
           include("Plotting/DefaultSettings.jl") #This requires PyPlot
           include("Plotting/PhysRecipes.jl")
-          export plt #Export plotting utilities
+          #export plt #Export plotting utilities
           export plot_experiment
      end
 
@@ -146,8 +147,6 @@ function __init__()
           using RecipesBase
           include("Plotting/PhysRecipes.jl")
      end
-
-
 end
 
 end
