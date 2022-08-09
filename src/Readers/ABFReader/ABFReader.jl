@@ -8,10 +8,12 @@ include("ReadABFInfo.jl")
 
 """
 ==================================================================
+Reading Function
+
 This is the baseline function for reading ABF files. 
 ==================================================================
-    readABF(type, filename)
-    readABF(filename)
+    experiment = readABF(type, filename; KWARGS)
+    experiment = readABF(filename; KWARGS)
 
 ARGS:
 type::Type = The type in which all data will be converted to. Defaults to Float64. 
