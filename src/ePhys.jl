@@ -139,7 +139,8 @@ function __init__()
           MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
           LogLocator = TICK.LogLocator #This is for formatting the log axis
           include("Plotting/DefaultSettings.jl") #This requires PyPlot
-          include("Plotting/PhysRecipes.jl")
+          include("Plotting/PlottingUtilities.jl")
+          include("Plotting/PhysPyPlot.jl")
           #export plt #Export plotting utilities
           export plot_experiment
      end
