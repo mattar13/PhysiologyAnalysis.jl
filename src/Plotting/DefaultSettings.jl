@@ -9,7 +9,7 @@ rcParams = py.PyDict(matplotlib["rcParams"])
 rcParams["figure.dpi"] = 60 #This is used to display the plot
 rcParams["savefig.dpi"] = 600 #This is used to save the plot
 
-rcParams["font.size"] = 20.0 #This controls the default font size
+rcParams["font.size"] = 12.0 #This controls the default font size
 rcParams["font.family"] = "arial" #This controls the font family
 rcParams["axes.spines.right"] = false #Make spines to the right invisible
 rcParams["axes.spines.top"] = false #Make spines at the top invisible

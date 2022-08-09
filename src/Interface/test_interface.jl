@@ -21,8 +21,13 @@ begin
 	Pkg.activate("../../")
 	using Dates, PlutoUI
 	using ePhys
-	using PyPlot
+
+	import ePhys: baseline_adjust!, truncate_data!, lowpass_filter!
 	#Use pyplot? for plotting
+	using PyPlot
+	import PyPlot: plt
+	import ePhys.rcParams
+	pygui(true)
 end
 
 # ╔═╡ e2fcae6f-d795-4258-a328-1aad5ea64195
@@ -37,7 +42,7 @@ md"
 
 # ╔═╡ 7b14b019-7545-4441-833b-f7e660c23dc6
 #enter in the file path of the file you would like to analyze here
-path = raw"C:\Users\mtarc\OneDrive\Documents\GithubRepositories\ePhys\test\to_filter.abf"
+path = raw"C:\Users\mtarc\OneDrive\Documents\GithubRepositories\ePhys\test\to_analyze.abf"
 
 # ╔═╡ 971d6f11-2936-4d75-9641-36f81a94c2c4
 channels = ["Vm_prime", "Vm_prime4"]
@@ -93,35 +98,64 @@ $(@bind WT_hi_val Slider(1:50; default = 9, show_value = true))
 
 """
 
-# ╔═╡ 12065ee8-1f11-4bb9-b11c-89f3a1e484c5
+# ╔═╡ 5fdc0c43-9454-495d-9b8a-e47313d178b2
 begin
 	#This will act like the filtering pipeline. The pipeline goes as follows
-	#A) Truncate, Average, and Baseline
+	#A) Baseline, Truncate, Average
+	
+	baseline_adjust!(data)
 	truncate_data!(data, t_pre = t_pre_pick, t_post = t_post_pick)
-	
-	#C) Plot the data
-	ePhys.rcParams["figure.facecolor"] = (1.0, 1.0, 1.0, 1.0) #RGBA 
-	ePhys.rcParams["axes.facecolor"] = (1.0, 1.0, 1.0, 1.0) #RGBA 
-	fig, ax = plt.subplots(2);
-	ax[1].plot(data.t, data.data_array[:, :, 1]')
-	ax[2].plot(data.t, data.data_array[:, :, 2]')
-	
-end;
+	if highpass_pick
+		println("Yes")
+	end
 
-# ╔═╡ 71b3d7e1-e4e3-4107-9b09-f23f3e311b30
-fig
+	if lowpass_pick
+		lowpass_filter!(data, freq = lowpass_val)
+	end
+	"Filtering functions"
+end
 
-# ╔═╡ ea9710cb-5ef9-4bac-9ad8-02338c605793
+# ╔═╡ 669c877b-efcf-4c6b-a70f-e14164abdbff
+begin
+	#if we want to adjust some params adjust them here and add them to the default
+	rcParams["font.size"] = 12.0
+	#C) Plot the data using Plotly (can be interactive)
+	fig, ax = plt.subplots(size(data,2)) 
+	# Plot the experiments
+	for ch in 1:size(data, 3)
+		plot_experiment(ax[ch], data, channel = ch, c = :black)	
+		#ax[2].set_ylabel("Time (s)")
+		#ax[2].set_ylabel("Time (s)")
+	end
+
+	#Set the time label on the last variable
+	ax[size(data,2)].set_xlabel("Time (s)")
+
+	fig
+end
+
+# ╔═╡ 2b4a8019-4a67-48a4-8b9c-35aa957e9d32
+data.chNames[size(data, 3)]
+
+# ╔═╡ f7842e98-7c16-4043-a047-268a2f611e9b
 plt.close("all")
+
+# ╔═╡ 2ae9c8b5-473d-43db-90b2-1ca16f997c91
+md"""
+#### 3) Analysis
+
+"""
 
 # ╔═╡ Cell order:
 # ╠═a442e068-06ef-4d90-9228-0a03bc6d9379
-# ╠═e2fcae6f-d795-4258-a328-1aad5ea64195
+# ╟─e2fcae6f-d795-4258-a328-1aad5ea64195
 # ╠═7b14b019-7545-4441-833b-f7e660c23dc6
-# ╟─971d6f11-2936-4d75-9641-36f81a94c2c4
+# ╠═971d6f11-2936-4d75-9641-36f81a94c2c4
 # ╟─b400dd0c-5a40-4ee7-9116-7339939b7456
 # ╟─05e38576-9650-4287-bac0-6d281db2ea9c
 # ╟─c8b4c855-64b8-4e18-9b2d-231260c67813
-# ╠═12065ee8-1f11-4bb9-b11c-89f3a1e484c5
-# ╠═71b3d7e1-e4e3-4107-9b09-f23f3e311b30
-# ╠═ea9710cb-5ef9-4bac-9ad8-02338c605793
+# ╟─5fdc0c43-9454-495d-9b8a-e47313d178b2
+# ╠═669c877b-efcf-4c6b-a70f-e14164abdbff
+# ╠═2b4a8019-4a67-48a4-8b9c-35aa957e9d32
+# ╠═f7842e98-7c16-4043-a047-268a2f611e9b
+# ╠═2ae9c8b5-473d-43db-90b2-1ca16f997c91
