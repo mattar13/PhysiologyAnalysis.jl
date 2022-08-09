@@ -36,7 +36,8 @@ export parseABF
 #===============================ABF utilities===============================#
 include("Utilities/ExperimentUtilities.jl")
 include("Utilities/DataUtilities.jl")
-export truncate_data, truncate_data!
+#export truncate_data, truncate_data!
+#export baseline_adjust
 export downsample, downsample!
 export split_data
 #=Add filtering capability=#
