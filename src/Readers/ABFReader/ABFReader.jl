@@ -48,7 +48,6 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
     warn_bad_channel=false, #This will warn if a channel is improper
     flatten_episodic::Bool=false, #If the stimulation is episodic and you want it to be continuous
     time_unit=:s, #The time unit is s, change to ms
-    verbose::Bool=false
 ) where {T<:Real}
     abfInfo = readABFInfo(abf_data)
     #Pull out the requested channels
@@ -132,18 +131,30 @@ end
 
 
 """
-This function walks through the directory tree and locates any .abf file. 
-The extension can be changed with the keyword argument extension
+==================================================================
+Parsing Function
+
+This function finds all files with the suffix .abf 
+==================================================================
+    [abf_files] = parseABF(filename; KWARGS)
+
+
+ARGS:
+type::Type = The type in which all data will be converted to. Defaults to Float64. 
+filename::String = The filename that will be read
+
+KWARGS:
+extenstion::String
+    [DEFAULT, ".abf"]
+    The name of the extension.
+
 """
-function parseABF(super_folder::String; extension::String=".abf", verbose=false)
+function parseABF(super_folder::String; extension::String=".abf")
     file_list = String[]
     for (root, dirs, files) in walkdir(super_folder)
         for file in files
             if file[end-3:end] == extension
                 path = joinpath(root, file)
-                if verbose
-                    println(path) # path to files
-                end
                 push!(file_list, path)
             end
         end
