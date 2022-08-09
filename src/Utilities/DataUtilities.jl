@@ -147,11 +147,22 @@ end
 
 
 """
-    split_data(exp::Experiment, [, split_by = :channel])
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Data Utility
 
-This function splits the data 
+This function a splits the data by channel or sweep. 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    [chs] = split_data(data)
+
+ARGS:
+    data::Experiment{T} where T <: Real = The data to be split
+
+KWARGS:
+split_by::Symbol
+    [DEFAULT, :channel]
+    {[}OPTIONS, ]    
 """
-function split_data(exp::Experiment; split_by=:channel)
+function split_data(exp::Experiment; split_by::Symbol=:channel)
     if split_by == :channel
         split_exp = Array{Experiment}([])
         for ch = 1:size(exp, 3)
@@ -181,18 +192,41 @@ end
 
 ####################These functions are for filtering and adjusting the traces################
 """
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Data Utility
+
 This function adjusts the baseline, similar to how it is done in clampfit. 
-    To change the mode of the function use the keyword argument mode
-        it can cancel baseline based on: 
-    - :mean -> the average voltage of a region
-    - :slope -> the linear slope of a region
-    To choose a region use the keyword region
-    - :prestim -> measures all time before the stimulus
-    - :whole -> measures the entire trace
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    baseline_adjust!(data)
+    data = baseline_adjust(data)
+
+ARGS:
+data::Experiment{T} where T <: Real = The data to be baselined
+
+KWARGS:
+mode::Symbol
+    [DEFAULT, :slope]
+    {OPTIONS, :mean, :slope}
+    Specifies how the baseline should be set. 
+    - Mean will subtract a single value from all points in the trace
+    - Slope will fit the data to a polynomial line. 
+    
+polyN::Int64
+    [DEFAULT, 1]
+    If polynomial fit is chosen, the fit line will be a polynomial of level polyN
+    1 is a linear fit (y = mx+b), 2 is a bilinear (y = ax + bx^2 + c)
+
+reion::
+    [DEFAULT]
+    {OPTIONS, :prestim, :whole}
+    - Prestim -> measures all time before the stimulus
+    - Whole -> measures the entire trace
     - (start, end) -> a custom region
-It catches the baseline if the stimulus is at the beginning of the 
-    """
-function baseline_adjust(trace::Experiment; mode::Symbol=:slope, polyN=1, region=:prestim)
+
+"""
+function baseline_adjust(trace::Experiment{T};
+    mode::Symbol=:slope, polyN::Int64=1, region::Symbol=:prestim
+) where {T<:Real}
     data = deepcopy(trace)
     if isempty(trace.stim_protocol)
         #println("No Stim protocol exists")
@@ -241,7 +275,9 @@ function baseline_adjust(trace::Experiment; mode::Symbol=:slope, polyN=1, region
     end
 end
 
-function baseline_adjust!(trace::Experiment; mode::Symbol=:slope, polyN=1, region=:prestim)
+function baseline_adjust!(trace::Experiment{T};
+    mode::Symbol=:slope, polyN=1, region=:prestim
+) where {T<:Real}
     if isempty(trace.stim_protocol)
         #println("No stim protocol exists")
     else
@@ -289,12 +325,22 @@ end
 
 exclude(A, exclusions) = A[filter(x -> !(x ∈ exclusions), eachindex(A))]
 
-average_sweeps!(trace::Experiment) = trace.data_array = sum(trace, dims=1) / size(trace, 1)
+average_sweeps!(trace::Experiment{T}) where {T<:Real} = trace.data_array = sum(trace, dims=1) / size(trace, 1)
 
 """
-If the traces contain multiple runs, then this file averages the data
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Data Utility
+
+This function averages sweeps of the data. 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    average_sweeps!(data)
+    data = average_sweeps(data)
+
+ARGS:
+    data::Experiment{T} where T <: Real = The data to be averaged
+ 
 """
-function average_sweeps(trace::Experiment)
+function average_sweeps(trace::Experiment{T}) where {T<:Real}
     data = deepcopy(trace)
     average_sweeps!(data)
     return data
@@ -307,7 +353,19 @@ function downsample(trace::Experiment{T}, sample_rate::T) where {T<:Real}
 end
 
 """
-Downsample will reduce the sampling rate of the data
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Data Utility
+
+This function reduces the points and downsamples the data. (WARNING! DATA CANNOT BE UPSAMPLED) 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    downsample!(data)
+    data = downsample(data)
+
+ARGS:
+    data::Experiment{T} where {T <: Real} = The data to be averaged
+    sample_rate::T where {T <: Real} = The new sample rate (must be smaller then the current sample rate)
+
+
 """
 function downsample!(trace::Experiment{T}, sample_rate::T) where {T<:Real}
     #round the sample rate to a number
