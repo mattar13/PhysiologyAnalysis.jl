@@ -74,7 +74,7 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=false)
                     Resps = abs.(responses)
                     rmaxes = minimum(responses, dims=1)
                else
-                    filt_data = filter_data(data, t_post=1.0)
+                    filt_data = data_filter(data, t_post=1.0)
                     responses = saturated_response(filt_data)
                     minimas = minimum(filt_data, dims=2)[:, 1, :]
                     maximas = maximum(filt_data, dims=2)[:, 1, :]
@@ -321,6 +321,10 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
      g_files[!, :AB_Path] = string.(g_files[!, :AB_Path]) #XLSX.jl converts things into Vector{Any}            
 
      uniqueData = g_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame
+     println(size(uniqueData))
+     println(size(trace_ABG))
+     println(size(trace_AB))
+     println(size(g_files))
      qTrace = DataFrame()
      qExperiment = DataFrame()
      for (idx, i) in enumerate(eachrow(uniqueData)) #We ca
@@ -467,3 +471,58 @@ function add_analysis_sheets(results, save_file::String; append="A")
                DataFrames.names(conditions))
      end
 end
+
+
+#==========================================================================================
+These functions can open data from the dataframes
+==========================================================================================#
+
+"""
+This code is actually an extension of the ABFReader package and somewhat specific for my own needs.
+     I will be some way of making this more general later
+
+"""
+function readABF(df::DataFrame; extra_channels=nothing, a_name="A_Path", ab_name="AB_Path", kwargs...)
+     df_names = names(df)
+     #Check to make sure path is in the dataframe
+     #Check to make sure the dataframe contains channel info
+     @assert "Channel" ∈ df_names
+     if (a_name ∈ df_names) #&& ("AB_Path" ∈ df_names) #This is a B subtraction
+          #println("B wave subtraction")
+          A_paths = string.(df.A_Path)
+          AB_paths = string.(df.Path)
+          ch = (df.Channel |> unique) .|> String
+          if !isnothing(extra_channels)
+               ch = (vcat(ch..., extra_channels...))
+          end
+          A_data = readABF(A_paths; channels=ch, kwargs...)
+          AB_data = readABF(AB_paths; channels=ch, kwargs...)
+          return A_data, AB_data
+     elseif (ab_name ∈ df_names) #&& ("ABG_Path" ∈ df_names) #This is the G-wave subtraction
+          #println("G wave subtraction")
+          AB_paths = string.(df.AB_Path)
+          ABG_paths = string.(df.Path)
+          ch = (df.Channel |> unique) .|> String
+          if !isnothing(extra_channels)
+               ch = (vcat(ch..., extra_channels...))
+          end
+          AB_data = readABF(AB_paths, channels=ch, kwargs...)
+          ABG_data = readABF(ABG_paths, channels=ch, kwargs...)
+
+          return AB_data, ABG_data
+     elseif ("Path" ∈ df_names) #This is just the A-wave
+          paths = string.(df.Path)
+          ch = (df.Channel |> unique) .|> String
+          if !isnothing(extra_channels)
+               ch = (vcat(ch..., extra_channels...))
+          end
+          data = readABF(paths, channels=ch, kwargs...)
+          return data
+     else
+          throw("There is no path key")
+     end
+
+
+end
+
+readABF(df_row::DataFrameRow; kwargs...) = readABF(df_row |> DataFrame; kwargs...)
