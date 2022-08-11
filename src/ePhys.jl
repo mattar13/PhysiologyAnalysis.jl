@@ -42,6 +42,7 @@ export downsample, downsample!
 export split_data
 #=Add filtering capability=#
 using DSP #Used for lowpass, highpass, EI, and notch filtering
+using FFTW
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 import Polynomials as PN #Import this (there are a few functions that get in the way)
 
