@@ -76,6 +76,11 @@ function saturated_response(data::Experiment{T}; precision::Int64=100) where {T<
     rmaxes
 end
 
+function dim_response(data::Experiment{T}, resps; lims = [0.20, 0.30]) where {T <: Real}
+    #Calculate
+end
+
+
 function minima_to_peak(data::Experiment; verbose=false)
     #We need to exclude the area 
     resp = zeros(size(data, 1), size(data, 3))
@@ -103,12 +108,15 @@ end
 """
 This function calculates the time to peak using the dim response properties of the concatenated file
 """
-function time_to_peak(data::Experiment{T}) where {T<:Real}
+function time_to_peak(data::Experiment{T}, dim_idxs) where {T<:Real}
     over_stim = findall(data.t .> 0.0) #We only want to extract time points after the stim
     lowest_val = map(x -> x[2], argmin(data[:, over_stim, :], dims=2))[:, 1, :]
     lowest_val .+= over_stim[1] - 1
     data.t[lowest_val] .* 1000
 end
+
+
+
 
 """
 This function is the amount of time that a certain trace spends in a particular bandwith. 
