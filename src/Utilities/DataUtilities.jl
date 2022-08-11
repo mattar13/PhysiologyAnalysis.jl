@@ -370,8 +370,28 @@ ARGS:
 function downsample!(trace::Experiment{T}, sample_rate::T) where {T<:Real}
     #round the sample rate to a number
     new_dt = 1 / sample_rate
-    sample_reduction = round(Int64, new_dt / trace.dt)
+    new_sample_points = round(Int64, length(trace.t)*(trace.dt/new_dt))
+    sample_idxs = round.(Int64, LinRange(1, length(trace.t), new_sample_points))
+    #println(sample_idxs)
     trace.dt = new_dt
     trace.t = trace.t[1]:new_dt:trace.t[end]
-    trace.data_array = trace.data_array[:, 1:sample_reduction:size(trace, 2), :]
+    trace.data_array = trace.data_array[:, sample_idxs, :]
+end
+
+"""
+Downsamples the data to the nearest dyad for DWT 
+"""
+function dyadic_downsample!(trace::Experiment{T}) where {T<:Real}
+    n_data = length(trace.t)
+    n_dyad = 2^(trunc(log2(n_data))) |> Int64
+    dyad_idxs = round.(Int64, LinRange(1, length(trace.t), n_dyad)) |> collect
+    trace.t = LinRange(trace.t[1], trace.t[end], n_dyad) |> collect
+    trace.dt = abs(trace.t[3] - trace.t[2])
+    trace.data_array = trace.data_array[:, dyad_idxs, :]
+end
+
+function dyadic_downsample(trace::Experiment{T}) where T<:Real
+    data = deepcopy(trace)
+    dyadic_downsample!(data)
+    return data
 end
