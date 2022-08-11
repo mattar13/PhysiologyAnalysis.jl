@@ -1,82 +1,48 @@
-
-
 #TODO: Eventually I want to add all filter functions into a single function 
 
 """
-This function applies a n-pole lowpass filter
+NEED DOCUMENTATION
 """
-function lowpass_filter(trace::Experiment; freq=50.0, pole=8)
-
-    responsetype = Lowpass(freq; fs=1 / trace.dt)
-    designmethod = Butterworth(8)
-    digital_filter = digitalfilter(responsetype, designmethod)
+function filter_data(trace::Experiment{T}; kwargs...) where {T<:Real}
     data = deepcopy(trace)
-    for swp in 1:size(trace, 1)
-        for ch in 1:size(trace, 3)
-            #never adjust the stim
-            data.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
-    end
+    filter_data!(data; kwargs...)
     return data
 end
 
-function lowpass_filter!(trace::Experiment; freq=50.0, pole=8)
+function filter_data!(trace::Experiment{T}; freq=300.0, freqstop = 1000.0, bandwidth = 10.0,
+        mode = :Lowpass, method = :Butterworth, 
+        pole=8, ripple = 10.0, attenuation = 100.0
+    ) where {T<:Real}
 
-    responsetype = Lowpass(freq; fs=1 / trace.dt)
-    designmethod = Butterworth(pole)
-    digital_filter = digitalfilter(responsetype, designmethod)
-    for swp in 1:size(trace, 1)
-        for ch in 1:size(trace, 3)
-            trace.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
+    #Determine the filter response
+    if mode == :Lowpass
+        responsetype = Lowpass(freq; fs=1 / trace.dt)
+    elseif mode == :Highpass
+        responsetype = Highpass(freq; fs=1 / trace.dt)
+    elseif mode == :Bandpass
+        responsetype = Bandpass(freq, freqstop, fs = 1/trace.dt)
+    elseif mode == :Bandstop
+        responsetype = Bandstop(freq, freqstop, fs = 1/trace.dt)
     end
-end
-
-lowpass_filter(trace::Experiment, freq; pole=8) = lowpass_filter(trace; freq=freq, pole=pole)
-
-function highpass_filter(trace::Experiment; freq=0.01, pole=8)
-
-    responsetype = Highpass(freq; fs=1 / trace.dt)
-    designmethod = Butterworth(8)
-    digital_filter = digitalfilter(responsetype, designmethod)
-    data = deepcopy(trace)
-    for swp in 1:size(trace, 1)
-        for ch in 1:size(trace, 3)
-            #never adjust the stim
-            data.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
+    
+    #Determine the method for designing the filter
+    if method == :Butterworth
+        designmethod = Butterworth(pole)
+    elseif method == :Chebyshev1
+        designmethod = Chebyshev1(pole, ripple)
+    elseif method == :Chebyshev2
+        designmethod = Chebyshev2(pole, ripple)
+    elseif method == :Elliptic
+        designmethod = Elliptic(pole, ripple, attenuation)
     end
-    return data
-end
 
-function highpass_filter!(trace::Experiment; freq=0.01, pole=8)
-
-    responsetype = Highpass(freq; fs=1 / trace.dt)
-    designmethod = Butterworth(pole)
-    digital_filter = digitalfilter(responsetype, designmethod)
-    for swp in 1:size(trace, 1)
-        for ch in 1:size(trace, 3)
-            trace.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
+    if mode == :Notch
+        digital_filter = iirnotch(freq, bandwidth, fs=1 / trace.dt)
+    else
+        digital_filter = digitalfilter(responsetype, designmethod)
     end
-end
 
-highpass_filter(trace::Experiment, freq; pole=8) = highpass_filter(trace; freq=freq, pole=pole)
 
-function notch_filter(trace::Experiment; center=60.0, std=30.0)
-    digital_filter = iirnotch(center, std, fs=1 / trace.dt)
-    data = deepcopy(trace)
-    for swp in 1:size(trace, 1)
-        for ch in 1:size(trace, 3)
-            #never adjust the stim
-            data.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
-        end
-    end
-    return data
-end
-
-function notch_filter!(trace::Experiment; center=60.0, std=10.0)
-    digital_filter = iirnotch(center, std, fs=1 / trace.dt)
     for swp in 1:size(trace, 1)
         for ch in 1:size(trace, 3)
             trace.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
@@ -133,51 +99,34 @@ end
 """
 
 """
-function dwt_filter!(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,Int64}=(1, 8), direction = :bidirectional)
+function dwt_filter!(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,Int64}=(1, 8))
     #In this case we have to limit the analyis to the window of dyadic time
     #This means that we can only analyze sizes if they are equal to 2^dyadic
-    #We can fix this by taking a 
-    data = deepcopy(trace)
-    dyad_n = trunc(Int64, log(2, size(data, 2)))
+    dyad_n = trunc(Int64, log(2, size(trace, 2)))
     #println(2^dyad_n)
-    #println(length(trace.t) - 2^dyad_n+1)
+    if (length(trace.t) - 2^dyad_n) > 0
+        @warn "Sampling rate is non-dyadic. Will result in $(length(trace.t) - 2^dyad_n) leftover points"
+    end
     if period_window[2] > dyad_n
         println("Period Window larger than dyad")
         period_window = (period_window[1], dyad_n)
     end
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
-        if direction == :forward
-            x = data[swp, 1:2^dyad_n, ch]
-            xt = dwt(x, wavelet(wave), dyad_n)
-            reconstruct = zeros(size(xt))
-            reconstruct[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
-            trace.data_array[swp, 1:2^dyad_n, ch] .= idwt(reconstruct, wavelet(wave))
-        elseif direction == :reverse
-            start_idx = length(trace.t) - (2^dyad_n) + 1
-        
-            x = trace[swp, start_idx:length(trace), ch]
-            xt = dwt(x, wavelet(wave), dyad_n)
-            reconstruct = zeros(size(xt))
-            reconstruct[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
-            trace.data_array[swp, start_idx:length(trace), ch] .= idwt(reconstruct, wavelet(wave))
-        elseif direction == :bidirectional
-            #do the reconstruction in the forward direction
-            x = trace[swp, 1:2^dyad_n, ch]
-            xt = dwt(x, wavelet(wave), dyad_n)
-            reconstruct_for = zeros(size(xt))
-            reconstruct_for[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
-        
-            #Do the reconstruction in the reverse direction
-            start_idx = length(trace.t) - (2^dyad_n) + 1
-            x = trace[swp, start_idx:length(trace), ch]
-            xt = dwt(x, wavelet(wave), dyad_n)
-            reconstruct_rev = zeros(size(xt))
-            reconstruct_rev[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
-        
-            trace.data_array[swp, start_idx:length(trace), ch] .= idwt(reconstruct_rev, wavelet(wave)) #We want to do reverse first 
-            trace.data_array[swp, 1:start_idx-1, ch] .= idwt(reconstruct_for, wavelet(wave))[1:start_idx-1] #And use the forward to fill in the first chunk
-        end
+    for swp = 1:size(trace, 1), ch = 1:size(trace, 3)
+        x = trace[swp, 1:2^dyad_n, ch]
+        xt = dwt(x, wavelet(wave), dyad_n)
+        reconstruct = zeros(size(xt))
+        reconstruct[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
+        trace.data_array[swp, 1:2^dyad_n, ch] .= idwt(reconstruct, wavelet(wave))
     end
+end
+
+function dwt_filter(trace::Experiment; kwargs...)
+    #In this case we have to limit the analyis to the window of dyadic time
+    #This means that we can only analyze sizes if they are equal to 2^dyadic
+    #We can fix this by taking a 
+    data = deepcopy(trace)
+    dwt_filter!(data; kwargs...)
+    return data
 end
 
 """
@@ -191,7 +140,7 @@ This takes notch filters at every harmonic
 function EI_filter(trace; reference_filter=60.0, bandpass=10.0, cycles=5)
     data = deepcopy(trace)
     for cycle in 1:cycles
-        notch_filter!(data, center=reference_filter * cycle, std=bandpass)
+        band!(data, center=reference_filter * cycle, std=bandpass)
     end
     return data
 end
