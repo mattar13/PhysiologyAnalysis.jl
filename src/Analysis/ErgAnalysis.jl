@@ -108,7 +108,7 @@ end
 """
 This function calculates the time to peak using the dim response properties of the concatenated file
 """
-function time_to_peak(data::Experiment{T}, dim_idxs) where {T<:Real}
+function time_to_peak(data::Experiment{T}) where {T<:Real}
     over_stim = findall(data.t .> 0.0) #We only want to extract time points after the stim
     lowest_val = map(x -> x[2], argmin(data[:, over_stim, :], dims=2))[:, 1, :]
     lowest_val .+= over_stim[1] - 1
