@@ -98,13 +98,13 @@ export max_interval_algorithim, timeseries_analysis
 #========================================Plotting utilities========================================#
 include("Plotting/PlottingUtilities.jl") #This imports all the plotting utilites
 
-#Once this is all ready, move this into the 
+#Once this is all ready, move this into the __init__ function
 using DataFrames
 println("Dataframe utilities are loaded")
 using Query, XLSX #Load these extra utilites immediately
 include("Datasheets/RegexFunctions.jl")
-include("Datasheets/DatasheetFormatting.jl")
 include("Datasheets/DatasheetFunctions.jl")
+include("Datasheets/DatasheetAnalysis.jl")
 export DataPathExtraction
 
 # This function will load all of the functions that need a require

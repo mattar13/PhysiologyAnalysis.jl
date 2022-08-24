@@ -134,8 +134,6 @@ function createDatasheet(all_files::Vector{String};)
      dataframe
 end
 
-
-
 function add_analysis_sheets(results, save_file::String; append="A")
      trace, experiments, conditions = results
      XLSX.openxlsx(save_file, mode="rw") do xf
@@ -175,7 +173,6 @@ function add_analysis_sheets(results, save_file::String; append="A")
                DataFrames.names(conditions))
      end
 end
-
 
 #==========================================================================================
 These functions can open data from the dataframes
