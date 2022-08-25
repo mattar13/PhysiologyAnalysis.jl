@@ -102,13 +102,15 @@ include("Plotting/PlottingUtilities.jl") #This imports all the plotting utilites
 using DataFrames
 println("Dataframe utilities are loaded")
 using Query, XLSX #Load these extra utilites immediately
+import XLSX: readtable, readxlsx
+export readtable, readxlsx, XLSX
 include("Datasheets/RegexFunctions.jl")
 include("Datasheets/DatasheetFunctions.jl")
 include("Datasheets/DatasheetAnalysis.jl")
-export DataPathExtraction
+export DataPathExtraction, openDatasheet, createDatasheet, updateDatasheet
 
 # This function will load all of the functions that need a require
-function __init__()
+#=function __init__()
      @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
           include("Filtering/make_spectrum.jl")
      end
@@ -150,6 +152,6 @@ function __init__()
           using RecipesBase
           include("Plotting/PhysRecipes.jl")
      end
-end
+end=#
 
 end
