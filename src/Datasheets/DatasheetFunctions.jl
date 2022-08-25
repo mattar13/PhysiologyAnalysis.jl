@@ -216,45 +216,7 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
      end
 end
 
-function add_analysis_sheets(results, save_file::String; append="A")
-     trace, experiments, conditions = results
-     XLSX.openxlsx(save_file, mode="rw") do xf
-          try
-               sheet = xf["trace_$(append)"] #try to open the sheet
-          catch #the sheet is not made and must be created
-               println("Adding sheets")
-               XLSX.addsheet!(xf, "trace_$(append)")
-          end
-          XLSX.writetable!(xf["trace_$(append)"],
-               collect(DataFrames.eachcol(trace)),
-               DataFrames.names(trace))
-     end
-     #Extract experiments for A wave
 
-     XLSX.openxlsx(save_file, mode="rw") do xf
-          try
-               sheet = xf["experiments_$(append)"]
-          catch #the sheet is not made and must be created
-               println("Adding sheets")
-               XLSX.addsheet!(xf, "experiments_$(append)")
-          end
-          XLSX.writetable!(xf["experiments_$(append)"],
-               collect(DataFrames.eachcol(experiments)),
-               DataFrames.names(experiments))
-     end
-
-     XLSX.openxlsx(save_file, mode="rw") do xf
-          try
-               sheet = xf["conditions_$(append)"]
-          catch
-               println("Adding sheets")
-               XLSX.addsheet!(xf, "conditions_$(append)")
-          end
-          XLSX.writetable!(xf["conditions_$(append)"],
-               collect(DataFrames.eachcol(conditions)),
-               DataFrames.names(conditions))
-     end
-end
 
 #==========================================================================================
 These functions can open data from the dataframes
