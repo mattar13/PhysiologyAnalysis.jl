@@ -108,7 +108,7 @@ include("Datasheets/RegexFunctions.jl")
 include("Datasheets/DatasheetFunctions.jl")
 include("Datasheets/DatasheetAnalysis.jl")
 export DataPathExtraction, openDatasheet, createDatasheet, updateDatasheet
-
+export add_analysis_sheets
 # This function will load all of the functions that need a require
 #=function __init__()
      @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
