@@ -142,13 +142,19 @@ This function opens an old datasheet
 """
 function openDatasheet(data_file::String; sheetName::String = "All_Files", typeConvert = true)
      xf = readxlsx(data_file)
-     s = xf[sheetName]
-     df = XLSX.eachtablerow(s) |> DataFrame
-     #We can walk through and try to convert each row to either an integer, Float, or String
-     if typeConvert
-          df = mapcols(x -> convert.(x[1] |> typeof, x), df) #This converts the categories to a type in the first position
+     if sheetName == "all"
+          sheetnames = XLSX.sheetnames(xf)
+          df_set = Dict(map(sn -> (sn => openDatasheet(data_file, sheetName = sn)), sheetnames))
+          return df_set
+     else
+          s = xf[sheetName]
+          df = XLSX.eachtablerow(s) |> DataFrame
+          #We can walk through and try to convert each row to either an integer, Float, or String
+          if typeConvert
+               df = mapcols(x -> convert.(x[1] |> typeof, x), df) #This converts the categories to a type in the first position
+          end
+          return df
      end
-     return df
 end
 
 """
