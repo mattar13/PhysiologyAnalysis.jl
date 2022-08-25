@@ -58,8 +58,8 @@ function parseNamedTuple(::Type{T}, nt::NamedTuple{keys}) where {T<:Real,keys}
             val = tryparse(T, itm) #Try to parse the item as a Int64
             if !isnothing(val)
                 push!(new_vals, val)
-            else
-                push!(new_vals, itm)
+            else #We should make sure that we at least convert these to a string
+                push!(new_vals, String(itm))
             end
         else
             push!(new_vals, itm)
