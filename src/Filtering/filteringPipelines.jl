@@ -4,9 +4,8 @@ function data_filter!(data::Experiment;
      dwt_periods = false, #dwt_periods = (1,9),
      cwt_periods = false #cwt_periods = (1,9)
 )
-     #println(t_post)
-     baseline_adjust!(data, mode = :slope)
      truncate_data!(data, t_pre = t_pre, t_post = t_post, truncate_based_on = truncate_based_on)
+     baseline_adjust!(data, mode = :slope)
 
      #We will apply several filters consecutively
      if highpass != false
