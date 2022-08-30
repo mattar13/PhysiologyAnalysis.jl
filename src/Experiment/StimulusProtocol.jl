@@ -25,6 +25,9 @@ function StimulusProtocol(type::Symbol, sweep::Int64, channel::Union{Int64,Strin
     StimulusProtoco(type, sweep, channel, index_range, (t1, t2))
 end
 
+#Initialize an empty stimulus protocol
+StimulusProtocol() = StimulusProtocol(:None, 0, 0, (0, 0), (0.0, 0.0))
+
 """
 this function utilizes all julia to extract ABF file data
 """
@@ -37,13 +40,20 @@ function extract_stimulus(abfInfo::Dict{String,Any}; sweep::Int64=-1, stimulus_n
         for sweep in 1:size(abfInfo["data"], 1)
             idx1 = findfirst(stimulus_waveform[sweep, :] .> stimulus_threshold)
             idx2 = findlast(stimulus_waveform[sweep, :] .> stimulus_threshold)
-            push!(Stimuli, StimulusProtocol(:test, sweep, stimulus_name, (idx1, idx2), (idx1 * dt, (idx2 + 1) * dt)))
+            if !isnothing(idx1) && !isnothing(idx2)
+                push!(Stimuli, StimulusProtocol(:test, sweep, stimulus_name, (idx1, idx2), (idx1 * dt, (idx2 + 1) * dt)))
+            end
         end
         return Stimuli
     else
+        
         idx1 = findfirst(stimulus_waveform[sweep, :] .> stimulus_threshold)
         idx2 = findlast(stimulus_waveform[sweep, :] .> stimulus_threshold)
-        return StimulusProtocol(:test, sweep, stimulus_name, (idx1, idx2), (idx1 * dt, (idx2 + 1) * dt))
+        if !isnothing(idx1) && !isnothing(idx2)
+            return StimulusProtocol(:test, sweep, stimulus_name, (idx1, idx2), (idx1 * dt, (idx2 + 1) * dt))
+        else
+            return StimulusProtocol()
+        end
     end
 end
 

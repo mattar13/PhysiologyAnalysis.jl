@@ -412,9 +412,13 @@ function readHeaderSection(f::IO; bytemap = header_bytemap, check_bit_pos = fals
         headerSection["dataOffset"] = dataOffset
         #The EpochTable Item will extract all stimuli only when it is called
         EpochTableByChannel = []
-        for ch in headerSection["channelList"]
-            et = EpochTable(headerSection, ch)
-            push!(EpochTableByChannel, et)
+        if EpochPerDACSection["entrySize"] == 0
+            #println("There may be no Epochs in a gap free run")
+        else
+            for ch in headerSection["channelList"]
+                et = EpochTable(headerSection, ch)
+                push!(EpochTableByChannel, et)
+            end
         end
         headerSection["EpochTableByChannel"] = EpochTableByChannel
         return headerSection
