@@ -110,7 +110,8 @@ include("Datasheets/DatasheetAnalysis.jl")
 export DataPathExtraction, openDatasheet, createDatasheet, updateDatasheet
 export add_analysis_sheets
 # This function will load all of the functions that need a require
-#=function __init__()
+
+function __init__()
      @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
           include("Filtering/make_spectrum.jl")
      end
@@ -152,6 +153,6 @@ export add_analysis_sheets
           using RecipesBase
           include("Plotting/PhysRecipes.jl")
      end
-end=#
+end
 
 end
