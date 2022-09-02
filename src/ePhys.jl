@@ -100,7 +100,7 @@ include("Plotting/PlottingUtilities.jl") #This imports all the plotting utilites
 
 #Once this is all ready, move this into the __init__ function
 #using DataFrames
-
+fTEST() = println("Revise works with init")
 function __init__()
      @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
           include("Filtering/make_spectrum.jl")
@@ -119,15 +119,16 @@ function __init__()
 
      @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
           println("Dataframe utilities are loaded")
-          using Query, XLSX #Load these extra utilites immediately
+          using DataFrames, Query, XLSX #Load these extra utilites immediately
           import XLSX: readtable, readxlsx #Import XLSX commands
-          import Query: @filter #Import query commands
           export readtable, readxlsx, XLSX
-          export @filter
+          
+          import Query: @filter #Import query commands
+          export @filter, Query
           include("Datasheets/RegexFunctions.jl")
           include("Datasheets/DatasheetFunctions.jl")
           include("Datasheets/DatasheetAnalysis.jl")
-          export DataPathExtraction, openDatasheet, createDatasheet, updateDatasheet
+          export openDatasheet, createDatasheet, updateDatasheet
           export runAnalysis
           # This function will load all of the functions that need a require
      end
