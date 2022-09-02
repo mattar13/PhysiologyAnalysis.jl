@@ -204,7 +204,7 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
           
           if savefile
                print("Saving file... ")
-               XLSX.openxlsx(data_file, mode="rw") do xf
+               XLSX.openxlsx(data_file, mode="w") do xf
                     try
                          sheet = xf["All_Files"] #Try opening the All_Files
                     catch

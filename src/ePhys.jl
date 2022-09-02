@@ -99,17 +99,7 @@ export max_interval_algorithim, timeseries_analysis
 include("Plotting/PlottingUtilities.jl") #This imports all the plotting utilites
 
 #Once this is all ready, move this into the __init__ function
-using DataFrames
-println("Dataframe utilities are loaded")
-using Query, XLSX #Load these extra utilites immediately
-import XLSX: readtable, readxlsx
-export readtable, readxlsx, XLSX
-include("Datasheets/RegexFunctions.jl")
-include("Datasheets/DatasheetFunctions.jl")
-include("Datasheets/DatasheetAnalysis.jl")
-export DataPathExtraction, openDatasheet, createDatasheet, updateDatasheet
-export add_analysis_sheets
-# This function will load all of the functions that need a require
+#using DataFrames
 
 function __init__()
      @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
@@ -128,7 +118,18 @@ function __init__()
      #Only import if DataFrames has been loaded
 
      @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
-
+          println("Dataframe utilities are loaded")
+          using Query, XLSX #Load these extra utilites immediately
+          import XLSX: readtable, readxlsx #Import XLSX commands
+          import Query: @filter #Import query commands
+          export readtable, readxlsx, XLSX
+          export @filter
+          include("Datasheets/RegexFunctions.jl")
+          include("Datasheets/DatasheetFunctions.jl")
+          include("Datasheets/DatasheetAnalysis.jl")
+          export DataPathExtraction, openDatasheet, createDatasheet, updateDatasheet
+          export runAnalysis
+          # This function will load all of the functions that need a require
      end
 
      @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
