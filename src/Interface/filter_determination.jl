@@ -181,13 +181,18 @@ begin
 		cwt = cwt_filter!(filtered_data;
 		   period_window = (WT_low_val, WT_hi_val), return_cwt = true
 		)
-		println(cwt)
+		println(cwt |> size)
+	else
+		cwt = nothing
 	end
 	
 	if DWT_pick
-	  dwt = dwt_filter!(filtered_data;
+		dwt = dwt_filter!(filtered_data;
 		   period_window = (WT_low_val, WT_hi_val), return_dwt = true
-	  )
+		)
+		println(dwt |> size)
+	else
+		dwt = nothing
 	end
 	
 	"Filtering functions"
@@ -255,9 +260,6 @@ begin
 	fig
 end
 
-# ╔═╡ a5e33a68-472b-4cf3-a589-5396384ccaa8
-
-
 # ╔═╡ 9d5c1286-1a13-428a-b772-67887ae1f7c8
 begin
 	#Plot the DWT info
@@ -284,7 +286,6 @@ plt.close("all"); clf()
 # ╠═5fdc0c43-9454-495d-9b8a-e47313d178b2
 # ╟─76025c46-2977-4300-8597-de04f313c667
 # ╟─669c877b-efcf-4c6b-a70f-e14164abdbff
-# ╠═a5e33a68-472b-4cf3-a589-5396384ccaa8
 # ╠═9d5c1286-1a13-428a-b772-67887ae1f7c8
 # ╠═7662c0f6-da9b-448b-abde-9b20e15c53ee
 # ╠═e284711a-5f0b-4204-ae20-3173d8496255
