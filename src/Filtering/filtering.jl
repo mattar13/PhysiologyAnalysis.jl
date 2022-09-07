@@ -64,19 +64,24 @@ function cwt_filter(trace::Experiment; wave=cDb2, β=2, dual_window=NaiveDelta()
     data
 end
 
+"""
+Return CWT returns a 4D CWT array
+
+cwt = [swp, data, wavelets, chs]
+"""
 function cwt_filter!(trace::Experiment{T}; wave=cDb2, β::Int64=2, 
     period_window::Tuple{Int64,Int64} = (1, 9), 
     level_window::Tuple{T, T} = (-Inf, Inf),
     return_cwt = false
 ) where T <: Real
     c = wavelet(wave, β=β)
-    cwt = Matrix{Matrix{T}}(undef, size(trace,1), size(trace,3))
+    n_wavelets = 100 #This will be changed posteriorly
+    cwt_wave = zeros(size(trace,1), size(trace, 2), n_wavelets, size(trace,3))
     for swp = 1:size(trace, 1), ch = 1:size(trace, 3)
         y = ContinuousWavelets.cwt(trace[swp, :, ch], c)
-        cwt[swp, ch] = y
+        #It seems the only way to change 
+        cwt_wave[swp,:, 1:size(y,2), ch] .= y
         reconstruct = zeros(size(y))
-        #if period_window[end] == Inf
-        #    period_window = 
         if !any(period_window .== -1)
             reconstruct[:, period_window[1]:period_window[2]] .= y[:, period_window[1]:period_window[2]]
             trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, PenroseDelta()) |> vec
@@ -86,9 +91,10 @@ function cwt_filter!(trace::Experiment{T}; wave=cDb2, β::Int64=2,
             reconstruct[:, period_window[1]:period_window[2]] .= y[:, period_window[1]:period_window[2]]
             trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, PenroseDelta()) |> vec
         end
+        n_wavelets = size(y, 2) #This allows us to use the posterior knowledge to change the array
     end
     if return_cwt
-        return cwt
+        return cwt_wave[:, :, (1:n_wavelets), :]
     end
 end
 
@@ -99,7 +105,7 @@ function dwt_filter!(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,
     #In this case we have to limit the analyis to the window of dyadic time
     #This means that we can only analyze sizes if they are equal to 2^dyadic
     dyad_n = trunc(Int64, log(2, size(trace, 2)))
-    dwt = zeros(size(trace, 1), 2^dyad_n, size(trace, 3))
+    dwt_wave = zeros(size(trace, 1), 2^dyad_n, size(trace, 3))
     #println(2^dyad_n)
     if (length(trace.t) - 2^dyad_n) > 0
         @warn "Sampling rate is non-dyadic. Will result in $(length(trace.t) - 2^dyad_n) leftover points"
@@ -110,14 +116,15 @@ function dwt_filter!(trace::Experiment; wave=WT.db4, period_window::Tuple{Int64,
     end
     for swp = 1:size(trace, 1), ch = 1:size(trace, 3)
         x = trace[swp, 1:2^dyad_n, ch]
+        println("Here")
         xt = dwt(x, wavelet(wave), dyad_n)
-        dwt[swp, :, ch] = xt
+        dwt_wave[swp, :, ch] .= xt
         reconstruct = zeros(size(xt))
         reconstruct[2^period_window[1]:2^(period_window[2])] .= xt[2^period_window[1]:2^(period_window[2])]
         trace.data_array[swp, 1:2^dyad_n, ch] .= idwt(reconstruct, wavelet(wave))
     end
     if return_dwt
-        return dwt
+        return dwt_wave
     end
 end
 
