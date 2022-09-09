@@ -161,7 +161,7 @@ end
 """
 This function creates a new datasheet
 """
-function createDatasheet(all_files::Vector{String})
+function createDatasheet(all_files::Vector{String}; savefile = true, filename = "data_analysis.xlsx")
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           println("Analyzing file $idx of $(size(all_files, 1)): $file")
@@ -172,7 +172,20 @@ function createDatasheet(all_files::Vector{String})
                push!(dataframe, entry)
           end
      end
-     
+     if savefile 
+          XLSX.openxlsx(filename, mode="w") do xf
+               XLSX.rename!(xf[1], "All_Files") #Rename sheet 1
+               try
+                    sheet = xf["All_Files"] #Try opening the All_Files
+               catch
+                    println("Adding sheets")
+                    XLSX.addsheet!(xf, "All_Files")
+               end
+               XLSX.writetable!(xf["All_Files"],
+                    collect(DataFrames.eachcol(dataframe)),
+                    DataFrames.names(dataframe))
+          end
+     end
      dataframe
 end
 
@@ -248,16 +261,17 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
           
           if savefile
                print("Saving file... ")
-               XLSX.openxlsx(data_file, mode="w") do xf
+               XLSX.openxlsx(data_file, mode="rw") do xf
                     try
                          sheet = xf["All_Files"] #Try opening the All_Files
                     catch
                          println("Adding sheets")
                          XLSX.addsheet!(xf, "All_Files")
                     end
-                    XLSX.writetable!(xf["All_Files"],
-                         collect(DataFrames.eachcol(df)),
-                         DataFrames.names(df))
+                    #XLSX.writetable!(xf["All_Files"],
+                    #     collect(DataFrames.eachcol(df)),
+                    #     DataFrames.names(df))
+
                end
                println("Complete")
           end
