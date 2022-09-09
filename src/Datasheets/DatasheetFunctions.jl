@@ -224,6 +224,8 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
           #If this is selected, completely reset the analysis
      else
           df = openDatasheet(data_file) #First, open the old datasheet
+          nrows, ncols = size(df)
+
           println("Searching for files that need to be added and removed")
           old_files = df[:,:Path] #Pull out a list of old files 
                     
@@ -262,15 +264,17 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
           if savefile
                print("Saving file... ")
                XLSX.openxlsx(data_file, mode="rw") do xf
-                    try
-                         sheet = xf["All_Files"] #Try opening the All_Files
-                    catch
-                         println("Adding sheets")
-                         XLSX.addsheet!(xf, "All_Files")
-                    end
-                    #XLSX.writetable!(xf["All_Files"],
-                    #     collect(DataFrames.eachcol(df)),
-                    #     DataFrames.names(df))
+                    
+                    #This cleans the dataframe
+                    XLSX.writetable!(xf["All_Files"],
+                         fill(Tuple(fill("", nrows)), ncols), DataFrames.names(df)
+                    )
+
+                    #This re-writes it
+                    XLSX.writetable!(xf["All_Files"],
+                         collect(DataFrames.eachcol(df)),
+                         DataFrames.names(df)
+                    ) 
 
                end
                println("Complete")
