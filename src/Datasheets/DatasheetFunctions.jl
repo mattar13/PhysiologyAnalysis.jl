@@ -28,6 +28,8 @@ These functions extract the file information from the datafile path
 
 ========================================================================================================================================#
 
+
+
 """
 Lets shift to using Regex to extract file information
 """
@@ -120,6 +122,43 @@ end
 DataPathExtraction(path::String; kwargs...) = DataPathExtraction(path, calibration_file; kwargs...)
 
 """
+This function converts a dataframe of Any to one matching each row type. 
+     catchNaN allows it to catch NaN errors from excel
+"""
+function safe_convert(dataframe::DataFrame)
+     new_obj = DataFrame(dataframe)
+     for (idx, col) in enumerate(eachcol(dataframe))
+          #println(names(dataframe)[idx])
+          typ = typeof(col[1]) #Check if there are 
+          #We will try to convert each row. If it does not work, we can remove the NaNs
+          if ("NaN" ∈ col) #Check if there exists a word NaN in the row (excel will call these strings)
+               #print("Is NaN") #debugging statements
+               whereNaN = findall(col .== "NaN")
+               #println("At position $whereNaN")
+               for idxNaN in whereNaN
+                    #println(idxNaN)
+                    col[idxNaN] = NaN #Instead use a NaN Floating point objects
+               end
+               new_obj[:, idx] = convert.(typ, col)
+          elseif !all(isa.(col, typ))#if col[1] #This is for if there is a Int to Float64 error
+               whereNotSame = findall(map(!, isa.(col, typ)))
+               irregular_type = col[whereNotSame[1]] |> typeof
+               #println("Column type: $typ")
+               #println("Irregular type: $(irregular_type)")
+               if irregular_type == Int64 && typ == Float64 #This can cause an error
+                    new_obj[!, idx] = convert.(typ, col) #Convert all values to Float64
+               else
+                    new_obj[!, idx] = convert.(irregular_type, col) #Convert all values to Float64
+               end
+          else
+               #conv = convert.(typ, col)
+               new_obj[!, idx] = convert.(typ, col) 
+          end
+     end  
+     return new_obj
+end
+
+"""
 This function creates a new datasheet
 """
 function createDatasheet(all_files::Vector{String})
@@ -140,18 +179,23 @@ end
 """
 This function opens an old datasheet
 """
+
 function openDatasheet(data_file::String; sheetName::String = "All_Files", typeConvert = true)
      xf = readxlsx(data_file)
      if sheetName == "all"
           sheetnames = XLSX.sheetnames(xf)
-          df_set = Dict(map(sn -> (sn => openDatasheet(data_file, sheetName = sn)), sheetnames))
+          df_set = Dict()
+          for sn in sheetnames
+               #println(sn) #Use this to debug 
+               df_set[sn] = openDatasheet(data_file, sheetName = sn)
+          end
           return df_set
      else
           s = xf[sheetName]
           df = XLSX.eachtablerow(s) |> DataFrame
           #We can walk through and try to convert each row to either an integer, Float, or String
           if typeConvert
-               df = mapcols(x -> convert.(x[1] |> typeof, x), df) #This converts the categories to a type in the first position
+               df = safe_convert(df) #This converts the categories to a type in the first position
           end
           return df
      end
