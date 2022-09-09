@@ -439,8 +439,10 @@ function add_analysis_sheets(results, save_file::String; append="A")
      end
 end
 
-function runAnalysis(datafile::String, all_files::Vector{String})
-     df = updateDatasheet(datafile, all_files, savefile=true)
+function runAnalysis(datafile::String)
+     print("Opening datafile $(datafile)... ")
+     df = openDatasheet(datafile)
+     println("complete")
      #%% Test the a, b, and g wave analysis
      resA = ePhys.run_A_wave_analysis(df)
      resB = ePhys.run_B_wave_analysis(df)
