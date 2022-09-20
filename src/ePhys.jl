@@ -77,6 +77,7 @@ export RSQ
 
 using Distributions
 include("Analysis/Models.jl")
+export IR
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -96,7 +97,6 @@ export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
 #========================================Plotting utilities========================================#
-include("Plotting/PlottingUtilities.jl") #This imports all the plotting utilites
 
 #Once this is all ready, move this into the __init__ function
 #using DataFrames
