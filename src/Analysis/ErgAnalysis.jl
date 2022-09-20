@@ -115,9 +115,6 @@ function time_to_peak(data::Experiment{T}) where {T<:Real}
     data.t[lowest_val] .* 1000
 end
 
-
-
-
 """
 This function is the amount of time that a certain trace spends in a particular bandwith. 
     I think it will be similar to the pepperburg, So this may become that function
@@ -170,8 +167,7 @@ function integral(data::Experiment{T}) where {T<:Real}
     return sum(data_section, dims=2) * data.dt
 end
 
-# The below functions are created by fitting a model 
-
+#=========================== The below functions are created by fitting a model ===========================#
 
 """
 The recovery time constant is calculated by fitting the normalized Rdim with the response recovery equation
