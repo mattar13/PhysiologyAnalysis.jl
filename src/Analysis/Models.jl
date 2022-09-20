@@ -60,7 +60,7 @@ if Response values are normalized to 1, then \$R_{max}\$ = 1 and can be cancelle
 
 [OUT 1]: Response
 """
-IR(I, Ih, n) = I^n / (Ih^n + I^n)
+IR(I, k, n) = I^n / (k^n + I^n)
 
 """
 # Developmental Intensity response (>P14)
