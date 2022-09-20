@@ -1,5 +1,53 @@
 #This file contains the calibration data
 
+function extract_categories(cond_df::DataFrame) 
+     categories = []
+     for row in eachrow(cond_df)
+          a = [row.Age, row.Genotype, row.Photoreceptor, row.Wavelength]
+          push!(categories, a)
+     end
+     categories
+end
+
+function extractIR(trace_datafile::DataFrame, category;
+          measure = :Response,
+          k = 1000.0, n = 2.0,
+          rmin = -1000.0, rmax = 2000.0, #This is the maximum ERG response we have gotten
+          kmin = 1.0, kmax = 10e6, 
+          nmin = 1.0, nmax = 10.0     
+     )
+
+     allIR = trace_datafile |> 
+          @filter(_.Age == category[1]) |>
+          @filter(_.Genotype == category[2]) |>
+          @filter(_.Photoreceptor == category[3]) |>
+          @filter(_.Wavelength == category[4]) |>
+     DataFrame
+
+     intensity = allIR.Photons
+     response = allIR[!, measure]
+     #generate the fits for the equation
+     r = measure == :Minima ? maximum(response) : minimum(response)
+     p0 = [r, k, n]
+     ub = [rmax, kmax, nmax]
+     lb = [rmin, kmin, nmin]
+     println(response)
+     model(I, p) = map(i -> p[1]*IR(i, p[2], p[3]), I)
+     fit = curve_fit(model, intensity, response, p0, lower = lb, upper = ub)
+     fitResponse = model(intensity, fit.param)
+     allIR[!, :FitVariable] = fitResponse
+     allIR[!, :Residual] = (intensity.-fitResponse).^2
+
+     select!(allIR, 
+          [
+               :Path, :Year, :Month, :Date, 
+               :Age, :Number, :Genotype, :Photoreceptor, :Wavelength, :Channel, :Gain,
+               :Photons, measure, :FitVariable, :Residual
+          ]
+     )
+     return allIR, fit
+end
+
 """
 
 """
@@ -452,3 +500,5 @@ function runAnalysis(datafile::String)
      add_analysis_sheets(resG, datafile; append="G")
      return (df, resA, resB, resG)
 end
+
+
