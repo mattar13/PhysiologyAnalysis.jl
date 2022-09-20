@@ -9,13 +9,22 @@ function extract_categories(cond_df::DataFrame)
      categories
 end
 
-function extractIR(trace_datafile::DataFrame, category;
-          measure = :Response,
-          k = 1000.0, n = 2.0,
+function IRfit(intensity, response; 
+          r = 100.0, k = 1000.0, n = 2.0,
           rmin = -1000.0, rmax = 2000.0, #This is the maximum ERG response we have gotten
           kmin = 1.0, kmax = 10e6, 
-          nmin = 1.0, nmax = 10.0     
+          nmin = 1.0, nmax = 10.0
      )
+     p0 = [r, k, n]
+     ub = [rmax, kmax, nmax]
+     lb = [rmin, kmin, nmin]
+     #println(response)
+     model(I, p) = map(i -> p[1] * IR(i, p[2], p[3]), I)
+     fit = curve_fit(model, intensity, response, p0, lower=lb, upper=ub)
+     return fit
+end
+
+function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwargs...)
 
      allIR = trace_datafile |> 
           @filter(_.Age == category[1]) |>
@@ -28,15 +37,12 @@ function extractIR(trace_datafile::DataFrame, category;
      response = allIR[!, measure]
      #generate the fits for the equation
      r = measure == :Minima ? maximum(response) : minimum(response)
-     p0 = [r, k, n]
-     ub = [rmax, kmax, nmax]
-     lb = [rmin, kmin, nmin]
-     println(response)
+     fit = IRfit(intensity, response; r = r, kwargs...)
      model(I, p) = map(i -> p[1]*IR(i, p[2], p[3]), I)
-     fit = curve_fit(model, intensity, response, p0, lower = lb, upper = ub)
      fitResponse = model(intensity, fit.param)
+
      allIR[!, :FitVariable] = fitResponse
-     allIR[!, :Residual] = (intensity.-fitResponse).^2
+     allIR[!, :Residual] = fit.resid
 
      select!(allIR, 
           [
@@ -171,7 +177,23 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true)
                         Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery)
                    }) |>
                    DataFrame
-
+     #retroactively go through and fit all IR data
+     rmax_fit = Float64[]
+     k_fit = Float64[]
+     n_fit = Float64[]
+     for (idx, categ) in enumerate(extract_categories(qConditions))
+          allIR, fiti = extractIR(qTrace, categ, measure = :Minima)
+          #if categ[1] <= 11
+          #else
+          #     allIR, fiti = extractIR(qTrace, categ)
+          #end
+          push!(rmax_fit, abs(fiti.param[1]))
+          push!(k_fit, fiti.param[2])
+          push!(n_fit, fiti.param[3])
+     end
+     qConditions[!, :RmaxFit] = rmax_fit
+     qConditions[!, :k] = k_fit
+     qConditions[!, :n] = n_fit
      return qTrace, qExperiment, qConditions
 end
 
@@ -315,7 +337,24 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=false)
                         Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
                         Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
                         Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery)}) |>
-                   DataFrame
+               DataFrame
+     rmax_fit = Float64[]
+     k_fit = Float64[]
+     n_fit = Float64[]
+     for (idx, categ) in enumerate(extract_categories(qConditions))
+          allIR, fiti = extractIR(qTrace, categ, measure=:Maxima)
+          #if categ[1] <= 11
+          #else
+          #     allIR, fiti = extractIR(qTrace, categ)
+          #end
+          push!(rmax_fit, abs(fiti.param[1]))
+          push!(k_fit, fiti.param[2])
+          push!(n_fit, fiti.param[3])
+     end
+     qConditions[!, :RmaxFit] = rmax_fit
+     qConditions[!, :k] = k_fit
+     qConditions[!, :n] = n_fit
+
      return qTrace, qExperiment, qConditions
 end
 
