@@ -530,12 +530,12 @@ function add_analysis_sheets(results, save_file::String; append="A")
      end
 end
 
-function runAnalysis(datafile::String)
+function runAnalysis(datafile::String; measure_minima = false)
      print("Opening datafile $(datafile)... ")
      df = openDatasheet(datafile)
      println("complete")
      #%% Test the a, b, and g wave analysis
-     resA = ePhys.run_A_wave_analysis(df)
+     resA = ePhys.run_A_wave_analysis(df; measure_minima = measure_minima)
      resB = ePhys.run_B_wave_analysis(df)
      resG = ePhys.run_G_wave_analysis(df)
      add_analysis_sheets(resA, datafile; append="A")
