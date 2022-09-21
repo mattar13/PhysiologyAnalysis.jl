@@ -57,7 +57,7 @@ end
 """
 
 """
-function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true)
+function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, measure_minima = false)
      a_files = all_files |> @filter(_.Condition == "BaCl_LAP4") |> DataFrame
      a_files[!, :Path] = string.(a_files[!, :Path])
      uniqueData = a_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame
@@ -96,8 +96,12 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true)
                     rmaxes = minimum(responses, dims=1)
                else
                     filt_data = data_filter(data, t_post=1.0)
-                    responses = saturated_response(filt_data)
-                    minimas = minimum(filt_data, dims=2)[:, 1, :]
+                    if measure_minima
+                         responses = minimas = minimum(filt_data, dims=2)[:, 1, :]
+                    else
+                         responses = saturated_response(filt_data)
+                         minimas = minimum(filt_data, dims=2)[:, 1, :]
+                    end
                     maximas = maximum(filt_data, dims=2)[:, 1, :]
                     Resps = abs.(responses)
                     rmaxes = minimum(responses, dims=1)
