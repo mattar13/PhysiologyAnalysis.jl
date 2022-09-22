@@ -11,8 +11,8 @@ end
 
 function IRfit(intensity, response; 
           r = 100.0, k = 1000.0, n = 2.0,
-          rmin = -1000.0, rmax = 2000.0, #This is the maximum ERG response we have gotten
-          kmin = 1.0, kmax = 10e6, 
+          rmin = 0.0, rmax = 2000.0, #This is the maximum ERG response we have gotten
+          kmin = 0.05, kmax = 10e6, 
           nmin = 1.0, nmax = 10.0
      )
      p0 = [r, k, n]
@@ -57,7 +57,7 @@ end
 """
 
 """
-function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, measure_minima = false)
+function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, measure_minima = true)
      a_files = all_files |> @filter(_.Condition == "BaCl_LAP4") |> DataFrame
      a_files[!, :Path] = string.(a_files[!, :Path])
      uniqueData = a_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame
@@ -151,13 +151,24 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                     rdim_min = argmin(Resps[rdim_idxs])
                     rdim_idx = rdim_idxs[rdim_min]
                end
+               #try fitting the data for the rmax and k individually
+               rmax_FIT = 0.0
+               k_FIT = 0.0
+               n_FIT = 0.0
+               try
+                    fit = IRfit(qData[:, :Photons], Resps[:,1], r = maximum(Resps))
+                    rmax_fit, k, n = fit.param
+               catch
+                    println("Something went wrong")
 
+               end
                push!(qExperiment, (
                     Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                     Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
                     Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                    Photons=qData[1, :Photons],
+                    #Photons=qData[1, :Photons], #We dont' need the first number of photons
                     rmax=maximum(Resps),
+                    rmax_fit = rmax_FIT, k = k_FIT, n = n_FIT,
                     rdim=Resps[rdim_idx],
                     integration_time=Integrated_Times[rdim_idx],
                     time_to_peak=Peak_Times[rdim_idx],
