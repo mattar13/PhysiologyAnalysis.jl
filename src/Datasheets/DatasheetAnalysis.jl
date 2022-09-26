@@ -152,7 +152,7 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                     rdim_idx = rdim_idxs[rdim_min]
                end
                #try fitting the data for the rmax and k individually
-               rmax_FIT = 0.0
+               #=rmax_FIT = 0.0
                k_FIT = 0.0
                n_FIT = 0.0
                try
@@ -161,7 +161,7 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                catch
                     println("Something went wrong")
 
-               end
+               end=#
                push!(qExperiment, (
                     Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                     Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],

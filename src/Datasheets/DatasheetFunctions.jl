@@ -6,8 +6,8 @@ const calibration_file = raw"C:\Users\mtarc\OneDrive - The University of Akron\D
 
 Uses the calibration file or datasheet to look up the photon density. The Photon datasheet should be either 
 """
-function photon_lookup(wavelength::Real, nd::Real, percent::Real, calibration_file::String, sheet_name::String="Current_Test")
-     df = DataFrame(XLSX.readtable(calibration_file, sheet_name)...)
+function photon_lookup(wavelength::Real, nd::Real, percent::Real, calibration_file::String; sheet_name::String="Current_Test")
+     df = DataFrame(XLSX.readtable(calibration_file, sheet_name))
      Qi = df |>
           @filter(_.Wavelength == wavelength) |>
           @filter(_.ND == nd) |>
