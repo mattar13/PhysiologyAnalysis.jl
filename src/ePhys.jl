@@ -130,6 +130,7 @@ function __init__()
           include("Datasheets/DatasheetAnalysis.jl")
           export openDatasheet, createDatasheet, updateDatasheet
           export runAnalysis
+          export matchExperiment
           # This function will load all of the functions that need a require
      end
 

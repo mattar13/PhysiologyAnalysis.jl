@@ -339,3 +339,50 @@ function readABF(df::DataFrame; extra_channels=nothing, a_name="A_Path", ab_name
 end
 
 readABF(df_row::DataFrameRow; kwargs...) = readABF(df_row |> DataFrame; kwargs...)
+
+
+#=============================================================================================
+These fuctions help extract experiments
+=============================================================================================#
+function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64}; pc="Rods", color=520)
+     result = trace |>
+              @filter((_.Year, _.Month, _.Date, _.Number) == date) |>
+              DataFrame
+
+     if !isnothing(pc)
+          result = result |> @filter(_.Photoreceptor == pc) |> DataFrame
+     end
+     result = result |>
+              @filter(_.Wavelength == color) |>
+              @orderby(_.Photons) |>
+              DataFrame
+
+     return result
+end
+
+function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64,String}; pc="Rods", color=520)
+
+     result = trace |>
+              @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == date) |>
+              DataFrame
+     if !isnothing(pc)
+          result = result |> @filter(_.Photoreceptor == pc) |> DataFrame
+     end
+     result = result |>
+              @filter(_.Wavelength == color) |>
+              @orderby(_.Photons) |>
+              DataFrame
+     return result
+end
+
+function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64,String, Int64}; pc="Rods")
+
+     result = trace |>
+              @filter((_.Year, _.Month, _.Date, _.Number, _.Channel, _.Wavelength) == date) |>
+              DataFrame
+     result = result |>
+              #@filter(_.Wavelength == color) |>
+              @orderby(_.Photons) |>
+              DataFrame
+     return result
+end
