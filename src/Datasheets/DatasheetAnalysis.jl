@@ -36,7 +36,8 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
      intensity = allIR.Photons
      response = allIR[!, measure]
      #generate the fits for the equation
-     r = measure == :Minima ? maximum(response) : abs(minimum(response))
+     r = measure == :Minima ? abs(minimum(response)) : maximum(response)
+     println(r)
      fit = IRfit(intensity, response; r = r, kwargs...)
      model(I, p) = map(i -> p[1]*IR(i, p[2], p[3]), I)
      fitResponse = model(intensity, fit.param)
