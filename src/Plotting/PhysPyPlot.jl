@@ -1,3 +1,4 @@
+import PyPlot.plt
 function plot_experiment(axis::PyObject, exp::Experiment;
     channel=1, axes_off=false, yaxes_off=false, xaxes_off=false,
     #cmap = nothing, cmap_direction = :sweeps,
@@ -26,6 +27,14 @@ function plot_experiment(axis::Vector{PyObject}, exp::Experiment; kwargs...)
     for (ch, ax) in enumerate(axis)
         plot_experiment(ax::PyObject, exp::Experiment; channel=ch, kwargs...)
     end
+end
+
+function plot_experiment(exp::Experiment; kwargs...)
+    fig, axis = plt.subplots(size(exp, 3))
+    for (ch, ax) in enumerate(axis)
+        plot_experiment(ax::PyObject, exp::Experiment; channel=ch, kwargs...)
+    end
+    return fig
 end
 
 function add_scalebar(ax, loc::Tuple{T,T}, dloc::Tuple{T,T};
