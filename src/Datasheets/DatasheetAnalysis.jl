@@ -154,9 +154,10 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                     rdim_idx = rdim_idxs[rdim_min]
                end
                #try fitting the data for the rmax and k individually
-               #=rmax_FIT = 0.0
+               rmax_FIT = 0.0
                k_FIT = 0.0
                n_FIT = 0.0
+               #=
                try
                     fit = IRfit(qData[:, :Photons], Resps[:,1], r = maximum(Resps))
                     rmax_fit, k, n = fit.param
