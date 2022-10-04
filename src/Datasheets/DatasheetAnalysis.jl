@@ -37,9 +37,10 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
      response = abs.(allIR[!, measure])
      #generate the fits for the equation
      r = measure == :Minima ? abs(minimum(response)) : maximum(response)
-     #println(r)
+     println(r)
      #println(intensity)
-     fit = IRfit(intensity, response; r = r, kwargs...)
+     fit = IRfit(intensity, response; r = r, rmax = (r + 1000), kwargs...)
+
      model(I, p) = map(i -> p[1]*IR(i, p[2], p[3]), I)
      fitResponse = model(intensity, fit.param)
 
@@ -60,38 +61,37 @@ end
 
 """
 function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, measure_minima = true)
-     a_files = all_files |> @filter(_.Condition == "BaCl_LAP4") |> DataFrame
-     a_files[!, :Path] = string.(a_files[!, :Path])
-     uniqueData = a_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame
+     a_files = all_files |> @filter(_.Condition == "BaCl_LAP4") |> DataFrame #Extract all A-wave responses
+     a_files[!, :Path] = string.(a_files[!, :Path]) #Make sure the path is a string
+     uniqueData = a_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame #Pull out all unique files
      if verbose
           println("Completed data query")
      end
 
-     qTrace = DataFrame()
-     qExperiment = DataFrame()
-     for (idx, i) in enumerate(eachrow(uniqueData)) #We can walk through each experiment and extract the experiments based on that
+     qTrace = DataFrame() #Make empty dataframes for all traces
+     qExperiment = DataFrame() #Make empty dataframe for all experiments
+     for (idx, i) in enumerate(eachrow(uniqueData)) #Walk through each unique data
           qData = a_files |> @filter(
                        (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
                        (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
                   ) |>
-                  DataFrame
+                  DataFrame #Pull out the data 
           dataFile = readABF(qData.Path)
 
           if verbose
                println("Completeing A-wave analysis for $idx out of $(size(uniqueData,1))")
+               println("Path: $(i.Path)")
           end
           for data in eachchannel(dataFile) #walk through each row of the data iterator
                age = qData.Age[1] #Extract the age
                ch = data.chNames[1] #Extract channel information
-               gain = data.chTelegraph[1]
-               #Calculate the response based on the age
-               #println(data |> size)
+               gain = data.chTelegraph[1] #Extract the gain
                if gain == 1
                     data / 100.0
                end
                #======================DATA ANALYSIS========================#
-               if age <= 11
-                    filt_data = data_filter(data, t_post=0.5)
+               if age <= 11 #If the data is below P11 calculate the response differently
+                    filt_data = data_filter(data, t_post=0.5) #This function is found in the filter pipeline 
                     responses = minimas = minimum(filt_data, dims=2)[:, 1, :]
                     maximas = maximum(filt_data, dims=2)[:, 1, :]
                     Resps = abs.(responses)
@@ -142,10 +142,7 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
 
                #Each data entry will be added to the qExperiment frame
                #This section we need to extract Rdim responses. 
-               #rdim_idxs = 
-               #println(Resps)
                norm_resp = Resps ./ maximum(Resps)
-               #println(norm_resp)
                rdim_idxs = findall(0.20 .< norm_resp .< 0.50)
                if isempty(rdim_idxs)
                     rdim_idx = argmin(Resps)
@@ -216,7 +213,7 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
 end
 
 #We can update this with our updated channel analysis
-function run_B_wave_analysis(all_files::DataFrame; verbose=false)
+function run_B_wave_analysis(all_files::DataFrame; verbose=true)
      trace_A = all_files |> @filter(_.Condition == "BaCl_LAP4" || _.Condition == "LAP4_BaCl") |> DataFrame
      trace_AB = all_files |> @filter(_.Condition == "BaCl") |> DataFrame
      b_files = trace_A |> @join(trace_AB,
@@ -249,11 +246,9 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=false)
           filt_data_A = data_filter(data_A, t_post=0.5)
           #if we want to subtract we need to filter first
           sub_data = filt_data_AB - filt_data_A
-          if verbose
+          #=if verbose
                println("Subtraction complete")
                println("Checking analysis")
-               print("Data Section: ")
-               println(qData)
                print("Data section size:")
                println(qData |> size)
                print("Size of filtered AB data:")
@@ -262,7 +257,7 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=false)
                println(size(data_A))
                print("Size of subtracted data:")
                println(sub_data |> size)
-          end
+          end=#
           for (ch_idx, data_ch) in enumerate(eachchannel(sub_data)) #walk through each row of the data iterator
 
                unsubtracted_data_ch = getchannel(filt_data_AB, ch_idx)
@@ -286,21 +281,14 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=false)
                maximas = maximum(data_ch, dims=2)[:, 1, :]
                Peak_Times = time_to_peak(data_ch)
                Integrated_Times = integral(data_ch)
-               #println(data_ch)
-               #println(size(data_ch))
-               #println(maximum(data_ch))
-               #println(minimum(data_ch))
                rec_res = recovery_time_constant(data_ch, Resps)
                Recovery_Taus = rec_res[1] |> vec
                Tau_GOFs = rec_res[2] |> vec
 
                #We need to program the amplification as well. But that may be longer
                Percent_Recoveries = percent_recovery_interval(data_ch, rmaxes)
-               #println(Percent_Recoveries)
                #======================GLUING TOGETHER THE QUERY========================#
-               #now we can walk through each one of the responses and add it to the qTrace 
                for swp = 1:size(data_ch, 1) #Walk through all sweep info, since sweeps will represent individual datafiles most of the time
-                    #inside_row = qData[idx, :Path] #We can break down each individual subsection by the inside row
                     push!(qTrace,
                          (
                               Path=qData[swp, :Path], A_Path=qData[swp, :A_Path],
