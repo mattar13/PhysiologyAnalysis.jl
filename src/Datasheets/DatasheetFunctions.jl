@@ -122,6 +122,34 @@ end
 DataPathExtraction(path::String; kwargs...) = DataPathExtraction(path, calibration_file; kwargs...)
 
 """
+This function cleans the data out of a dataframe and saves it
+"""
+function cleanDataFrame!(filename::String, sheetname::String)
+     #println(nrows)
+     #println(ncols)
+     XLSX.openxlsx(filename, mode="rw") do xf
+          if sheetname ∈ XLSX.sheetnames(xf)
+               sheet = xf[sheetname]
+               nrows, ncols = size(sheet[:])
+               names = map(col -> sheet[1, col], 1:ncols)
+               eraser = []
+               for name in names
+                    eraser_col = (name, fill("", nrows-1)...)
+                    push!(eraser, eraser_col)
+               end
+               XLSX.writetable!(xf[sheetname],
+                    fill(Tuple(fill("", nrows)), ncols), names
+               )
+          else
+               println("Sheetname not in sheets")
+               println("Choose from one of these sheets:")
+               for sn in XLSX.sheetnames(xf)
+                    println("-> $sn")
+               end
+          end
+     end
+end
+"""
 This function converts a dataframe of Any to one matching each row type. 
      catchNaN allows it to catch NaN errors from excel
 """
@@ -199,7 +227,7 @@ function openDatasheet(data_file::String; sheetName::String = "All_Files", typeC
           sheetnames = XLSX.sheetnames(xf)
           df_set = Dict()
           for sn in sheetnames
-               #println(sn) #Use this to debug 
+               println(sn) #Use this to debug 
                df_set[sn] = openDatasheet(data_file, sheetName = sn)
           end
           return df_set

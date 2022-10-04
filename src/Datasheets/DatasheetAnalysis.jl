@@ -154,10 +154,10 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                rmax_FIT = 0.0
                k_FIT = 0.0
                n_FIT = 0.0
+               fit = IRfit(qData[:, :Photons], Resps[:,1], r = maximum(Resps))
+               rmax_FIT, k_FIT, n_FIT = fit.param
                #=
                try
-                    fit = IRfit(qData[:, :Photons], Resps[:,1], r = maximum(Resps))
-                    rmax_fit, k, n = fit.param
                catch
                     println("Something went wrong")
 
@@ -495,15 +495,15 @@ end
 function add_analysis_sheets(results, save_file::String; append="A")
      trace, experiments, conditions = results
      XLSX.openxlsx(save_file, mode="rw") do xf
-          try
-               sheet = xf["trace_$(append)"] #try to open the sheet
-          catch #the sheet is not made and must be created
-               println("Adding sheets")
-               XLSX.addsheet!(xf, "trace_$(append)")
-          end
-          XLSX.writetable!(xf["trace_$(append)"],
-               collect(DataFrames.eachcol(trace)),
-               DataFrames.names(trace))
+     try
+          sheet = xf["trace_$(append)"] #try to open the sheet
+     catch #the sheet is not made and must be created
+          println("Adding sheets")
+          XLSX.addsheet!(xf, "trace_$(append)")
+     end
+     XLSX.writetable!(xf["trace_$(append)"],
+          collect(DataFrames.eachcol(trace)),
+          DataFrames.names(trace))
      end
      #Extract experiments for A wave
 
