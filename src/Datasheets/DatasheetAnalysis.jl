@@ -37,7 +37,6 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
      response = abs.(allIR[!, measure])
      #generate the fits for the equation
      r = measure == :Minima ? abs(minimum(response)) : maximum(response)
-     println(r)
      #println(intensity)
      fit = IRfit(intensity, response; r = r, rmax = (r + 1000), kwargs...)
 
@@ -108,7 +107,6 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                     Resps = abs.(responses)
                     rmaxes = minimum(responses, dims=1)
                end
-
                Peak_Times = time_to_peak(filt_data) #Calculate the time to peak
                Integrated_Times = abs.(integral(filt_data))
                rec_res = recovery_time_constant(filt_data, responses)
@@ -495,15 +493,17 @@ end
 function add_analysis_sheets(results, save_file::String; append="A")
      trace, experiments, conditions = results
      XLSX.openxlsx(save_file, mode="rw") do xf
-     try
-          sheet = xf["trace_$(append)"] #try to open the sheet
-     catch #the sheet is not made and must be created
-          println("Adding sheets")
-          XLSX.addsheet!(xf, "trace_$(append)")
-     end
-     XLSX.writetable!(xf["trace_$(append)"],
-          collect(DataFrames.eachcol(trace)),
-          DataFrames.names(trace))
+          try
+               sheet = xf["trace_$(append)"] #try to open the sheet
+               
+               #clean the data from the sheet
+          catch #the sheet is not made and must be created
+               println("Adding sheets")
+               XLSX.addsheet!(xf, "trace_$(append)")
+          end
+          XLSX.writetable!(xf["trace_$(append)"],
+               collect(DataFrames.eachcol(trace)),
+               DataFrames.names(trace))
      end
      #Extract experiments for A wave
 

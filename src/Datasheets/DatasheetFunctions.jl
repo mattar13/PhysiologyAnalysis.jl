@@ -121,34 +121,42 @@ end
 
 DataPathExtraction(path::String; kwargs...) = DataPathExtraction(path, calibration_file; kwargs...)
 
+
+"""
+This function cleans the data out of a dataframe if the dataframe is already open
+"""
+function cleanDataFrame!(xf::XLSX.XLSXFile, sheetname::String)
+     if sheetname ∈ XLSX.sheetnames(xf)
+          sheet = xf[sheetname]
+          nrows, ncols = size(sheet[:])
+          names = map(col -> sheet[1, col], 1:ncols)
+          eraser = []
+          for name in names
+               eraser_col = (name, fill("", nrows - 1)...)
+               push!(eraser, eraser_col)
+          end
+          XLSX.writetable!(xf[sheetname],
+               fill(Tuple(fill("", nrows)), ncols), names
+          )
+     else
+          println("Sheetname not in sheets")
+          println("Choose from one of these sheets:")
+          for sn in XLSX.sheetnames(xf)
+               println("-> $sn")
+          end
+     end
+end
+
 """
 This function cleans the data out of a dataframe and saves it
 """
 function cleanDataFrame!(filename::String, sheetname::String)
-     #println(nrows)
-     #println(ncols)
      XLSX.openxlsx(filename, mode="rw") do xf
-          if sheetname ∈ XLSX.sheetnames(xf)
-               sheet = xf[sheetname]
-               nrows, ncols = size(sheet[:])
-               names = map(col -> sheet[1, col], 1:ncols)
-               eraser = []
-               for name in names
-                    eraser_col = (name, fill("", nrows-1)...)
-                    push!(eraser, eraser_col)
-               end
-               XLSX.writetable!(xf[sheetname],
-                    fill(Tuple(fill("", nrows)), ncols), names
-               )
-          else
-               println("Sheetname not in sheets")
-               println("Choose from one of these sheets:")
-               for sn in XLSX.sheetnames(xf)
-                    println("-> $sn")
-               end
-          end
+          cleanDataFrame!(xf, sheetname)
      end
 end
+
+
 """
 This function converts a dataframe of Any to one matching each row type. 
      catchNaN allows it to catch NaN errors from excel
@@ -180,16 +188,16 @@ function safe_convert(dataframe::DataFrame)
                end
           else
                #conv = convert.(typ, col)
-               new_obj[!, idx] = convert.(typ, col) 
+               new_obj[!, idx] = convert.(typ, col)
           end
-     end  
+     end
      return new_obj
 end
 
 """
 This function creates a new datasheet
 """
-function createDatasheet(all_files::Vector{String}; savefile = true, filename = "data_analysis.xlsx")
+function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx")
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           println("Analyzing file $idx of $(size(all_files, 1)): $file")
@@ -200,7 +208,7 @@ function createDatasheet(all_files::Vector{String}; savefile = true, filename = 
                push!(dataframe, entry)
           end
      end
-     if savefile 
+     if !isnothing(filename)
           XLSX.openxlsx(filename, mode="w") do xf
                XLSX.rename!(xf[1], "All_Files") #Rename sheet 1
                try
@@ -221,14 +229,14 @@ end
 This function opens an old datasheet
 """
 
-function openDatasheet(data_file::String; sheetName::String = "All_Files", typeConvert = true)
+function openDatasheet(data_file::String; sheetName::String="All_Files", typeConvert=true)
      xf = readxlsx(data_file)
      if sheetName == "all"
           sheetnames = XLSX.sheetnames(xf)
           df_set = Dict()
           for sn in sheetnames
                println(sn) #Use this to debug 
-               df_set[sn] = openDatasheet(data_file, sheetName = sn)
+               df_set[sn] = openDatasheet(data_file, sheetName=sn)
           end
           return df_set
      else
@@ -245,9 +253,7 @@ end
 """
 This function will read and update the datasheet with the new files
 """
-function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bool = false, 
-     savefile::Bool = true
-)
+function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bool=false, savefile::Bool=true)
      if reset
           #If this is selected, completely reset the analysis
      else
@@ -255,20 +261,20 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
           nrows, ncols = size(df)
 
           println("Searching for files that need to be added and removed")
-          old_files = df[:,:Path] #Pull out a list of old files 
-                    
+          old_files = df[:, :Path] #Pull out a list of old files 
+
           #This searches for files that occur in all files, but not in old files, indicating they need added to the analysis
           files_to_add = findall(isnothing, indexin(all_files, old_files))
 
           #This searches for files that are in old files, but not not in all files, indicating they may need deleted
           files_to_remove = findall(isnothing, indexin(old_files, all_files))
-          
+
           duplicate_files = findall(nonunique(df))
-          
+
           if !isempty(files_to_add) #There are no files to add
                println("Adding $(length(files_to_add)) files")
-               new_files = all_files[files_to_add] 
-               df_new = createDatasheet(new_files) 
+               new_files = all_files[files_to_add]
+               df_new = createDatasheet(new_files)
                df = vcat(df, df_new) #Add the new datasheet to the old one
           end
 
@@ -287,22 +293,19 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
                @orderby(_.Year) |> @thenby(_.Month) |> @thenby(_.Date) |>
                @thenby(_.Animal) |> @thenby(_.Genotype) |> @thenby(_.Condition) |>
                @thenby(_.Wavelength) |> @thenby(_.Photons) |>
-          DataFrame
-          
-          if savefile
-               print("Saving file... ")
-               XLSX.openxlsx(data_file, mode="rw") do xf
-                    
-                    #This cleans the dataframe
-                    XLSX.writetable!(xf["All_Files"],
-                         fill(Tuple(fill("", nrows)), ncols), DataFrames.names(df)
-                    )
+               DataFrame
 
+          if savefile
+               
+               println("Saving file... ")
+               XLSX.openxlsx(data_file, mode="rw") do xf
+                    print("Erasing file")
+                    cleanDataFrame!(xf, "All_files") #This cleans all data from All_Files
                     #This re-writes it
                     XLSX.writetable!(xf["All_Files"],
                          collect(DataFrames.eachcol(df)),
                          DataFrames.names(df)
-                    ) 
+                    )
 
                end
                println("Complete")
@@ -403,7 +406,7 @@ function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64,S
      return result
 end
 
-function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64,String, Int64}; pc="Rods")
+function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64,String,Int64}; pc="Rods")
 
      result = trace |>
               @filter((_.Year, _.Month, _.Date, _.Number, _.Channel, _.Wavelength) == date) |>
