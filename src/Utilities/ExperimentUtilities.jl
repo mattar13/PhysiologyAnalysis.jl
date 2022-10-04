@@ -57,7 +57,10 @@ function concat(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad,
     return new_data
 end
 
-function concat!(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad, position::Symbol=:post, verbose=false, kwargs...) where {T}
+function concat!(data::Experiment{T}, data_add::Experiment{T}; 
+        mode::Symbol=:pad, position::Symbol=:post, verbose=false, 
+        channel_mode::Symbol = :remove_extra,
+        kwargs...) where {T}
     if size(data, 2) > size(data_add, 2)
         #println("Original data larger $(size(data,2)) > $(size(data_add,2))")
         n_vals = abs(size(data, 2) - size(data_add, 2))
@@ -76,14 +79,18 @@ function concat!(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad
         end
     end
 
-    if size(data, 3) != size(data_add, 3)
+    if size(data, 3) < size(data_add, 3)
         if verbose
-            println(size(data))
-            println(size(data_add))
-            println(data_add.infoDict["abfPath"])
-            #We need to write a catch here to concatenate files with different numbers of channels
-            println("Don't concatenate these files")
+            println("Concatenated file has too many channels")
+            println(data_add.chNames)
         end
+        #We want to remove channels that are hanging. 
+        hanging_channels = findall((occursin.(data.chNames, data_add.chNames)).==false)
+        data_dropped = drop(data_add, dim = 3, drop_idx = hanging_channels[1])
+        push!(data, data_dropped)
+        push!(data.stim_protocol, data_dropped.stim_protocol...)
+    elseif size(data, 3) > size(data_add, 3)
+        println("Original file has too many channels")
     else
         push!(data, data_add)
         push!(data.stim_protocol, data_add.stim_protocol...)
@@ -91,11 +98,14 @@ function concat!(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad
 end
 
 function concat(filenames::Array{String,1}; kwargs...)
+    #println("Data length is $(size(filenames, 1))")
     data = readABF(filenames[1]; average_sweeps=true, kwargs...)
     #IN this case we want to ensure that the stim_protocol is only 1 stimulus longer
     for filename in filenames[2:end]
         data_add = readABF(filename; average_sweeps=true, kwargs...)
+        #println(size(data_add))
         concat!(data, data_add; kwargs...)
+        #println(size(data, 1))
     end
     return data
 end
