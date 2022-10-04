@@ -152,14 +152,13 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                rmax_FIT = 0.0
                k_FIT = 0.0
                n_FIT = 0.0
-               fit = IRfit(qData[:, :Photons], Resps[:,1], r = maximum(Resps))
-               rmax_FIT, k_FIT, n_FIT = fit.param
-               #=
                try
+                    fit = IRfit(qData[:, :Photons], Resps[:,1], r = maximum(Resps))
+                    rmax_FIT, k_FIT, n_FIT = fit.param
                catch
                     println("Something went wrong")
-
-               end=#
+                    
+               end
                push!(qExperiment, (
                     Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                     Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
