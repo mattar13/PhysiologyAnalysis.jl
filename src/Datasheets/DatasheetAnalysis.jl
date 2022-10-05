@@ -494,8 +494,8 @@ function add_analysis_sheets(results, save_file::String; append="A")
      XLSX.openxlsx(save_file, mode="rw") do xf
           try
                sheet = xf["trace_$(append)"] #try to open the sheet
-               
                #clean the data from the sheet
+               println("Cleaning Data")
                cleanDatasheet!(xf, "trace_$(append)")
           catch #the sheet is not made and must be created
                println("Adding sheets")
@@ -540,10 +540,10 @@ function runAnalysis(datafile::String; measure_minima = false)
      println("complete")
      #%% Test the a, b, and g wave analysis
      resA = ePhys.run_A_wave_analysis(df; measure_minima = measure_minima)
-     resB = ePhys.run_B_wave_analysis(df)
-     resG = ePhys.run_G_wave_analysis(df)
      add_analysis_sheets(resA, datafile; append="A")
+     resB = ePhys.run_B_wave_analysis(df)
      add_analysis_sheets(resB, datafile; append="B")
+     resG = ePhys.run_G_wave_analysis(df)
      add_analysis_sheets(resG, datafile; append="G")
      return (df, resA, resB, resG)
 end
