@@ -125,7 +125,7 @@ DataPathExtraction(path::String; kwargs...) = DataPathExtraction(path, calibrati
 """
 This function cleans the data out of a dataframe if the dataframe is already open
 """
-function cleanDataFrame!(xf::XLSX.XLSXFile, sheetname::String)
+function cleanDatasheet!(xf::XLSX.XLSXFile, sheetname::String)
      if sheetname ∈ XLSX.sheetnames(xf)
           sheet = xf[sheetname]
           nrows, ncols = size(sheet[:])
@@ -150,7 +150,7 @@ end
 """
 This function cleans the data out of a dataframe and saves it
 """
-function cleanDataFrame!(filename::String, sheetname::String)
+function cleanDatasheet!(filename::String, sheetname::String)
      XLSX.openxlsx(filename, mode="rw") do xf
           cleanDataFrame!(xf, sheetname)
      end
@@ -300,7 +300,7 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
                println("Saving file... ")
                XLSX.openxlsx(data_file, mode="rw") do xf
                     print("Erasing file")
-                    cleanDataFrame!(xf, "All_files") #This cleans all data from All_Files
+                    cleanDatasheet!(xf, "All_files") #This cleans all data from All_Files
                     #This re-writes it
                     XLSX.writetable!(xf["All_Files"],
                          collect(DataFrames.eachcol(df)),
