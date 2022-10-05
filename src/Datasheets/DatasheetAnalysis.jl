@@ -496,6 +496,7 @@ function add_analysis_sheets(results, save_file::String; append="A")
                sheet = xf["trace_$(append)"] #try to open the sheet
                
                #clean the data from the sheet
+               cleanDatasheet!(xf, "trace_$(append)")
           catch #the sheet is not made and must be created
                println("Adding sheets")
                XLSX.addsheet!(xf, "trace_$(append)")
@@ -509,6 +510,7 @@ function add_analysis_sheets(results, save_file::String; append="A")
      XLSX.openxlsx(save_file, mode="rw") do xf
           try
                sheet = xf["experiments_$(append)"]
+               cleanDatasheet!(xf, "experiments_$(append)")
           catch #the sheet is not made and must be created
                println("Adding sheets")
                XLSX.addsheet!(xf, "experiments_$(append)")
@@ -521,6 +523,7 @@ function add_analysis_sheets(results, save_file::String; append="A")
      XLSX.openxlsx(save_file, mode="rw") do xf
           try
                sheet = xf["conditions_$(append)"]
+               cleanDatasheet!(xf, "conditions_$(append)")
           catch
                println("Adding sheets")
                XLSX.addsheet!(xf, "conditions_$(append)")
