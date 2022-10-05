@@ -9,20 +9,20 @@ function filter_data(trace::Experiment{T}; kwargs...) where {T<:Real}
     return data
 end
 
-function filter_data!(trace::Experiment{T}; freq=300.0, freqstop = 1000.0, bandwidth = 10.0,
+function filter_data!(trace::Experiment{T}; freq_start=1.0, freq_stop = 300.0, bandwidth = 10.0,
         mode = :Lowpass, method = :Chebyshev2, 
         pole=8, ripple = 10.0, attenuation = 100.0
     ) where {T<:Real}
 
     #Determine the filter response
     if mode == :Lowpass
-        responsetype = Lowpass(freq; fs=1 / trace.dt)
+        responsetype = Lowpass(freq_stop; fs=1 / trace.dt)
     elseif mode == :Highpass
-        responsetype = Highpass(freq; fs=1 / trace.dt)
+        responsetype = Highpass(freq_start; fs=1 / trace.dt)
     elseif mode == :Bandpass
-        responsetype = Bandpass(freq, freqstop, fs = 1/trace.dt)
+        responsetype = Bandpass(freq_start, freq_stop, fs = 1/trace.dt)
     elseif mode == :Bandstop
-        responsetype = Bandstop(freq, freqstop, fs = 1/trace.dt)
+        responsetype = Bandstop(freq_start, freq_stop, fs = 1/trace.dt)
     end
     
     #Determine the method for designing the filter
