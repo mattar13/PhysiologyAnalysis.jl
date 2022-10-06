@@ -1,36 +1,33 @@
 function data_filter!(data::Experiment;
-     t_pre = 1.0, t_post = 4.0, truncate_based_on = :stimulus_beginning,
-     highpass = false, EI_bandpass = 100.0, lowpass = 300.0,
-     dwt_periods = false, #dwt_periods = (1,9),
-     cwt_periods = false #cwt_periods = (1,9)
+     t_pre=1.0, t_post=4.0,
+     avg_swp = true,
+     dwt_periods=false, #dwt_periods = (1,9),
+     cwt_periods=false, #cwt_periods = (1,9)
+     kwargs...
 )
      #Truncate first
-     truncate_data!(data, t_pre = t_pre, t_post = t_post, truncate_based_on = truncate_based_on)
-     baseline_adjust!(data, mode = :slope)
-
-     #We will apply several filters consecutively
-     if highpass != false
-          filter_data!(data, mode = :Highpass, freq = highpass) #Highpass 0.5hz
+     baseline_adjust!(data)
+     truncate_data!(data, t_pre=t_pre, t_post=t_post)
+     #change from mV to uV
+     data * 1000.0
+     if avg_swp
+          average_sweeps!(data)
      end
 
+     # This filters the data based on the settings casette
+     filter_data!(data, kwargs...) #Use the extra arguments to filter
 
-     if lowpass != false
-          filter_data!(data, mode = :Lowpass, freq = lowpass) #cutout all high frequency noise
-     end
-
-     if cwt_periods != false
-          data = cwt_filter(data;
-               period_window = cwt_periods
+     if cwt_periods !== false
+          cwt_filter!(filtered_data;
+               period_window=(WT_low_val, WT_hi_val)
           )
      end
 
-     if dwt_periods != false
-          data = dwt_filter(data;
-               period_window = dwt_periods
+     if dwt_periods !== false
+          dwt_filter!(filtered_data;
+               period_window=(WT_low_val, WT_hi_val)
           )
      end
-
-     data * 1000
      return data
 end
 

@@ -9,7 +9,8 @@ function filter_data(trace::Experiment{T}; kwargs...) where {T<:Real}
     return data
 end
 
-function filter_data!(trace::Experiment{T}; freq_start=1.0, freq_stop = 300.0, bandwidth = 10.0,
+function filter_data!(trace::Experiment{T}; 
+        freq_start=1.0, freq_stop = 300.0, bandwidth = 10.0,
         mode = :Lowpass, method = :Chebyshev2, 
         pole=8, ripple = 10.0, attenuation = 100.0
     ) where {T<:Real}
@@ -50,6 +51,17 @@ function filter_data!(trace::Experiment{T}; freq_start=1.0, freq_stop = 300.0, b
     end
 end
 
+#=
+struct FilterCasette{T}
+    filterMode::Vector{Symbol}
+    filterMethods::Vector{Symbol}
+    filterRNG::Vector{Tuple{T,T}}
+end
+
+function filter_data!(trace::Experiment{T}, casette)
+
+end
+=#
 function cwt_filter(trace::Experiment; wave=cDb2, β=2, dual_window=NaiveDelta(), period_window::Tuple{Int64,Int64}=(1, 9))
     data = deepcopy(trace)
     for swp = 1:size(trace, 1)
