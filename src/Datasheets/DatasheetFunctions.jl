@@ -197,10 +197,12 @@ end
 """
 This function creates a new datasheet
 """
-function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx")
+function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx", verbose = false)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
-          println("Analyzing file $idx of $(size(all_files, 1)): $file")
+          if verbose
+               println("Analyzing file $idx of $(size(all_files, 1)): $file")
+          end
           entry = DataPathExtraction(file)
           if isnothing(entry) #Throw this in the case that the entry cannot be fit
                println(entry)
