@@ -9,20 +9,7 @@ function extract_categories(cond_df::DataFrame)
      categories
 end
 
-function IRfit(intensity, response; 
-          r = 100.0, k = 1000.0, n = 2.0,
-          rmin = 0.0, rmax = 2000.0, #This is the maximum ERG response we have gotten
-          kmin = 0.05, kmax = 10e6, 
-          nmin = 1.0, nmax = 10.0
-     )
-     p0 = [r, k, n]
-     ub = [rmax, kmax, nmax]
-     lb = [rmin, kmin, nmin]
-     #println(response)
-     model(I, p) = map(i -> p[1] * IR(i, p[2], p[3]), I)
-     fit = curve_fit(model, intensity, response, p0, lower=lb, upper=ub)
-     return fit
-end
+
 
 function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwargs...)
 
