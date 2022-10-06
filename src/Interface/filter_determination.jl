@@ -45,7 +45,7 @@ md"
 
 # ╔═╡ 7b14b019-7545-4441-833b-f7e660c23dc6
 #enter in the file path of the file you would like to analyze here
-path = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Organoids\2022_08_27_Organoids\Organoid1_Agar\BrainPhys_9cRAL\BF\nd0_100p_0000.abf"
+path = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2021_09_28_WT-30\Mouse2_Adult_WT\BaCl_LAP4\Rods\nd0_1p_0001.abf"
 
 # ╔═╡ b400dd0c-5a40-4ee7-9116-7339939b7456
 md"""
@@ -56,7 +56,7 @@ a) Type in the channels you want to analyze here:
 """
 
 # ╔═╡ 971d6f11-2936-4d75-9641-36f81a94c2c4
-channels = ["Vm_prime4"]
+channels = ["Vm_prime", "Vm_prime4"]
 
 # ╔═╡ 05e38576-9650-4287-bac0-6d281db2ea9c
 if path != ""
@@ -137,45 +137,14 @@ begin
 
 	# This data can be plotted seperately
 	filtered_data = deepcopy(data)
-	if filter_mode == "Highpass"
-		filter_data!(filtered_data, 
-			mode = :Highpass, 
-			pole = pole_val,
-			method = Symbol(filter_method), 
-			ripple = ripple_val,
-			attenuation = att_val, 
-			freq = freq_start
-		)
-	elseif filter_mode == "Lowpass"
-		filter_data!(filtered_data, 
-			mode = :Lowpass, 
-			pole = pole_val,
-			method = Symbol(filter_method),
-			ripple = ripple_val,
-			attenuation = att_val, 
-			freq = freq_stop
-		)
-	elseif filter_mode == "Bandpass"
-		filter_data!(filtered_data, 
-			mode = :Bandpass, 
-			pole = pole_val,
-			method = Symbol(filter_method),
-			ripple = ripple_val,
-			attenuation = att_val, 
-			freq = freq_start,
-			freqstop = freq_stop
-		)
-	elseif filter_mode == "Bandstop"
-		filter_data!(filtered_data, 
-			mode = :Bandstop, 
-			pole = pole_val,
-			method = Symbol(filter_method),
-			ripple = ripple_val,
-			attenuation = att_val, 
-			freq = freq_start,
-			freqstop = freq_stop
-		)
-	end
+	filter_data!(filtered_data, 
+		mode = Symbol(filter_mode), 
+		pole = pole_val,
+		method = Symbol(filter_method), 
+		ripple = ripple_val,
+		attenuation = att_val, 
+		freq_start = freq_start, freq_stop = freq_stop
+	)
 	
 	if CWT_pick
 		cwt = cwt_filter!(filtered_data;
@@ -210,8 +179,8 @@ $(@bind xlim2 NumberField(-1.0:0.01:10.000; default = 2.0))
 
 ylims:
 (
-$(@bind ylim1 NumberField(-10000.0:0.01:10000.000; default = -10)),
-$(@bind ylim2 NumberField(-10000.0:0.01:10000.000; default = 10))
+$(@bind ylim1 NumberField(-10000.0:0.01:10000.000; default = minimum(data))),
+$(@bind ylim2 NumberField(-10000.0:0.01:10000.000; default = maximum(data)))
 )
 
 """
@@ -268,9 +237,6 @@ begin
 	fig2
 end
 
-# ╔═╡ 7662c0f6-da9b-448b-abde-9b20e15c53ee
-plt.close("all"); clf()
-
 # ╔═╡ e284711a-5f0b-4204-ae20-3173d8496255
 plt.close("all"); clf()
 
@@ -280,12 +246,11 @@ plt.close("all"); clf()
 # ╠═7b14b019-7545-4441-833b-f7e660c23dc6
 # ╟─b400dd0c-5a40-4ee7-9116-7339939b7456
 # ╠═971d6f11-2936-4d75-9641-36f81a94c2c4
-# ╠═05e38576-9650-4287-bac0-6d281db2ea9c
+# ╟─05e38576-9650-4287-bac0-6d281db2ea9c
 # ╟─c8b4c855-64b8-4e18-9b2d-231260c67813
 # ╟─d6d59ac3-e6e8-4b49-9ac6-2a17cf72f30b
-# ╠═5fdc0c43-9454-495d-9b8a-e47313d178b2
+# ╟─5fdc0c43-9454-495d-9b8a-e47313d178b2
 # ╟─76025c46-2977-4300-8597-de04f313c667
 # ╟─669c877b-efcf-4c6b-a70f-e14164abdbff
 # ╠═9d5c1286-1a13-428a-b772-67887ae1f7c8
-# ╠═7662c0f6-da9b-448b-abde-9b20e15c53ee
 # ╠═e284711a-5f0b-4204-ae20-3173d8496255
