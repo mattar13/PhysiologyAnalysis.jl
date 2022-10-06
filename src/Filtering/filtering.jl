@@ -10,9 +10,9 @@ function filter_data(trace::Experiment{T}; kwargs...) where {T<:Real}
 end
 
 function filter_data!(trace::Experiment{T}; 
-        freq_start=1.0, freq_stop = 300.0, bandwidth = 10.0,
+        freq_start=1.0, freq_stop = 55.0, bandwidth = 10.0,
         mode = :Lowpass, method = :Chebyshev2, 
-        pole=8, ripple = 10.0, attenuation = 100.0
+        pole=8, ripple = 15.0, attenuation = 100.0
     ) where {T<:Real}
 
     #Determine the filter response
