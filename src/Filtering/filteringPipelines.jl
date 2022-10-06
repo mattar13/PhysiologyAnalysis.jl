@@ -15,7 +15,7 @@ function data_filter!(data::Experiment;
      end
 
      # This filters the data based on the settings casette
-     filter_data!(data, kwargs...) #Use the extra arguments to filter
+     filter_data!(data; kwargs...) #Use the extra arguments to filter
 
      if cwt_periods !== false
           cwt_filter!(filtered_data;
