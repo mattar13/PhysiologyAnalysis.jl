@@ -46,7 +46,7 @@ md"
 # ╔═╡ 7b14b019-7545-4441-833b-f7e660c23dc6
 begin
 	#enter in the file path of the file you would like to analyze here
-	exp_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2019_09_22_WT-30\Mouse1_Adult_WT\BaCl_LAP4\Rods"
+	exp_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2022_07_11_Adult\Mouse2_Adult_Abino\BaCl_LAP4\Rods"
 	experiment_paths = exp_root |> parseABF
 end
 
@@ -147,10 +147,13 @@ begin
 		df = DataFrame()
 		dfSUMMARY = DataFrame()
 		
-		photons = ePhys.createDatasheet(experiment_paths, filename = nothing);
+		info = ePhys.createDatasheet(experiment_paths, filename = nothing);
 		df.SweepN = 1:size(data,1)
 		df.channel .= data.chNames[i]
-		df.Photons = photons[:, :Photons]
+		df.Photons = info[:, :Photons]
+		df.ND = info[:, :ND]
+		df.Intensity = info[:,:Percent]
+		df.StimTiem = info[:, :Stim_Time]
 		df.Minima = vec(-minimum(data, dims = 2)[:,:,i])
 		df.SaturatedResponse = vec(-ePhys.saturated_response(data)[:,i])
 
@@ -158,7 +161,7 @@ begin
 		#Calculate the dim responses
 		agmin = map(id -> data.t[id[2]], argmin(data, dims = 2))
 		df.TPeak = agmin[:,1,i].*1000
-		df = df |> @orderby(_.Minima) |> DataFrame
+		df = df |> @orderby(_.Photons) |> DataFrame
 		
 		#calculate the dim responses
 		isDim = fill(false, size(data,1))
@@ -197,62 +200,45 @@ end
 
 # ╔═╡ 5684843d-622f-487d-aa06-d5fd7bff1689
 begin
-	figALL, ax2 = plt.subplots(size(data,3),3) #This 
+	figALL, ax2 = plt.subplots(2, 3) #This 
 	fit_I = 10 .^ LinRange(-2, 5, 1000)
 	# Plot the experiments
-	if size(data,3) > 1
-		for ch in 1:size(data, 3)
-			ax2[ch, 1].set_xlim(xlim1, xlim2)
-			ax2[ch, 1].set_ylim(ylim1, ylim2)
+	for ch in 1:size(data, 3)
+		ax2[ch, 1].set_xlim(xlim1, xlim2)
+		ax2[ch, 1].set_ylim(ylim1, ylim2)
 
-			ax2[ch, 2].set_ylim(ylim1, ylim2)
-			
-			plot_experiment(ax2[ch, 1], data, channel = ch, c = :black)
-			ax2[ch, 1].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
-			
-			#query the channel
-			PHOT = dfs[ch].Photons
-			RESP = dfs[ch].SaturatedResponse
-			TPEAK = dfs[ch].TPeak
-			#ax2[ch, 1].hlines(-RESP, xlim1, xlim2, color = :Red)
-			#ax2[ch, 1].vlines(TPEAK./1000, ylim1, ylim2, color = :Blue)
-			
-			#Plot the intensity response curve
-			ax2[ch,2].scatter(PHOT, -RESP, color = :Red)
-			ax2[ch, 2].set_xscale("log")
-			
-			fitRMAX = dfsSUMMARY[ch].RMAX_FIT
-			fitK = dfsSUMMARY[ch].K_FIT
-			fitN = dfsSUMMARY[ch].N_FIT
-			
-			fit_R = -fitRMAX .* IR.(fit_I, fitK, fitN)
-          	ax2[ch, 2].plot(fit_I, fit_R, c = :Black, lw = 2.0)
-			ax2[ch, 2].vlines([fitK], ylim1, -fitRMAX*0.50, 
-				label = "K = $(round(fitK[1], digits = 1))",
-				color = :Red
-			)
-			ax2[ch, 2].legend(loc = "lower right")
-			#Plot the intensity time to peak
-			ax2[ch, 3].scatter(PHOT, TPEAK, color = :Blue)
-			ax2[ch, 3].set_xscale("log")
-		end
-		ax2[size(data,3), 1].set_xlabel("Time (s)")
+		ax2[ch, 2].set_ylim(ylim1, ylim2)
 		
-	else
-		ax2[1,1].set_xlim(xlim1, xlim2)
-		ax2[1,1].set_ylim(ylim1, ylim2)
-		#ax2[1,2].set_xlim(xlim1, xlim2)
-		ax2[1,2].set_ylim(ylim1, ylim2)
-		plot_experiment(ax2[1,1], data, channel = 1, c = :black)
-		ax2[1,2].scatter(PHOT, -RESP, color = :Red)
-		ax2[1, 2].set_xscale("log")
-
-		ax2[1, 3].scatter(PHOT, TPEAK, color = :Blue)
-		ax2[1, 3].set_xscale("log")
+		plot_experiment(ax2[ch, 1], data, channel = ch, c = :black)
+		ax2[ch, 1].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
 		
-		ax2[1,1].set_ylabel("$(data.chNames[1]) ($(data.chUnits[1]))")
-		ax2[1,1].set_xlabel("Time (s)")
+		#query the channel
+		PHOT = dfs[ch].Photons
+		RESP = dfs[ch].SaturatedResponse
+		TPEAK = dfs[ch].TPeak
+		ax2[ch, 1].hlines(-RESP, xlim1, xlim2, color = :Red)
+		#ax2[ch, 1].vlines(TPEAK./1000, ylim1, ylim2, color = :Blue)
+		
+		#Plot the intensity response curve
+		ax2[ch,2].scatter(PHOT, -RESP, color = :Red)
+		ax2[ch, 2].set_xscale("log")
+		
+		fitRMAX = dfsSUMMARY[ch].RMAX_FIT
+		fitK = dfsSUMMARY[ch].K_FIT
+		fitN = dfsSUMMARY[ch].N_FIT
+		
+		fit_R = -fitRMAX .* IR.(fit_I, fitK, fitN)
+		ax2[ch, 2].plot(fit_I, fit_R, c = :Black, lw = 2.0)
+		ax2[ch, 2].vlines([fitK], ylim1, -fitRMAX*0.50, 
+			label = "K = $(round(fitK[1], digits = 1))",
+			color = :Red
+		)
+		ax2[ch, 2].legend(loc = "lower right")
+		#Plot the intensity time to peak
+		ax2[ch, 3].scatter(PHOT, TPEAK, color = :Blue)
+		ax2[ch, 3].set_xscale("log")
 	end
+	ax2[2, 1].set_xlabel("Time (s)")
 	
 	#Set the time label on the last variable
 	figALL
@@ -263,24 +249,16 @@ resultsSUMMARY = vcat(dfsSUMMARY...)
 
 # ╔═╡ aef0b08b-0aa3-4b49-8692-a9ea23a030db
 begin
-	figSUMMARY, ax3 = plt.subplots(size(data,3)) #This 
+	figSUMMARY, ax3 = plt.subplots(2) #This 
 
 	# Plot the experiments
-	if size(data,3) > 1
-		for ch in 1:size(data, 3)
-			ax3[ch].set_xlim(xlim1, xlim2)
-			ax3[ch].set_ylim(ylim1, ylim2)
-			plot_experiment(ax3[ch], data, channel = ch, c = :black)
-			ax3[ch].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
-		end
-		ax3[size(data,3)].set_xlabel("Time (s)")
-	else
-		ax3.set_xlim(xlim1, xlim2)
-		ax3.set_ylim(ylim1, ylim2)
-		plot_experiment(ax2, data, channel = 1, c = :black)
-		ax3.set_ylabel("$(data.chNames[1]) ($(data.chUnits[1]))")
-		ax3.set_xlabel("Time (s)")
+	for ch in 1:size(data, 3)
+		ax3[ch].set_xlim(xlim1, xlim2)
+		ax3[ch].set_ylim(ylim1, ylim2)
+		plot_experiment(ax3[ch], data, channel = ch, c = :black)
+		ax3[ch].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
 	end
+	ax3[2].set_xlabel("Time (s)")
 	
 	#Set the time label on the last variable
 	figSUMMARY
@@ -341,7 +319,7 @@ plt.close("all"); clf()
 # ╟─e2fcae6f-d795-4258-a328-1aad5ea64195
 # ╠═7b14b019-7545-4441-833b-f7e660c23dc6
 # ╟─b400dd0c-5a40-4ee7-9116-7339939b7456
-# ╟─971d6f11-2936-4d75-9641-36f81a94c2c4
+# ╠═971d6f11-2936-4d75-9641-36f81a94c2c4
 # ╟─05e38576-9650-4287-bac0-6d281db2ea9c
 # ╟─76025c46-2977-4300-8597-de04f313c667
 # ╟─669c877b-efcf-4c6b-a70f-e14164abdbff
