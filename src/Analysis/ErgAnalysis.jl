@@ -41,14 +41,29 @@ function findsequential(sequence::BitVector; seq_to_find=:all)
     end
 end
 
-"""
-This function uses a histogram method to find the saturation point. 
-    - In ERG datas, a short nose component is usually present in saturated values
-    - Does this same function work for the Rmax of nonsaturated responses?
-    - Setting the saturated threshold to infinity will completely disregard the histogram method
-"""
-function saturated_response(data::Experiment{T}; precision::Int64=100) where {T<:Real}
-    #We want to pick the region to analyze first
+function gaussian_saturation(data::Experiment{T};
+    p0=[-250.0, 0.5, 80.0], ub=[0.0, 1.0, 10e3]
+) where {T<:Real}
+    rmaxes = zeros(size(data, 1), size(data, 3))
+    f(xs, p) = map(x -> p[1] * exp((-(x - p[2])^2) / 2 * p[3]), xs)
+    #model(xs, p) = map(x -> f(x, p), xs)
+    t = data.t
+
+    for swp = 1:size(data, 1), ch = 1:size(data, 3)
+        ȳ = data.data_array[swp, :, ch]
+
+        fit = curve_fit(f, t, ȳ, p0, upper=ub)
+        y = f(t, fit.param) #Generate the model fit
+
+        idx_min = argmin(y)
+        resp_val = ȳ[idx_min]
+        rmaxes[swp, ch] = resp_val
+    end
+    return rmaxes
+end
+
+function histogram_saturation(data::Experiment{T}; precision::Int64=100) where {T<:Real}
+
     norm_factor = minimum(data)
     rmaxes = zeros(size(data, 1), size(data, 3))
     minima = minimum(data, dims=2)[:, 1, :]
@@ -75,6 +90,24 @@ function saturated_response(data::Experiment{T}; precision::Int64=100) where {T<
     end
     rmaxes
 end
+
+"""
+This function uses a histogram method to find the saturation point. 
+    - In ERG datas, a short nose component is usually present in saturated values
+    - Does this same function work for the Rmax of nonsaturated responses?
+    - Setting the saturated threshold to infinity will completely disregard the histogram method
+"""
+function saturated_response(data::Experiment{T}; mode = :Gaussian, kwargs...) where {T<:Real}
+    #We want to pick the region to analyze first
+    if mode == :Gaussian
+        #This mode is better for data that has 
+        rmaxes =  gaussian_saturation(data; kwargs...)
+    elseif mode == :Histogram
+        rmaxes = histogram_saturation(data; kwargs...)
+    end
+end
+
+
 
 function dim_response(data::Experiment{T}, resps; lims = [0.20, 0.30]) where {T <: Real}
     #Calculate
