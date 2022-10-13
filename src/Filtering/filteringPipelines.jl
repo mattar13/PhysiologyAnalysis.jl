@@ -1,13 +1,13 @@
 function data_filter!(data::Experiment;
      t_pre=1.0, t_post=4.0,
-     avg_swp = true,
+     avg_swp = false,
      dwt_periods=false, #dwt_periods = (1,9),
      cwt_periods=false, #cwt_periods = (1,9)
      kwargs...
 )
      #Truncate first
-     baseline_adjust!(data)
      truncate_data!(data, t_pre=t_pre, t_post=t_post)
+     baseline_adjust!(data)
      #change from mV to uV
      data * 1000.0
      if avg_swp
