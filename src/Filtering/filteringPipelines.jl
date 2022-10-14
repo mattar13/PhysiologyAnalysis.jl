@@ -1,6 +1,7 @@
 function data_filter!(data::Experiment;
      t_pre=1.0, t_post=4.0,
      avg_swp = false,
+     scale = 1000.0,
      dwt_periods=false, #dwt_periods = (1,9),
      cwt_periods=false, #cwt_periods = (1,9)
      kwargs...
@@ -9,7 +10,7 @@ function data_filter!(data::Experiment;
      truncate_data!(data, t_pre=t_pre, t_post=t_post)
      baseline_adjust!(data)
      #change from mV to uV
-     data * 1000.0
+     data * scale
      if avg_swp
           average_sweeps!(data)
      end
