@@ -61,7 +61,6 @@ channels = ["Vm_prime", "Vm_prime4"]
 # ╔═╡ 05e38576-9650-4287-bac0-6d281db2ea9c
 if path != ""
 	data = readABF(path, channels = channels)
-	data * 1000; #Putting this here will make sure we reopen the data every time we filter
 end;
 
 # ╔═╡ c8b4c855-64b8-4e18-9b2d-231260c67813
@@ -246,7 +245,7 @@ plt.close("all"); clf()
 # ╠═7b14b019-7545-4441-833b-f7e660c23dc6
 # ╟─b400dd0c-5a40-4ee7-9116-7339939b7456
 # ╠═971d6f11-2936-4d75-9641-36f81a94c2c4
-# ╟─05e38576-9650-4287-bac0-6d281db2ea9c
+# ╠═05e38576-9650-4287-bac0-6d281db2ea9c
 # ╟─c8b4c855-64b8-4e18-9b2d-231260c67813
 # ╟─d6d59ac3-e6e8-4b49-9ac6-2a17cf72f30b
 # ╟─5fdc0c43-9454-495d-9b8a-e47313d178b2
