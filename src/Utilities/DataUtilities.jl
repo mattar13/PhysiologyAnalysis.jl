@@ -3,7 +3,8 @@ This function truncates the data based on the amount of time.
     In most cases we want to truncate this data by the start of the stimulus. 
     This is because the start of the stimulus should be the same response in all experiments. (0.0) 
 """
-function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, truncate_based_on=:stimulus_beginning)
+#=
+function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = 0.0, t_end = 100.0, truncate_based_on=:stimulus_beginning)
     dt = trace.dt
     data = deepcopy(trace)
     size_of_array = 0
@@ -13,6 +14,13 @@ function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, truncate_based_
     elseif truncate_based_on == :time_range
         #Use this if there is no stimulus, but rather you want to truncate according to time
         println("truncate new use")
+        start_rng = round(Int64, t_begin / dt)
+        end_rng = round(Int64, t_end / dt)
+        #println(start_rng)
+        #println(end_rng)
+        data.data_array = trace.data_array[:, start_rng:end_rng, :]
+        data.t = trace.t[start_rng:end_rng] .- trace.t[start_rng]
+        return data
     else
         for swp = 1:size(trace, 1)
             stim_protocol = trace.stim_protocol[swp]
@@ -61,15 +69,19 @@ function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, truncate_based_
         return data
     end
 end
+=#
 
-function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, truncate_based_on=:stimulus_beginning)
+function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = nothing, t_end = nothing, truncate_based_on=:stimulus_beginning)
     dt = trace.dt
     size_of_array = 0
     overrun_time = 0 #This is for if t_pre is set too far before the stimulus
-    if truncate_based_on == :time_range
+    if truncate_based_on == :time_range || !isnothing(t_begin) && !isnothing(t_end)
+        println("running here")
         #Use this if there is no stimulus, but rather you want to truncate according to time
-        start_rng = round(Int64, t_pre / dt)
-        end_rng = round(Int64, t_post / dt)
+        start_rng = round(Int64, t_begin / dt)
+        end_rng = round(Int64, t_end / dt)
+        println(start_rng)
+        println(end_rng)
         #println(start_rng)
         #println(end_rng)
         trace.data_array = trace.data_array[:, start_rng:end_rng, :]
@@ -145,6 +157,11 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, truncate_based
     end
 end
 
+function truncate_data(trace::Experiment; kwargs...) 
+    data = deepcopy(trace)
+    truncate_data!(trace)
+    return data
+end
 
 """
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
