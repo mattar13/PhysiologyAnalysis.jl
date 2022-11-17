@@ -1,6 +1,6 @@
 import PyPlot.plt
 function plot_experiment(axis::PyObject, exp::Experiment;
-    channel=1, axes_off=false, yaxes_off=false, xaxes_off=false,
+    channels=1, sweeps = :all, axes_off=false, yaxes_off=false, xaxes_off=false,
     #cmap = nothing, cmap_direction = :sweeps,
     kwargs...
 )
@@ -11,7 +11,7 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     #else
     axis.spines["top"].set_visible(false)
     axis.spines["right"].set_visible(false)
-    axis.plot(plot_prep(exp; channel=channel)...; kwargs...)
+    axis.plot(plot_prep(exp; channels=channels, sweeps = sweeps)...; kwargs...)
     if yaxes_off || axes_off
         axis.spines["left"].set_visible(false)
         axis.yaxis.set_visible(false)
