@@ -168,15 +168,6 @@ function EI_filter!(trace; reference_filter=60.0, bandpass=10.0, cycles=5)
     end
 end
 
-function normalize(trace::Experiment; rng=(-1, 0))
-    data = deepcopy(trace)
-    for swp in 1:size(trace, 1)
-        for ch in 1:size(trace, 3)
-            data[swp, :, ch] .= (trace[swp, :, ch] ./ minimum(trace[swp, :, ch], dims=2))
-        end
-    end
-    return data
-end
 
 function normalize!(trace::Experiment; rng=(-1, 0))
     for swp in 1:size(trace, 1)
@@ -188,6 +179,12 @@ function normalize!(trace::Experiment; rng=(-1, 0))
             end
         end
     end
+end
+
+function normalize(trace::Experiment; rng=(-1, 0))
+    data = deepcopy(trace)
+    normalize!(data)
+    return data
 end
 
 function rolling_mean(trace::Experiment; window::Int64=10)
