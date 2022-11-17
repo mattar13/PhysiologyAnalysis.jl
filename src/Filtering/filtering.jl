@@ -187,6 +187,22 @@ function normalize(trace::Experiment; rng=(-1, 0))
     return data
 end
 
+function normalize_channel!(trace::ePhys.Experiment; rng=(-1, 0))
+     if rng[1] < 0.0
+          mins = minimum(minimum(data, dims = 2), dims = 1)
+          trace.data_array ./= -mins
+     else
+          mins = maximum(maximum(data, dims = 2), dims = 1)
+          trace.data_array ./= mins
+     end
+end
+
+function normalize_channel(trace::ePhys.Experiment; rng=(-1, 0))
+    data = deepcopy(trace)
+    normalize_channel!(data)
+    return data
+end
+
 function rolling_mean(trace::Experiment; window::Int64=10)
     data = deepcopy(trace)
     for swp in 1:size(trace, 1), ch in 1:size(trace, 3)

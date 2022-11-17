@@ -204,7 +204,7 @@ end
 function IRfit(intensity, response;
     r=100.0, k=1000.0, n=2.0,
     rmin=0.0, rmax=2000.0, #This is the maximum ERG response we have gotten
-    kmin=0.05, kmax=10e6,
+    kmin=0.05, kmax=1e6,
     nmin=1.0, nmax=10.0
 )
     p0 = [r, k, n]
