@@ -29,4 +29,10 @@ prepares a experiment to be plotted
     -Note this only plots a single channel
 
 """
-plot_prep(exp::Experiment; channel=1) = (exp.t, exp.data_array[:, :, channel]')
+function plot_prep(exp::Experiment; channels=1, sweeps = :all) 
+     if sweeps == :all
+          return (exp.t, exp.data_array[:, :, channels]')
+     else
+          return (exp.t, exp.data_array[sweeps, :, channels])
+     end
+end
