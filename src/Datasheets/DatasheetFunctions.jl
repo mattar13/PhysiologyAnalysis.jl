@@ -302,7 +302,7 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
                println("Saving file... ")
                XLSX.openxlsx(data_file, mode="rw") do xf
                     print("Erasing file")
-                    cleanDatasheet!(xf, "All_files") #This cleans all data from All_Files
+                    cleanDatasheet!(xf, "All_Files") #This cleans all data from All_Files
                     #This re-writes it
                     XLSX.writetable!(xf["All_Files"],
                          collect(DataFrames.eachcol(df)),
