@@ -33,6 +33,6 @@ function plot_prep(exp::Experiment; channels=1, sweeps = :all)
      if sweeps == :all
           return (exp.t, exp.data_array[:, :, channels]')
      else
-          return (exp.t, exp.data_array[sweeps, :, channels])
+          return (exp.t, exp.data_array[sweeps, :, channels]')
      end
 end
