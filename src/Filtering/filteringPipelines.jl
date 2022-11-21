@@ -38,11 +38,7 @@ end
 
 function data_filter(data::Experiment; kwargs...)
      data_copy = deepcopy(data)
-     println(maximum(data_copy))
-     println(minimum(data_copy))
      data_filter!(data_copy; kwargs...)
-     println(maximum(data_copy))
-     println(minimum(data_copy))
      return data_copy
 end
 
