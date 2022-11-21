@@ -61,7 +61,20 @@ function /(trace::Experiment{T}, vals::Matrix{T}) where {T<:Real}
 end
 
 #This is our inplace function for scaling. Division is done by multiplying by a fraction
-scaleby!(data::Experiment, val::Real) = data.data_array = data.data_array .* val 
+scaleby!(data::Experiment{T}, val::T) where T <: Real = data.data_array = data.data_array .* val 
+
+function scaleby!(data::Experiment{T}, val::Vector{T}) where T <: Real
+    #if the val is the same length of the channels then we can 
+    if length(val) == size(data, 3) #Scale by the channel
+        scale = reshape(val, 1,1,size(data,3))
+        data.data_array = data.data_array .* scale 
+    elseif length(val) == size(data,1) #Scale by sweep
+        scale = reshape(val, size(data,1),1,1)
+        data.data_array = data.data_array .* scale
+    else
+        throw(DimensionMismatch("arrays could not be broadcast to a common size; experiment dimensions: $(size(data)) vs val length: $(length(val))"))
+    end
+end
 
 import Base: size, length, getindex, setindex, sum, copy, maximum, minimum, push!, cumsum, argmin, argmax
 import Statistics.std
