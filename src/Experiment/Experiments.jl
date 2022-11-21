@@ -60,6 +60,8 @@ function /(trace::Experiment{T}, vals::Matrix{T}) where {T<:Real}
     end
 end
 
+#This is our inplace function for scaling. Division is done by multiplying by a fraction
+scaleby!(data::Experiment, val::Real) = data.data_array = data.data_array .* val 
 
 import Base: size, length, getindex, setindex, sum, copy, maximum, minimum, push!, cumsum, argmin, argmax
 import Statistics.std
