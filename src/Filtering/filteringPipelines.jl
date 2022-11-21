@@ -10,7 +10,7 @@ function data_filter!(data::Experiment;
      truncate_data!(data, t_pre=t_pre, t_post=t_post)
      baseline_adjust!(data)
      #change from mV to uV
-     data * scale
+     data *= scale #scale the data by the scale number (usually is conversion from mV to μV)
      if avg_swp
           average_sweeps!(data)
      end

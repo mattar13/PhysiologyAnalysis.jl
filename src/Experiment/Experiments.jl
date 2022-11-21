@@ -24,10 +24,30 @@ mutable struct Experiment{T}
 end
 
 import Base: +, -, *, / #Import these basic functions to help 
-+(trace::Experiment, val::Real) = trace.data_array = trace.data_array .+ val
--(trace::Experiment, val::Real) = trace.data_array = trace.data_array .- val
-*(trace::Experiment, val::Real) = trace.data_array = trace.data_array .* val
-/(trace::Experiment, val::Real) = trace.data_array = trace.data_array ./ val
+function +(trace::Experiment, val::Real) 
+    data = deepcopy(trace)
+    data.data_array = data.data_array .+ val
+    return data
+end
+
+function -(trace::Experiment, val::Real)
+    data = deepcopy(trace) 
+    data.data_array = data.data_array .- val
+    return data
+end
+
+function *(trace::Experiment, val::Real)
+    data = deepcopy(trace) 
+    data.data_array = data.data_array .* val
+    return data
+end
+
+function /(trace::Experiment, val::Real)
+    data = deepcopy(trace) 
+    data.data_array = data.data_array ./ val
+    return data
+end
+
 #if the value provided is different
 function /(trace::Experiment{T}, vals::Matrix{T}) where {T<:Real}
     #This function has not been worked out yet

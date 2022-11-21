@@ -168,8 +168,7 @@ function EI_filter!(trace; reference_filter=60.0, bandpass=10.0, cycles=5)
     end
 end
 
-
-function normalize!(trace::Experiment; rng=(-1, 0))
+function normalize!(trace::Experiment; rng=(-1, 0), normalize_by = :channel)
     for swp in 1:size(trace, 1)
         for ch in 1:size(trace, 3)
             if rng[1] < 0
@@ -181,7 +180,7 @@ function normalize!(trace::Experiment; rng=(-1, 0))
     end
 end
 
-function normalize(trace::Experiment; rng=(-1, 0))
+function normalize(trace::Experiment; rng=(-1, 0), dims = 2)
     data = deepcopy(trace)
     normalize!(data)
     return data
