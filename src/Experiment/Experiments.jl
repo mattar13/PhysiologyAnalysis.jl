@@ -76,6 +76,12 @@ function scaleby!(data::Experiment{T}, val::Vector{T}) where T <: Real
     end
 end
 
+function scaleby(data::Experiment{T}, val) where T<:Real
+    data_copy = deepcopy(data)
+    scaleby!(data_copy, val)
+    return data_copy
+end
+
 import Base: size, length, getindex, setindex, sum, copy, maximum, minimum, push!, cumsum, argmin, argmax
 import Statistics.std
 
