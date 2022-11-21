@@ -16,11 +16,11 @@ function data_filter!(data::Experiment;
           average_sweeps!(data)
      end
      # This filters the data based on the settings casette
-     println(maximum(data))
-     println(minimum(data))
+     #println(maximum(data))
+     #println(minimum(data))
      filter_data!(data; kwargs...) #Use the extra arguments to filter
-     println(maximum(data))
-     println(minimum(data))
+     #println(maximum(data))
+     #println(minimum(data))
 
      if cwt_periods !== false
           cwt_filter!(filtered_data;
