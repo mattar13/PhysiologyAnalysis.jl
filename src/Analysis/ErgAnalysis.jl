@@ -107,12 +107,9 @@ function saturated_response(data::Experiment{T}; mode = :Gaussian, kwargs...) wh
     end
 end
 
-
-
 function dim_response(data::Experiment{T}, resps; lims = [0.20, 0.30]) where {T <: Real}
     #Calculate
 end
-
 
 function minima_to_peak(data::Experiment; verbose=false)
     #We need to exclude the area 
