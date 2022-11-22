@@ -77,13 +77,13 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                end
                #======================DATA ANALYSIS========================#
                if age <= 11 #If the data is below P11 calculate the response differently
-                    filt_data = data_filter(data, avg_swp = false, t_post=0.5) #This function is found in the filter pipeline 
+                    filt_data = data_filter(data, avg_swp = false, t_post=5.0) #This function is found in the filter pipeline 
                     responses = minimas = minimum(filt_data, dims=2)[:, 1, :]
                     maximas = maximum(filt_data, dims=2)[:, 1, :]
                     Resps = abs.(responses)
                     rmaxes = minimum(responses, dims=1)
                else
-                    filt_data = data_filter(data, avg_swp = false, t_post=1.0)
+                    filt_data = data_filter(data, avg_swp = false, t_post=5.0)
                     if measure_minima
                          responses = minimas = minimum(filt_data, dims=2)[:, 1, :]
                     else
@@ -224,10 +224,10 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true)
                   DataFrame
 
           data_AB = readABF(qData.Path)
-          filt_data_AB = data_filter(data_AB, avg_swp = false, t_post=0.5)
+          filt_data_AB = data_filter(data_AB, avg_swp = false, t_post=5.0)
 
           data_A = readABF(qData.A_Path)
-          filt_data_A = data_filter(data_A, avg_swp = false, t_post=0.5)
+          filt_data_A = data_filter(data_A, avg_swp = false, t_post=5.0)
           #if we want to subtract we need to filter first
           sub_data = filt_data_AB - filt_data_A
           #=if verbose
@@ -378,9 +378,9 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                   ) |>
                   DataFrame
           data_ABG = readABF(qData.Path)
-          filt_data_ABG = data_filter(data_ABG, avg_swp = false, t_post=0.5)
+          filt_data_ABG = data_filter(data_ABG, avg_swp = false, t_post=5.0)
           data_AB = readABF(qData.AB_Path)
-          filt_data_AB = data_filter(data_AB, avg_swp = false, t_post=0.5)
+          filt_data_AB = data_filter(data_AB, avg_swp = false, t_post=5.0)
           #if we want to subtract we need to filter first
           #println(qData.Path)
           #println(qData.AB_Path)
