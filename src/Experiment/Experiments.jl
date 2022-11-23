@@ -48,6 +48,8 @@ function /(trace::Experiment, val::Real)
     return data
 end
 
+
+
 #if the value provided is different
 function /(trace::Experiment{T}, vals::Matrix{T}) where {T<:Real}
     #This function has not been worked out yet
