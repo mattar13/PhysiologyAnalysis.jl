@@ -20,9 +20,10 @@ using Requires #This will help us load only the things we need
 using Dates
 using Base: String, println
 import RCall as R #This allows us to use some R functionality
-using PyCall
 import PyCall as py
-export R, py
+#using PyCall
+#export R, py
+import PyCall: @pyimport, PyObject
 
 #=======================Import all experiment objects=======================#
 include("Experiment/StimulusProtocol.jl")
@@ -97,6 +98,18 @@ export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
 #========================================Plotting utilities========================================#
+#This is not working with Requires.jl
+#=
+import PyPlot as plt #All the base utilities for plotting
+import PyPlot.matplotlib
+import PyCall as py #This allows us to use Python to call somethings 
+import PyCall: @pyimport, PyObject
+include("Plotting/DefaultSettings.jl") #This requires PyPlot
+include("Plotting/PlottingUtilities.jl")
+include("Plotting/PhysPyPlot.jl")
+#export plt #Export plotting utilities
+export plot_experiment
+=#
 
 #Once this is all ready, move this into the __init__ function
 #using DataFrames
@@ -135,20 +148,17 @@ function __init__()
      end
 
      @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
-          println("Pyplot utilites are loaded")
-          using Colors, StatsPlots
-          #import PyPlot as plt #All the base utilities for plotting
+          println("PyPlot utilities loaded")
+          import PyPlot.plt #All the base utilities for plotting
           import PyPlot.matplotlib
-          import PyCall as py #This allows us to use Python to call somethings 
-          import PyCall: @pyimport, PyObject
-          @pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
-          @pyimport matplotlib.ticker as TICK #add the ticker interface
-          MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
-          LogLocator = TICK.LogLocator #This is for formatting the log axis
+          #import PyCall as py #This allows us to use Python to call somethings 
+          #@pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
+          #@pyimport matplotlib.ticker as TICK #add the ticker interface
+          #MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
+          #LogLocator = TICK.LogLocator #This is for formatting the log axis
           include("Plotting/DefaultSettings.jl") #This requires PyPlot
           include("Plotting/PlottingUtilities.jl")
           include("Plotting/PhysPyPlot.jl")
-          #export plt #Export plotting utilities
           export plot_experiment
      end
 
