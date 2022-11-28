@@ -1,5 +1,5 @@
 #Plots.pyplot() #Switch the backend to pyplot
-pygui(true) #Make the GUI external to vscode
+PyPlot.pygui(true) #Make the GUI external to vscode
 
 #==============================These are the default parameters for plotting==============================#
 #print("Default plotting parameters loading... ")
