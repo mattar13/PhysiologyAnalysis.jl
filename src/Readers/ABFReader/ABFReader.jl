@@ -119,14 +119,24 @@ end
 readABF(abf_path::Union{String,Vector{UInt8}}; kwargs...) = readABF(Float64, abf_path; kwargs...)
 
 #This function utilizes concat
-function readABF(abf_folder::AbstractArray{String}; average_sweeps=false, kwargs...)
-    data = concat(abf_folder; kwargs...) #In the inner loop we don't want to average the sweeps
-    #Save the sweep averaging for here
-    if average_sweeps
-        average_sweeps!(data)
+function readABF(filenames::AbstractArray{String}; average_sweeps=false, trim_or_pad = :pad, kwargs...)
+    data_to_cat = map(fn -> readABF(fn; kwargs...), filenames)
+    sizes = map(dtc -> size(dtc, 2), data_to_cat)
+    if trim_or_pad == :pad
+        n_add = abs.(sizes .- maximum(sizes))
+    elseif trim_or_pad == :trim
+        n_add = abs.(sizes .- minimum(sizes))
     end
 
-    return data
+    for (idx, data_i) in enumerate(data_to_cat)
+        if average_sweeps
+            average_sweeps!(data_i)
+        end
+        pad!(data_i, n_add[idx])
+    end
+    
+    #check to ensure all arrays are similarly sized
+    return vcat(data_to_cat...)
 end
 
 
