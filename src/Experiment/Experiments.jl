@@ -13,7 +13,7 @@ This contains all the data for the sweep.
         8) stim_protocol::Vector{StimulusProtocol{T}} -> The stimulus protocols for each sweep. 
 """
 mutable struct Experiment{T}
-    infoDict::Dict{String,Any}
+    infoDict::Union{Dict{String, Any}, Vector{Dict{String,Any}}} #This can either be a single dict or multiple
     dt::T
     t::Vector{T}
     data_array::Array{T,3}
@@ -47,8 +47,6 @@ function /(trace::Experiment, val::Real)
     data.data_array = data.data_array ./ val
     return data
 end
-
-
 
 #if the value provided is different
 function /(trace::Experiment{T}, vals::Matrix{T}) where {T<:Real}
@@ -84,7 +82,7 @@ function scaleby(data::Experiment{T}, val) where T<:Real
     return data_copy
 end
 
-import Base: size, length, getindex, setindex, sum, copy, maximum, minimum, push!, cumsum, argmin, argmax
+import Base: size, length, getindex, setindex, sum, copy, maximum, minimum,  cumsum, argmin, argmax
 import Statistics.std
 
 #Extending for Experiment
@@ -143,6 +141,54 @@ argmin(trace::Experiment; dims=2) = argmin(trace.data_array, dims=dims)
 
 argmax(trace::Experiment; dims=2) = argmax(trace.data_array, dims=dims)
 
+"""
+Adds zeros onto the end of an array
+"""
+function pad(trace::Experiment{T}, n_add::Int64; position::Symbol=:post, dims::Int64=2, val::T=0.0) where {T<:Real}
+    data = deepcopy(trace)
+    addon_size = collect(size(trace))
+    addon_size[dims] = n_add
+    addon = zeros(addon_size...)
+    if position == :post
+        data.data_array = [trace.data_array addon]
+    elseif position == :pre
+        data.data_array = [addon trace.data_array]
+    end
+    return data
+end
+
+function pad!(trace::Experiment{T}, n_add::Int64; position::Symbol=:post, dims::Int64=2, val::T=0.0) where {T<:Real}
+    addon_size = collect(size(trace))
+    addon_size[dims] = n_add
+    addon = fill(val, addon_size...)
+    if position == :post
+        trace.data_array = [trace.data_array addon]
+    elseif position == :pre
+        trace.data_array = [addon trace.data_array]
+    end
+end
+
+"""
+Removes a portion of an array
+"""
+function chop(trace::Experiment, n_chop::Int64; position::Symbol=:post, dims::Int64=2)
+    data = copy(trace)
+    resize_size = collect(size(trace))
+    resize_size[dims] = (size(trace, dims) - n_chop)
+    resize_size = map(x -> 1:x, resize_size)
+    data.data_array = data.data_array[resize_size...]
+    return data
+end
+
+function chop!(trace::Experiment, n_chop::Int64; position::Symbol=:post, dims::Int64=2)
+    resize_size = collect(size(trace))
+    resize_size[dims] = (size(trace, dims) - n_chop)
+    resize_size = map(x -> 1:x, resize_size)
+    trace.data_array = trace.data_array[resize_size...]
+end
+
+import Base.push!
+
 function push!(nt::Experiment{T}, item::AbstractArray{T}; new_name="Unnamed") where {T<:Real}
 
     #All of these options assume the new data point length matches the old one
@@ -171,6 +217,21 @@ function push!(nt_push_to::Experiment, nt_added::Experiment)
     push!(nt_push_to, nt_added.data_array)
 end
 
+function drop!(trace::Experiment; dim=3, drop_idx=1)
+    n_dims = collect(1:length(size(trace)))
+    n_dims = [dim, n_dims[n_dims.!=dim]...]
+    perm_data = permutedims(trace.data_array, n_dims)
+    perm_data = perm_data[drop_idx.∉(1:size(trace, dim)), :, :]
+    perm_data = permutedims(perm_data, sortperm(n_dims))
+    trace.data_array = perm_data
+end
+
+function drop(trace::Experiment; kwargs...)
+    trace_copy = copy(trace)
+    drop!(trace_copy; kwargs...)
+    return trace_copy
+end
+
 import Base: reverse, reverse!
 
 function reverse(trace::Experiment; kwargs...)
@@ -184,39 +245,10 @@ function reverse!(trace::Experiment; kwargs...)
 end
 
 """
--------------------------------------------------------------------------------------
-Experiment Utility
-
-This function concatenates two experiments
-
-This function has 3 versions. One of which is an inline version and modifies data
--------------------------------------------------------------------------------------
-    concatenated_data = concat(data, data_add)
-    concat!(data, data_add)
-    concatenated_data = concat(filenames)
-
-ARGS:
-    data::Experiment{T} where T <: Real = The data to be concatenated on
-    data_add::Experiment{T} where T<:Real = The data to be concatenated to
-    filenames::Array{String, 1} = A array of filenames to be concatenated
-
-KWARGS:
-mode::Symbol
-    [DEFAULT, :pad]
-    {OPTIONS, :pad, :chop}
-    This specifies what happens if the data is of a different size
-        - Pad means that the shorter experiment will be padded with zeros
-        - Chop means that the longer experiment will be chopped 
-
-position::Symbol
-    [DEFAULT, :post]
-    {OPTIONS, :pre, :post}
-    This specifies the chop or pad OPTIONS
-        - Pre means that the chop or pad will be applied to the beginning of the data
-        - Post means that the chop or pad will be applied to the end of the data
+Concatenates the data. (About to be deprecated)
 """
 
-function concat(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad, position::Symbol=:post, kwargs...) where {T}
+function _concat(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad, position::Symbol=:post, kwargs...) where {T}
     new_data = deepcopy(data)
     if size(data, 2) > size(data_add, 2)
         #println("Original data larger $(size(data,2)) > $(size(data_add,2))")
@@ -242,7 +274,7 @@ function concat(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad,
     return new_data
 end
 
-function concat!(data::Experiment{T}, data_add::Experiment{T}; 
+function _concat!(data::Experiment{T}, data_add::Experiment{T}; 
         mode::Symbol=:pad, position::Symbol=:post, verbose=false, 
         channel_mode::Symbol = :remove_extra,
         kwargs...) where {T}
@@ -282,7 +314,7 @@ function concat!(data::Experiment{T}, data_add::Experiment{T};
     end
 end
 
-function concat(filenames::Array{String,1}; kwargs...)
+function _concat(filenames::Array{String,1}; kwargs...)
     #println("Data length is $(size(filenames, 1))")
     data = readABF(filenames[1]; average_sweeps=true, kwargs...)
     #IN this case we want to ensure that the stim_protocol is only 1 stimulus longer
@@ -295,131 +327,28 @@ function concat(filenames::Array{String,1}; kwargs...)
     return data
 end
 
-concat(superfolder::String; kwargs...) = concat(parse_abf(superfolder); kwargs...)
+_concat(superfolder::String; kwargs...) = concat(parse_abf(superfolder); kwargs...)
 
+import Base: _cat, cat, vcat, hcat
 
-
-
-"""
--------------------------------------------------------------------------------------
-Experiment Utility
-
-This function pads an experiment with n_add number of vals
-
-This function has 2 versions. One of which is an inline version and modifies data
--------------------------------------------------------------------------------------
-    padded_data = pad(data, n_add)
-    pad!(data, n_add)
-
-ARGS:
-    data::Experiment{T} where T <: Real = The data to be padded
-    n_add::Int64 = the number of datapoints added to the data array
-
-KWARGS:
-position::Symbol
-    [DEFAULT, :post]
-    {OPTIONS, :pre, :post}
-    This specifies the chop or pad OPTIONS
-        - Pre means that the chop or pad will be applied to the beginning of the data
-        - Post means that the chop or pad will be applied to the end of the data
-
-dims::Int64
-    [DEFAULT, 2]
-    This indicates the dimension to be padded. For the most part we will be padding
-    the data which is in the 2nd dimension
-
-val::T where T<:Real
-    [DEFAULT, 0.0]
-    This is the value that will be padded in the array
-"""
-function pad(trace::Experiment{T}, n_add::Int64; position::Symbol=:post, dims::Int64=2, val::T=0.0) where {T<:Real}
-    data = deepcopy(trace)
-    addon_size = collect(size(trace))
-    addon_size[dims] = n_add
-    addon = zeros(addon_size...)
-    if position == :post
-        data.data_array = [trace.data_array addon]
-    elseif position == :pre
-        data.data_array = [addon trace.data_array]
+function _cat(dims, exps::Experiment...)
+    new_exp = deepcopy(exps[1])
+    data_arrs = map(e -> e.data_array, exps)
+    new_exp.infoDict = [map(e -> e.infoDict, exps)...]
+    new_exp.data_array = cat(data_arrs..., dims = dims) 
+    new_exp.stim_protocol = vcat(map(e -> e.stim_protocol, exps)...)
+    #println(stim_protocol |> typeof)
+    if dims == 3 #alter the channels
+        new_exp.chNames = vcat(map(e -> e.chNames, exps)...)
+        new_exp.chUnits = vcat(map(e -> e.chUnits, exps)...)
+        new_exp.chTelegraph = vcat(map(e -> e.chTelegraph, exps)...)
     end
-    return data
+    return new_exp  
 end
 
-function pad!(trace::Experiment{T}, n_add::Int64; position::Symbol=:post, dims::Int64=2, val::T=0.0) where {T<:Real}
-    addon_size = collect(size(trace))
-    addon_size[dims] = n_add
-    addon = fill(val, addon_size...)
-    if position == :post
-        trace.data_array = [trace.data_array addon]
-    elseif position == :pre
-        trace.data_array = [addon trace.data_array]
-    end
-end
-
-"""
--------------------------------------------------------------------------------------
-Experiment Utility
-
-This function removes n_chop values from either the front or back of the data
-
-This function has 2 versions. One of which is an inline version and modifies data
--------------------------------------------------------------------------------------
-    chopped_data = chop(data, n_chop)
-    chop!(data, n_chop)
-
-ARGS:
-    data::Experiment{T} where T <: Real = The data to be chopped
-    data_add::Experiment{T} where T<:Real = The data to be concatenated to
-    filenames::Array{String, 1} = A array of filenames to be concatenated
-
-KWARGS:
-position::Symbol
-    [DEFAULT, :post]
-    {OPTIONS, :pre, :post}
-    This specifies the chop or pad OPTIONS
-        - Pre means that the chop or pad will be applied to the beginning of the data
-        - Post means that the chop or pad will be applied to the end of the data
-
-dims::Int64
-    [DEFAULT, 2]
-    This indicates the dimension to be padded. For the most part we will be padding
-    the data which is in the 2nd dimension
-
-val::T where T<:Real
-    [DEFAULT, 0.0]
-    This is the value that will be padded in the array
-"""
-function chop(trace::Experiment, n_chop::Int64; position::Symbol=:post, dims::Int64=2)
-    data = copy(trace)
-    resize_size = collect(size(trace))
-    resize_size[dims] = (size(trace, dims) - n_chop)
-    resize_size = map(x -> 1:x, resize_size)
-    data.data_array = data.data_array[resize_size...]
-    return data
-end
-
-function chop!(trace::Experiment, n_chop::Int64; position::Symbol=:post, dims::Int64=2)
-    resize_size = collect(size(trace))
-    resize_size[dims] = (size(trace, dims) - n_chop)
-    resize_size = map(x -> 1:x, resize_size)
-    trace.data_array = trace.data_array[resize_size...]
-end
-
-function drop!(trace::Experiment; dim=3, drop_idx=1)
-    n_dims = collect(1:length(size(trace)))
-    n_dims = [dim, n_dims[n_dims.!=dim]...]
-    perm_data = permutedims(trace.data_array, n_dims)
-    perm_data = perm_data[drop_idx.∉(1:size(trace, dim)), :, :]
-    perm_data = permutedims(perm_data, sortperm(n_dims))
-    trace.data_array = perm_data
-end
-
-function drop(trace::Experiment; kwargs...)
-    trace_copy = copy(trace)
-    drop!(trace_copy; kwargs...)
-    return trace_copy
-end
-
+cat(exps::Experiment...; dims) = _cat(dims, exps...)
+vcat(exps::Experiment...) = cat(exps..., dims = 1)
+hcat(exps::Experiment...) = cat(exps..., dims = 3)
 
 """
 If two experiments are being compared, then this function drops the second channel
