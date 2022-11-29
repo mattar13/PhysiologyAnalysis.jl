@@ -119,8 +119,17 @@ end
 readABF(abf_path::Union{String,Vector{UInt8}}; kwargs...) = readABF(Float64, abf_path; kwargs...)
 
 #This function utilizes concat
-function readABF(filenames::AbstractArray{String}; average_sweeps=false, trim_or_pad = :pad, kwargs...)
+function readABF(filenames::AbstractArray{String}; 
+    average_sweeps=false, trim_or_pad = :pad, 
+    sortDate = true,
+    kwargs...
+)
     data_to_cat = map(fn -> readABF(fn; kwargs...), filenames)
+    if sortDate
+        start_times = map(dtc -> dtc.infoDict["FileStartDateTime"], data_to_cat)
+        sort_idxs = sortperm(start_times)
+        data_to_cat = data_to_cat[sort_idxs]
+    end
     sizes = map(dtc -> size(dtc, 2), data_to_cat)
     if trim_or_pad == :pad
         n_add = abs.(sizes .- maximum(sizes))
@@ -134,7 +143,6 @@ function readABF(filenames::AbstractArray{String}; average_sweeps=false, trim_or
         end
         pad!(data_i, n_add[idx])
     end
-    
     #check to ensure all arrays are similarly sized
     return vcat(data_to_cat...)
 end
