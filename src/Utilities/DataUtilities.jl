@@ -344,7 +344,7 @@ exclude(A, exclusions) = A[filter(x -> !(x ∈ exclusions), eachindex(A))]
 
 function average_sweeps!(trace::Experiment{T}) where {T<:Real} 
     trace.data_array = sum(trace, dims=1) / size(trace, 1)
-    trace.stim_protocol = trace.stim_protocol[1]
+    trace.stim_protocol = [trace.stim_protocol[1]]
 end
 
 """
