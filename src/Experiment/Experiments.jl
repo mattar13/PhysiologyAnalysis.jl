@@ -248,6 +248,7 @@ end
 Concatenates the data. (About to be deprecated)
 """
 
+#=
 function _concat(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad, position::Symbol=:post, kwargs...) where {T}
     new_data = deepcopy(data)
     if size(data, 2) > size(data_add, 2)
@@ -328,7 +329,7 @@ function _concat(filenames::Array{String,1}; kwargs...)
 end
 
 _concat(superfolder::String; kwargs...) = concat(parse_abf(superfolder); kwargs...)
-
+=#
 import Base: _cat, cat, vcat, hcat
 
 function _cat(dims, exps::Experiment...)
