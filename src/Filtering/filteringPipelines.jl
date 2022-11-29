@@ -1,5 +1,6 @@
 function data_filter!(data::Experiment;
      t_pre=1.0, t_post=4.0,
+     apply_filter = true,
      avg_swp=false,
      scale=1000.0,
      dwt_periods=false, #dwt_periods = (1,9),
@@ -18,7 +19,9 @@ function data_filter!(data::Experiment;
      # This filters the data based on the settings casette
      #println(maximum(data))
      #println(minimum(data))
-     filter_data!(data; kwargs...) #Use the extra arguments to filter
+     if apply_filter
+          filter_data!(data; kwargs...) #Use the extra arguments to filter
+     end
      #println(maximum(data))
      #println(minimum(data))
 
