@@ -120,7 +120,7 @@ readABF(abf_path::Union{String,Vector{UInt8}}; kwargs...) = readABF(Float64, abf
 
 #This function utilizes concat
 function readABF(filenames::AbstractArray{String}; 
-    average_sweeps=false, trim_or_pad = :pad, 
+    average_sweeps=true, trim_or_pad = :pad, 
     sortDate = true,
     kwargs...
 )
