@@ -190,12 +190,11 @@ end
 import Base.push!
 
 function push!(nt::Experiment{T}, item::AbstractArray{T}; new_name="Unnamed") where {T<:Real}
-
+   
     #All of these options assume the new data point length matches the old one
     if size(item, 2) == size(nt, 2) && size(item, 3) == size(nt, 3)
         #item = (new_sweep, datapoints, channels)
         nt.data_array = cat(nt.data_array, item, dims=1)
-
     elseif size(item, 1) == size(nt, 2) && size(item, 2) == size(nt, 3)
         #item = (datapoints, channels) aka a single sweep
         item = reshape(item, 1, size(item, 1), size(item, 2))
@@ -215,6 +214,8 @@ end
 function push!(nt_push_to::Experiment, nt_added::Experiment)
     #push!(nt_push_to.filename, nt_added.filename...)
     push!(nt_push_to, nt_added.data_array)
+    nt_push_to.infoDict = vcat(nt_push_to.infoDict, nt_added.infoDict)
+    nt_push_to.stim_protocol = vcat(nt_push_to.stim_protocol, nt_added.stim_protocol)
 end
 
 function drop!(trace::Experiment; dim=3, drop_idx=1)
@@ -333,6 +334,7 @@ _concat(superfolder::String; kwargs...) = concat(parse_abf(superfolder); kwargs.
 import Base: _cat, cat, vcat, hcat
 
 function _cat(dims, exps::Experiment...)
+    #need to check to make sure all channel sizes are equal
     new_exp = deepcopy(exps[1])
     data_arrs = map(e -> e.data_array, exps)
     new_exp.infoDict = [map(e -> e.infoDict, exps)...]
