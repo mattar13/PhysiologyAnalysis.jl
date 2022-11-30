@@ -62,12 +62,12 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                        (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
                   ) |>
                   DataFrame #Pull out the data 
-          dataFile = readABF(qData.Path)
-
           if verbose
                println("Completeing A-wave analysis for $idx out of $(size(uniqueData,1))")
                println("Path: $(i.Path)")
           end
+          dataFile = readABF(qData.Path)
+
           for data in eachchannel(dataFile) #walk through each row of the data iterator
                age = qData.Age[1] #Extract the age
                ch = data.chNames[1] #Extract channel information
