@@ -192,6 +192,8 @@ import Base.push!
 function push!(nt::Experiment{T}, item::AbstractArray{T}; new_name="Unnamed") where {T<:Real}
    
     #All of these options assume the new data point length matches the old one
+    #println(size(item))
+    #println(size(nt))
     if size(item, 2) == size(nt, 2) && size(item, 3) == size(nt, 3)
         #item = (new_sweep, datapoints, channels)
         nt.data_array = cat(nt.data_array, item, dims=1)
@@ -211,11 +213,66 @@ function push!(nt::Experiment{T}, item::AbstractArray{T}; new_name="Unnamed") wh
     end
 end
 
-function push!(nt_push_to::Experiment, nt_added::Experiment)
+function push!(data::Experiment, data_add::Experiment;
+        mode::Symbol=:pad, position::Symbol=:post, verbose=false, 
+        channel_mode::Symbol = :remove_extra,
+    )
     #push!(nt_push_to.filename, nt_added.filename...)
-    push!(nt_push_to, nt_added.data_array)
-    nt_push_to.infoDict = vcat(nt_push_to.infoDict, nt_added.infoDict)
-    nt_push_to.stim_protocol = vcat(nt_push_to.stim_protocol, nt_added.stim_protocol)
+    if size(data, 2) > size(data_add, 2)
+        #println("Original data larger $(size(data,2)) > $(size(data_add,2))")
+        n_vals = abs(size(data, 2) - size(data_add, 2))
+        if mode == :pad
+            pad!(data_add, n_vals; position=position)
+            #println("Data padded $size(data_add)")
+        elseif mode == :chop
+            chop!(data, n_vals; position=position)
+        end
+    elseif size(data, 2) < size(data_add, 2)
+        #println("Original data smaller $(size(data,2)) < $(size(data_add,2))")
+        n_vals = abs(size(data, 2) - size(data_add, 2))
+        if mode == :pad
+            pad!(data, n_vals; position=position)
+        elseif mode == :chop
+            chop!(data_add, n_vals; position=position)
+        end
+    end
+
+    if size(data, 3) < size(data_add, 3)
+        if verbose
+            println("Concatenated file has too many channels")
+            println(data_add.chNames)
+        end
+        #We want to remove channels that are hanging. 
+        hanging_channels = findall((occursin.(data.chNames, data_add.chNames)).==false)
+        data_dropped = drop(data_add, dim = 3, drop_idx = hanging_channels[1])
+        push!(data.infoDict, data_dropped.infoDict)
+        push!(data, data_dropped.data_array)
+        push!(data.stim_protocol, data_dropped.stim_protocol...)
+    elseif size(data, 3) > size(data_add, 3)
+        if verbose
+            println("Original file has too many channels")
+            println(data.chNames)
+        end
+        hanging_channels = findall((occursin.(data_add.chNames, data.chNames)).==false)
+        data_dropped = drop(data, dim = 3, drop_idx = hanging_channels[1])
+        push!(data.infoDict, data_dropped.infoDict)
+        push!(data, data_dropped.data_array)
+        push!(data.stim_protocol, data_dropped.stim_protocol...)
+    else
+        if isa(data.infoDict, Dict)
+            data.infoDict = [data.infoDict, data_add.infoDict]
+        elseif isa(data_add.infoDict, Dict)
+            push!(data.infoDict, data_add.infoDict)
+        elseif isa(data_add.infoDict, Vector)
+            push!(data.infoDict, data_add.infoDict...)
+        end
+        
+        push!(data, data_add.data_array)
+        push!(data.stim_protocol, data_add.stim_protocol...)
+    end
+    #push!(nt_push_to, nt_added.data_array)
+    #nt_push_to.infoDict = vcat(nt_push_to.infoDict, nt_added.infoDict)
+    #nt_push_to.stim_protocol = vcat(nt_push_to.stim_protocol, nt_added.stim_protocol)
 end
 
 function drop!(trace::Experiment; dim=3, drop_idx=1)
