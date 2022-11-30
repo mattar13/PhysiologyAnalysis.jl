@@ -119,7 +119,7 @@ end
 readABF(abf_path::Union{String,Vector{UInt8}}; kwargs...) = readABF(Float64, abf_path; kwargs...)
 
 #This function utilizes concat
-function readABF(filenames::AbstractArray{String}; 
+function OLDreadABF(filenames::AbstractArray{String}; 
     average_sweeps=true, trim_or_pad = :pad, 
     sortDate = true,
     kwargs...
@@ -165,6 +165,25 @@ function readABF(filenames::AbstractArray{String};
     return vcat(data_to_cat...)
 end
 
+
+function readABF(filenames::AbstractArray{String}; average_sweeps = true, kwargs...)
+    #println("Data length is $(size(filenames, 1))")
+    data = readABF(filenames[1]; kwargs...)
+    if average_sweeps
+        average_sweeps!(data)
+    end
+    #IN this case we want to ensure that the stim_protocol is only 1 stimulus longer
+    for filename in filenames[2:end]
+        data_add = readABF(filename; average_sweeps=true, kwargs...)
+        #println(size(data_add))
+        push!(data, data_add; kwargs...)
+        if average_sweeps
+            average_sweeps!(data)
+        end
+        #println(size(data, 1))
+    end
+    return data
+end
 
 """
 ==================================================================
