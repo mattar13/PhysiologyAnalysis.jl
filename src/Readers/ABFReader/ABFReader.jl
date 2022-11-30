@@ -124,19 +124,37 @@ function readABF(filenames::AbstractArray{String};
     sortDate = true,
     kwargs...
 )
+    #old method
     data_to_cat = map(fn -> readABF(fn; kwargs...), filenames)
     if sortDate
         start_times = map(dtc -> dtc.infoDict["FileStartDateTime"], data_to_cat)
         sort_idxs = sortperm(start_times)
         data_to_cat = data_to_cat[sort_idxs]
     end
-    sizes = map(dtc -> size(dtc, 2), data_to_cat)
-    if trim_or_pad == :pad
-        n_add = abs.(sizes .- maximum(sizes))
-    elseif trim_or_pad == :trim
-        n_add = abs.(sizes .- minimum(sizes))
+    data_sizes = map(dtc -> size(dtc, 2), data_to_cat)
+    channels = map(dtc -> size(dtc, 3), data_to_cat)
+    if length(unique(channels)) > 1
+        #println(channels)
+        #println("Concatenated file has too many channels")
+        #println(data_add.chNames)
+        #We want to remove channels that are hanging. 
+        chNames = map(e -> e.chNames, data_to_cat)
+        min_ch = minimum(channels) #This is the number of channels we need to have
+        diff_idx = findall(channels .!= min_ch)
+        same_idx = findfirst(channels .== min_ch)
+        for di in diff_idx
+            hanging_channel = findall(occursin.(chNames[same_idx], chNames[di]))
+            #println(hanging_channel)
+            drop!(data_to_cat[di], dim = 3, drop_idx = hanging_channel[1])
+        end
     end
 
+    if trim_or_pad == :pad
+        n_add = abs.(data_sizes .- maximum(data_sizes))
+    elseif trim_or_pad == :trim
+        n_add = abs.(data_sizes .- minimum(data_izes))
+    end
+        
     for (idx, data_i) in enumerate(data_to_cat)
         if average_sweeps
             average_sweeps!(data_i)
