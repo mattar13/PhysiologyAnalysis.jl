@@ -266,7 +266,7 @@ function push!(data::Experiment, data_add::Experiment;
         elseif isa(data_add.infoDict, Vector)
             push!(data.infoDict, data_add.infoDict...)
         end
-        
+        #println("Concatenating data_array")
         push!(data, data_add.data_array)
         push!(data.stim_protocol, data_add.stim_protocol...)
     end
