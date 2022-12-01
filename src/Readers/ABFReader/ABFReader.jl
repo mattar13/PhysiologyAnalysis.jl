@@ -166,7 +166,11 @@ function OLDreadABF(filenames::AbstractArray{String};
 end
 
 
-function readABF(filenames::AbstractArray{String}; average_sweeps = true, kwargs...)
+function readABF(filenames::AbstractArray{String}; average_sweeps = true, 
+    channel_mode::Symbol = :remove_extra,
+    mode::Symbol=:pad, position::Symbol=:post, 
+    verbose=false, 
+    kwargs...)
     #println("Data length is $(size(filenames, 1))")
     data = readABF(filenames[1]; kwargs...)
     if average_sweeps
@@ -176,7 +180,7 @@ function readABF(filenames::AbstractArray{String}; average_sweeps = true, kwargs
     for filename in filenames[2:end]
         data_add = readABF(filename; average_sweeps=true, kwargs...)
         #println(size(data_add))
-        push!(data, data_add; kwargs...)
+        push!(data, data_add; channel_mode = channel_mode, mode = mode, position = position)
         if average_sweeps
             average_sweeps!(data)
         end
