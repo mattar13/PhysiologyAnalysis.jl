@@ -67,6 +67,7 @@ function concat!(data::Experiment{T}, data_add::Experiment{T};
     end
 end
 
+#= Deprecated functions that are being phased out
 function concat(filenames::Array{String,1}; kwargs...)
     #println("Data length is $(size(filenames, 1))")
     data = readABF(filenames[1]; average_sweeps=true, kwargs...)
@@ -81,7 +82,7 @@ function concat(filenames::Array{String,1}; kwargs...)
 end
 
 concat(superfolder::String; kwargs...) = concat(parse_abf(superfolder); kwargs...)
-
+=#
 
 """
 -------------------------------------------------------------------------------------

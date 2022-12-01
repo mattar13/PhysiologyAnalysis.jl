@@ -118,13 +118,16 @@ end
 
 readABF(abf_path::Union{String,Vector{UInt8}}; kwargs...) = readABF(Float64, abf_path; kwargs...)
 
-#This function utilizes concat
-function readABF(abf_folder::AbstractArray{String}; average_sweeps=false, kwargs...)
+function readABF(filenames::AbstractArray{String}; average_sweeps_inner=true, kwargs...)
     #println("Currently stable")
-    data = concat(abf_folder; kwargs...) #In the inner loop we don't want to average the sweeps
-    #Save the sweep averaging for here
-    if average_sweeps
-        average_sweeps!(data)
+    #println("Data length is $(size(filenames, 1))")
+    data = readABF(filenames[1]; average_sweeps=average_sweeps_inner, kwargs...)
+    #IN this case we want to ensure that the stim_protocol is only 1 stimulus longer
+    for filename in filenames[2:end]
+        data_add = readABF(filename; average_sweeps=average_sweeps_inner, kwargs...)
+        #println(size(data_add))
+        concat!(data, data_add; kwargs...)
+        #println(size(data, 1))
     end
 
     return data
