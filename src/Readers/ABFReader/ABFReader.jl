@@ -120,7 +120,7 @@ readABF(abf_path::Union{String,Vector{UInt8}}; kwargs...) = readABF(Float64, abf
 
 #This function utilizes concat
 function readABF(abf_folder::AbstractArray{String}; average_sweeps=false, kwargs...)
-    println("Currently stable")
+    #println("Currently stable")
     data = concat(abf_folder; kwargs...) #In the inner loop we don't want to average the sweeps
     #Save the sweep averaging for here
     if average_sweeps
