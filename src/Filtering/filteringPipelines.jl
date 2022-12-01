@@ -1,18 +1,18 @@
 function data_filter!(data::Experiment;
      t_pre=1.0, t_post=4.0,
      apply_filter = true,
-     avg_swp=false,
-     scale=1000.0,
-     dwt_periods=false, #dwt_periods = (1,9),
-     cwt_periods=false, #cwt_periods = (1,9)
+     avg_swp = false,
+     scale = 1000.0,
+     dwt_periods = false, #dwt_periods = (1,9),
+     cwt_periods = false, #cwt_periods = (1,9)
      kwargs...
 )
      #Truncate first
      truncate_data!(data, t_pre=t_pre, t_post=t_post)
      baseline_adjust!(data)
-
      #change from mV to uV
-     scaleby!(data, scale) #scale the data by the scale number (usually is conversion from mV to μV
+     #@time scaleby!(data, scale) #scale the data by the scale number (usually is conversion from mV to μV
+     data.data_array .*= scale
      if avg_swp
           average_sweeps!(data)
      end
