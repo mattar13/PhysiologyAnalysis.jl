@@ -35,7 +35,7 @@ export readABF
 export parseABF
 
 #===============================ABF utilities===============================#
-include("Utilities/ExperimentUtilities.jl")
+include("Experiment/ExperimentUtilities.jl")
 include("Utilities/DataUtilities.jl")
 #export truncate_data, truncate_data!
 #export baseline_adjust

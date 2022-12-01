@@ -1,34 +1,4 @@
 """
--------------------------------------------------------------------------------------
-Experiment Utility
-
-This function concatenates two experiments
-
-This function has 3 versions. One of which is an inline version and modifies data
--------------------------------------------------------------------------------------
-    concatenated_data = concat(data, data_add)
-    concat!(data, data_add)
-    concatenated_data = concat(filenames)
-
-ARGS:
-    data::Experiment{T} where T <: Real = The data to be concatenated on
-    data_add::Experiment{T} where T<:Real = The data to be concatenated to
-    filenames::Array{String, 1} = A array of filenames to be concatenated
-
-KWARGS:
-mode::Symbol
-    [DEFAULT, :pad]
-    {OPTIONS, :pad, :chop}
-    This specifies what happens if the data is of a different size
-        - Pad means that the shorter experiment will be padded with zeros
-        - Chop means that the longer experiment will be chopped 
-
-position::Symbol
-    [DEFAULT, :post]
-    {OPTIONS, :pre, :post}
-    This specifies the chop or pad OPTIONS
-        - Pre means that the chop or pad will be applied to the beginning of the data
-        - Post means that the chop or pad will be applied to the end of the data
 """
 
 function concat(data::Experiment{T}, data_add::Experiment{T}; mode::Symbol=:pad, position::Symbol=:post, kwargs...) where {T}
