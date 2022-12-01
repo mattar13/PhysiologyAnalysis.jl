@@ -67,7 +67,7 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                println("Path: $(i.Path)")
           end
           dataFile = readABF(qData.Path)
-
+          #println(size(dataFile))
           for data in eachchannel(dataFile) #walk through each row of the data iterator
                age = qData.Age[1] #Extract the age
                ch = data.chNames[1] #Extract channel information
