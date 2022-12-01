@@ -178,12 +178,14 @@ function readABF(filenames::AbstractArray{String}; average_sweeps = true,
     end
     #IN this case we want to ensure that the stim_protocol is only 1 stimulus longer
     for filename in filenames[2:end]
+        #println("Data loading takes: ")
         data_add = readABF(filename; average_sweeps=true, kwargs...)
         #println(size(data_add))
-        push!(data, data_add; channel_mode = channel_mode, mode = mode, position = position)
+        #println("Concatenation loading takes: ")
         if average_sweeps
-            average_sweeps!(data)
+            average_sweeps!(data_add)
         end
+        push!(data, data_add; channel_mode = channel_mode, mode = mode, position = position)
         #println(size(data, 1))
     end
     return data
