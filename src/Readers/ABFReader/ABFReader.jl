@@ -41,7 +41,7 @@ stimulus_name::Union{String, Vector{String}}
 """
 function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
     sweeps::Union{Int64,Vector{Int64}}=-1,
-    channels::Vector{String}=["Vm_prime", "Vm_prime4"],
+    channels::Union{Vector{String}, Vector{Int64}}=["Vm_prime", "Vm_prime4"],
     average_sweeps::Bool=false,
     stimulus_name::Union{String, Vector{String}, Nothing}="IN 7",  #One of the best places to store digital stimuli
     stimulus_threshold::T=2.5, #This is the normal voltage rating on digital stimuli
