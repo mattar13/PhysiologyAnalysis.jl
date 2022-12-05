@@ -13,7 +13,7 @@ function data_filter!(data::Experiment;
 
      #Add an extra baseline step to remove global drift
      if remove_global_drift == :polyfit
-          baseline_adjust!(dataWHOLE, polyN = 2, region = :whole)
+          baseline_adjust!(data, polyN = 2, region = :whole)
      elseif remove_global_drift == :Highpass
           filter_data!(data, mode = :Highpass, freq_start = 0.05)
      end
