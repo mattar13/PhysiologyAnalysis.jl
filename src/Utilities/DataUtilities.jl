@@ -241,55 +241,10 @@ reion::
     - (start, end) -> a custom region
 
 """
-function baseline_adjust(trace::Experiment{T};
-    mode::Symbol=:slope, polyN::Int64=1, region::Symbol=:prestim
-) where {T<:Real}
+function baseline_adjust(trace::Experiment{T}; kwargs...) where {T<:Real}
     data = deepcopy(trace)
-    if isempty(trace.stim_protocol)
-        #println("No Stim protocol exists")
-        return data
-    else
-        for swp in 1:size(trace, 1)
-            if isa(region, Tuple{Float64,Float64})
-                rng_begin = round(Int, region[1] / trace.dt) + 1
-                if region[2] > trace.t[end]
-                    rng_end = length(trace.t)
-                else
-                    rng_end = round(Int, region[2] / trace.dt) + 1
-                end
-            elseif isa(region, Tuple{Int64,Int64})
-                rng_begin, rng_end = region
-            elseif region == :whole
-                rng_begin = 1
-                rng_end = length(trace)
-            elseif region == :prestim
-                rng_begin = 1
-                rng_end = trace.stim_protocol[swp].index_range[1] #Get the first stimulus index
-            end
-            for ch in 1:size(trace, 3)
-                if mode == :mean
-                    if (rng_end - rng_begin) != 0
-                        baseline_adjust = sum(trace.data_array[swp, rng_begin:rng_end, ch]) / (rng_end - rng_begin)
-                        #Now subtract the baseline scaling value
-                        data.data_array[swp, :, ch] .= trace.data_array[swp, :, ch] .- baseline_adjust
-                    else
-                        if verbose
-                            #println("no pre-stimulus range exists")
-                        end
-                    end
-                elseif mode == :slope
-                    if (rng_end - rng_begin) != 0
-                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end, ch], polyN)
-                        #Now offset the array by the linear range
-                        data.data_array[swp, :, ch] .= trace[swp, :, ch] - pfit.(trace.t)
-                    else
-                        #println("no pre-stimulus range exists")
-                    end
-                end
-            end
-        end
-        return data
-    end
+    baseline_adjust!(data; kwargs...)
+    return data
 end
 
 function baseline_adjust!(trace::Experiment{T};
