@@ -67,6 +67,10 @@ function concat!(data::Experiment{T}, data_add::Experiment{T};
     end
 end
 
+function vcat(data::Experiment{T}, data_add::Experiment{T})
+
+
+end
 #= Deprecated functions that are being phased out
 function concat(filenames::Array{String,1}; kwargs...)
     #println("Data length is $(size(filenames, 1))")
@@ -290,7 +294,6 @@ getchannel(trace::Experiment, ch_idx::Int64; verbose=false) = getdata(trace, :, 
 This iterates through all of the channels 
 """
 eachchannel(trace::Experiment; verbose=false) = Iterators.map(idx -> getchannel(trace, idx; verbose=verbose), 1:size(trace, 3))
-
 
 """
 This iterates through all sweeps
