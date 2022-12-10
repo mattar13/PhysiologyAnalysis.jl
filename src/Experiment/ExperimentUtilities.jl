@@ -67,9 +67,12 @@ function concat!(data::Experiment{T}, data_add::Experiment{T};
     end
 end
 
-function vcat(data::Experiment{T}, data_add::Experiment{T})
-
-
+import Base.cat
+function cat(data_cat::Vector{Experiment{T}}; dims = 1) where T <: Real
+    println(data_cat |> length)
+    data = deepcopy(data_cat[1])
+    #data.data_array = cat(data)
+    return data
 end
 #= Deprecated functions that are being phased out
 function concat(filenames::Array{String,1}; kwargs...)
