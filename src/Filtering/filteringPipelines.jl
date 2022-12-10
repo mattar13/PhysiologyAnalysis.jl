@@ -5,10 +5,7 @@ function data_filter!(data::Experiment;
      remove_global_drift = :polyfit,
      dwt_periods=false, #dwt_periods = (1,9),
      cwt_periods=false, #cwt_periods = (1,9)
-<<<<<<< Updated upstream
-=======
-     channels = -1,
->>>>>>> Stashed changes
+     filter_channels = -1,
      kwargs...
 )
      #Truncate first
@@ -34,7 +31,6 @@ function data_filter!(data::Experiment;
      #println(maximum(data))
      #println(minimum(data))
 
-<<<<<<< Updated upstream
      if cwt_periods !== false
           cwt_filter!(filtered_data;
                period_window=(WT_low_val, WT_hi_val)
@@ -45,21 +41,6 @@ function data_filter!(data::Experiment;
           dwt_filter!(filtered_data;
                period_window=(WT_low_val, WT_hi_val)
           )
-=======
-          if cwt_periods !== false
-               cwt_filter!(filtered_data;
-                    period_window=(WT_low_val, WT_hi_val)
-               )
-          end
-
-          if dwt_periods !== false
-               dwt_filter!(filtered_data;
-                    period_window=(WT_low_val, WT_hi_val)
-               )
-          end
-     else
-          #turn the channels into a list of channels
->>>>>>> Stashed changes
      end
      #return data
 end
