@@ -12,7 +12,8 @@ end
 function filter_data!(trace::Experiment{T}; 
         freq_start=1.0, freq_stop = 55.0, bandwidth = 10.0,
         mode = :Lowpass, method = :Chebyshev2, 
-        pole=8, ripple = 15.0, attenuation = 100.0
+        pole=8, ripple = 15.0, attenuation = 100.0, 
+        filter_channels = -1
     ) where {T<:Real}
 
     #Determine the filter response
@@ -43,10 +44,16 @@ function filter_data!(trace::Experiment{T};
         digital_filter = digitalfilter(responsetype, designmethod)
     end
 
-
+    if filter_channels == -1
+        filter_channels = 1:size(trace,3)
+    elseif isa(filter_channels, Vector{String}) #Do this for channel names input 
+        filter_channels = findall(filter_channels  .== data.chNames)
+    end
     for swp in 1:size(trace, 1)
         for ch in 1:size(trace, 3)
-            trace.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
+            if ch in filter_channels
+                trace.data_array[swp, :, ch] .= filt(digital_filter, trace[swp, :, ch])
+            end
         end
     end
 end
