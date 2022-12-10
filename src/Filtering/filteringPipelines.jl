@@ -5,7 +5,6 @@ function data_filter!(data::Experiment;
      remove_global_drift = :polyfit,
      dwt_periods=false, #dwt_periods = (1,9),
      cwt_periods=false, #cwt_periods = (1,9)
-     filter_channels = -1,
      kwargs...
 )
      #Truncate first
