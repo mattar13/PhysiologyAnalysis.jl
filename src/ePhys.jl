@@ -115,6 +115,7 @@ export plot_experiment
 fTEST() = println("Revise works with init")
 function __init__()
      @require RCall = "6f49c342-dc21-5d91-9882-a32aef131414" begin
+          println("Loading R")
           export RCall
      end
 
