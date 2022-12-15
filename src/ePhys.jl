@@ -19,7 +19,6 @@ c) Do more complicated machine learning and cancellation
 using Requires #This will help us load only the things we need
 using Dates
 using Base: String, println
-import RCall as R #This allows us to use some R functionality
 import PyCall as py
 #using PyCall
 #export R, py
@@ -115,6 +114,10 @@ export plot_experiment
 #using DataFrames
 fTEST() = println("Revise works with init")
 function __init__()
+     @require RCall = "6f49c342-dc21-5d91-9882-a32aef131414" begin
+          export RCall
+     end
+
      @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
           include("Filtering/make_spectrum.jl")
      end

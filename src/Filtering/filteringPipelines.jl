@@ -2,7 +2,7 @@ function data_filter!(data::Experiment;
      t_pre=1.0, t_post=4.0,
      avg_swp=false,
      scale=1000.0,
-     remove_global_drift = :polyfit,
+     remove_global_drift = false,
      dwt_periods=false, #dwt_periods = (1,9),
      cwt_periods=false, #cwt_periods = (1,9)
      kwargs...
