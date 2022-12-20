@@ -340,13 +340,11 @@ ARGS:
 
 """
 function downsample!(trace::Experiment{T}, sample_rate::T) where {T<:Real}
-    #round the sample rate to a number
+    old_sample_rate = 1/trace.dt
     new_dt = 1 / sample_rate
-    new_sample_points = round(Int64, length(trace.t)*(trace.dt/new_dt))
-    sample_idxs = round.(Int64, LinRange(1, length(trace.t), new_sample_points))
-    #println(sample_idxs)
-    trace.dt = new_dt
-    trace.t = trace.t[1]:new_dt:trace.t[end]
+    trace.dt = new_dt #set the new dt
+    trace.t = trace.t[1]:new_dt:trace.t[end] #Set the new time array
+    sample_idxs = 1:round(Int64, old_sample_rate/sample_rate):size(trace, 2)
     trace.data_array = trace.data_array[:, sample_idxs, :]
 end
 
