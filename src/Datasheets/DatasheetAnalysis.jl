@@ -365,10 +365,10 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
      g_files[!, :AB_Path] = string.(g_files[!, :AB_Path]) #XLSX.jl converts things into Vector{Any}            
 
      uniqueData = g_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame
-     println(size(uniqueData))
-     println(size(trace_ABG))
-     println(size(trace_AB))
-     println(size(g_files))
+     #println(size(uniqueData))
+     #println(size(trace_ABG))
+     #println(size(trace_AB))
+     #println(size(g_files))
      qTrace = DataFrame()
      qExperiment = DataFrame()
      for (idx, i) in enumerate(eachrow(uniqueData)) #We ca
