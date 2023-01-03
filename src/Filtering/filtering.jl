@@ -92,7 +92,7 @@ Will always return cwt
 """
 function cwt_filter!(trace::Experiment{T}; wave=cDb2, β::Int64=2, 
     period_window::Tuple{Int64,Int64} = (1, 9), 
-    level_window::Tuple{T, T} = (-Inf, Inf),
+    level_window::Tuple{T, T} = (1.0, 1.0),
 ) where T <: Real
     c = wavelet(wave, β=β)
     n_wavelets = 100 #This will be changed posteriorly
@@ -102,15 +102,20 @@ function cwt_filter!(trace::Experiment{T}; wave=cDb2, β::Int64=2,
         #It seems the only way to change 
         cwt_wave[swp,:, 1:size(y,2), ch] .= y
         reconstruct = zeros(size(y))
-        if !any(period_window .== -1)
-            reconstruct[:, period_window[1]:period_window[2]] .= y[:, period_window[1]:period_window[2]]
-            trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, PenroseDelta()) |> vec
+        if period_window[1] == -1 && period_window[2] .!= -1
+            reconstruct[:, 1:period_window[2]] .= y[:, 1:period_window[2]]
+        elseif period_window[1] != -1 && period_window[2] == -1
+            reconstruct[:, period_window[1]:end] .= y[:, 1:end]
+        elseif period_window[1] == -1 && period_window[2] == -1
+            reconstruct = y
         else
             #zero all numbers outside of the level window
-            outside_window = findall(level_window[1] .< y .< level_window[2])
-            reconstruct[:, period_window[1]:period_window[2]] .= y[:, period_window[1]:period_window[2]]
-            trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, PenroseDelta()) |> vec
+            levelMIN = minimum(y) * level_window[1]
+            levelMAX = maximum(y) * level_window[2]
+            outside_window = (levelMIN .< y .<= levelMAX)
+            reconstruct .= y*outside_window
         end
+        trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, PenroseDelta()) |> vec
         n_wavelets = size(y, 2) #This allows us to use the posterior knowledge to change the array
     end
     return cwt_wave[:, :, (1:n_wavelets), :]
