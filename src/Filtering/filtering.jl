@@ -102,19 +102,20 @@ function cwt_filter!(trace::Experiment{T}; wave=cDb2, β::Int64=2,
         #It seems the only way to change 
         cwt_wave[swp,:, 1:size(y,2), ch] .= y
         reconstruct = zeros(size(y))
+
+
+
         if period_window[1] == -1 && period_window[2] .!= -1
-            reconstruct[:, 1:period_window[2]] .= y[:, 1:period_window[2]]
+            reconstruct[:, 1:period_window[2]] .= reconstruct[:, 1:period_window[2]]
         elseif period_window[1] != -1 && period_window[2] == -1
-            reconstruct[:, period_window[1]:end] .= y[:, 1:end]
-        elseif period_window[1] == -1 && period_window[2] == -1
-            reconstruct = y
-        else
-            #zero all numbers outside of the level window
-            levelMIN = minimum(y) * level_window[1]
-            levelMAX = maximum(y) * level_window[2]
-            outside_window = (levelMIN .< y .<= levelMAX)
-            reconstruct .= y*outside_window
+            reconstruct[:, period_window[1]:end] .= reconstruct[:, 1:end]
         end
+        #zero all numbers outside of the level window
+        levelMIN = minimum(y) * level_window[1]
+        levelMAX = maximum(y) * level_window[2]
+        outside_window = (levelMIN .< y .<= levelMAX)
+        reconstruct = reconstruct*outside_window
+ 
         trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, PenroseDelta()) |> vec
         n_wavelets = size(y, 2) #This allows us to use the posterior knowledge to change the array
     end
