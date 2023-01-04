@@ -77,25 +77,43 @@ Return CWT returns a 4D CWT array
 cwt = [swp, data, wavelets, chs]
 
 Will always return cwt
+
+Here are some useful settings for filtering artifacts
+    β = 1.0
+    wave = cDb2
+    level_window = (0.5, 1.0)
+    period_window = (20, 60)
 """
 function cwt_filter!(trace::Experiment{T}; 
-    wave=paul2, β::Int64=2, 
+    wave=cDb2, β = 2.0, 
     period_window::Tuple{Int64,Int64} = (-1, -1), 
-    level_window::Tuple{T, T} = (0.0, 1.0),
+    power_window::Tuple{T, T} = (0.0, 1.0),
+    inverseStyle = NaiveDelta(), 
+    #Here are some other Wavelet options
+    kwargs...
 ) where T <: Real
-    c = wavelet(wave, β=β)
-    n_wavelets = 100 #This will be changed posteriorly
-    cwt_wave = zeros(size(trace,1), size(trace, 2), n_wavelets, size(trace,3))
+    c = wavelet(wave; β = β, kwargs...)
+    n_wavelets = 200 #This will be changed posteriorly
+    if isa(wave, Morlet)
+        cwt_wave = zeros(ComplexF64, size(trace,1), size(trace, 2), n_wavelets, size(trace,3))
+        #println("Complex")
+    else
+        cwt_wave = zeros(size(trace,1), size(trace, 2), n_wavelets, size(trace,3))
+    end
+
     for swp = 1:size(trace, 1), ch = 1:size(trace, 3)
         y = ContinuousWavelets.cwt(trace[swp, :, ch], c)
         #It seems the only way to change
         if eltype(y)==ComplexF64
-            check_y = abs.(y) 
+            check_y = real.(y) 
         else
             check_y = y
         end
+        #println(minimum(check_y))
+        #println(maximum(check_y))
 
         reconstruct = zeros(eltype(y), size(y))
+        #println(eltype(y))
         if period_window[1] == -1 && period_window[2] != -1
             reconstruct[:, 1:period_window[2]] .= y[:, 1:period_window[2]]
         elseif period_window[1] != -1 && period_window[2] == -1
@@ -108,11 +126,10 @@ function cwt_filter!(trace::Experiment{T};
         
         #standardize the check
         norm_y = standardize(UnitRangeTransform, check_y)
-        outside_window = (level_window[1] .< norm_y .<= level_window[2])
+        outside_window = (power_window[1] .<= norm_y .<= power_window[2])
         reconstruct = reconstruct.*outside_window
-
-        cwt_wave[swp,:, 1:size(reconstruct,2), ch] .= abs.(reconstruct)
-        trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, PenroseDelta()) |> vec
+        cwt_wave[swp,:, 1:size(reconstruct,2), ch] .= reconstruct
+        trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, inverseStyle) |> vec
         n_wavelets = size(reconstruct, 2) #This allows us to use the posterior knowledge to change the array
     end
     return cwt_wave[:, :, (1:n_wavelets), :]
@@ -125,7 +142,11 @@ function cwt_filter(trace::Experiment{T}; kwargs...) where T <: Real
 end
 
 # Wavelet utility funtcions 
-CWTprocess(y) = standardize(UnitRangeTransform, (abs.(y) .^ 2)')
+function CWTprocess(y)
+    y2 = log.(2, (abs.(y) .^ 2))
+    #return standardize(UnitRangeTransform, y2)'
+    return y2'
+end
 
 function coi_factor(i, j, n)
     # Compute the normalized distance from the center of the signal
