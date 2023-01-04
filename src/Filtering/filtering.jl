@@ -9,12 +9,12 @@ function filter_data(trace::Experiment{T}; kwargs...) where {T<:Real}
     return data
 end
 
-function filter_data!(trace::Experiment{T}; 
-        freq_start=1.0, freq_stop = 55.0, bandwidth = 10.0,
-        mode = :Lowpass, method = :Chebyshev2, 
-        pole=8, ripple = 15.0, attenuation = 100.0, 
-        filter_channels = -1
-    ) where {T<:Real}
+function filter_data!(trace::Experiment{T};
+    freq_start=1.0, freq_stop=55.0, bandwidth=10.0,
+    mode=:Lowpass, method=:Chebyshev2,
+    pole=8, ripple=15.0, attenuation=100.0,
+    filter_channels=-1
+) where {T<:Real}
 
     #Determine the filter response
     if mode == :Lowpass
@@ -22,11 +22,11 @@ function filter_data!(trace::Experiment{T};
     elseif mode == :Highpass
         responsetype = Highpass(freq_start; fs=1 / trace.dt)
     elseif mode == :Bandpass
-        responsetype = Bandpass(freq_start, freq_stop, fs = 1/trace.dt)
+        responsetype = Bandpass(freq_start, freq_stop, fs=1 / trace.dt)
     elseif mode == :Bandstop
-        responsetype = Bandstop(freq_start, freq_stop, fs = 1/trace.dt)
+        responsetype = Bandstop(freq_start, freq_stop, fs=1 / trace.dt)
     end
-    
+
     #Determine the method for designing the filter
     if method == :Butterworth
         designmethod = Butterworth(pole)
@@ -45,9 +45,9 @@ function filter_data!(trace::Experiment{T};
     end
 
     if filter_channels == -1
-        filter_channels = 1:size(trace,3)
+        filter_channels = 1:size(trace, 3)
     elseif isa(filter_channels, Vector{String}) #Do this for channel names input 
-        filter_channels = findall(filter_channels  .== data.chNames)
+        filter_channels = findall(filter_channels .== data.chNames)
     end
     for swp in 1:size(trace, 1)
         for ch in 1:size(trace, 3)
@@ -83,29 +83,32 @@ Here are some useful settings for filtering artifacts
     wave = cDb2
     level_window = (0.5, 1.0)
     period_window = (20, 60)
+    if t_post = 4.0, wave = Morlet(0.50π)
+    if t_post = 2.0, wave = Morlet(0.25π)
+    if t_post = 1.0, wave = Morlet(0.25π)
 """
-function cwt_filter!(trace::Experiment{T}; 
-    wave=cDb2, β = 2.0, 
-    period_window::Tuple{Int64,Int64} = (-1, -1), 
-    power_window::Tuple{T, T} = (0.0, 1.0),
-    inverseStyle = NaiveDelta(), 
+function cwt_filter!(trace::Experiment{T};
+    wave=Morlet(0.50π), β=2.0,
+    period_window::Tuple{Int64,Int64}=(-1, -1),
+    power_window::Tuple{T,T}=(0.0, 1.0),
+    inverseStyle=NaiveDelta(),
     #Here are some other Wavelet options
     kwargs...
-) where T <: Real
-    c = wavelet(wave; β = β, kwargs...)
+) where {T<:Real}
+    c = wavelet(wave; β=β, kwargs...)
     n_wavelets = 200 #This will be changed posteriorly
     if isa(wave, Morlet)
-        cwt_wave = zeros(ComplexF64, size(trace,1), size(trace, 2), n_wavelets, size(trace,3))
+        cwt_wave = zeros(ComplexF64, size(trace, 1), size(trace, 2), n_wavelets, size(trace, 3))
         #println("Complex")
     else
-        cwt_wave = zeros(size(trace,1), size(trace, 2), n_wavelets, size(trace,3))
+        cwt_wave = zeros(size(trace, 1), size(trace, 2), n_wavelets, size(trace, 3))
     end
 
     for swp = 1:size(trace, 1), ch = 1:size(trace, 3)
         y = ContinuousWavelets.cwt(trace[swp, :, ch], c)
         #It seems the only way to change
-        if eltype(y)==ComplexF64
-            check_y = real.(y) 
+        if eltype(y) == ComplexF64
+            check_y = real.(y)
         else
             check_y = y
         end
@@ -118,24 +121,24 @@ function cwt_filter!(trace::Experiment{T};
             reconstruct[:, 1:period_window[2]] .= y[:, 1:period_window[2]]
         elseif period_window[1] != -1 && period_window[2] == -1
             reconstruct[:, period_window[1]:end] .= y[:, period_window[1]:end]
-        elseif period_window[1] != -1 && period_window[2] != -1 
+        elseif period_window[1] != -1 && period_window[2] != -1
             reconstruct[:, period_window[1]:period_window[2]] .= y[:, period_window[1]:period_window[2]]
         else
             reconstruct = y
         end
-        
+
         #standardize the check
         norm_y = standardize(UnitRangeTransform, check_y)
         outside_window = (power_window[1] .<= norm_y .<= power_window[2])
-        reconstruct = reconstruct.*outside_window
-        cwt_wave[swp,:, 1:size(reconstruct,2), ch] .= reconstruct
+        reconstruct = reconstruct .* outside_window
+        cwt_wave[swp, :, 1:size(reconstruct, 2), ch] .= reconstruct
         trace.data_array[swp, :, ch] .= ContinuousWavelets.icwt(reconstruct, c, inverseStyle) |> vec
         n_wavelets = size(reconstruct, 2) #This allows us to use the posterior knowledge to change the array
     end
     return cwt_wave[:, :, (1:n_wavelets), :]
 end
 
-function cwt_filter(trace::Experiment{T}; kwargs...) where T <: Real
+function cwt_filter(trace::Experiment{T}; kwargs...) where {T<:Real}
     data = deepcopy(trace)
     cwt = cwt_filter!(data; kwargs...)
     return data, cwt
@@ -213,7 +216,7 @@ function EI_filter!(trace; reference_filter=60.0, bandpass=10.0, cycles=5)
     end
 end
 
-function normalize!(trace::Experiment; rng=(-1, 0), normalize_by = :channel)
+function normalize!(trace::Experiment; rng=(-1, 0), normalize_by=:channel)
     for swp in 1:size(trace, 1)
         for ch in 1:size(trace, 3)
             if rng[1] < 0
@@ -225,20 +228,20 @@ function normalize!(trace::Experiment; rng=(-1, 0), normalize_by = :channel)
     end
 end
 
-function normalize(trace::Experiment; rng=(-1, 0), dims = 2)
+function normalize(trace::Experiment; rng=(-1, 0), dims=2)
     data = deepcopy(trace)
     normalize!(data)
     return data
 end
 
 function normalize_channel!(trace::ePhys.Experiment; rng=(-1, 0))
-     if rng[1] < 0.0
-          mins = minimum(minimum(data, dims = 2), dims = 1)
-          trace.data_array ./= -mins
-     else
-          mins = maximum(maximum(data, dims = 2), dims = 1)
-          trace.data_array ./= mins
-     end
+    if rng[1] < 0.0
+        mins = minimum(minimum(data, dims=2), dims=1)
+        trace.data_array ./= -mins
+    else
+        mins = maximum(maximum(data, dims=2), dims=1)
+        trace.data_array ./= mins
+    end
 end
 
 function normalize_channel(trace::ePhys.Experiment; rng=(-1, 0))
@@ -251,7 +254,7 @@ function rolling_mean(trace::Experiment; window::Int64=10)
     data = deepcopy(trace)
     for swp in 1:size(trace, 1), ch in 1:size(trace, 3)
         for i in 1:window:size(data, 2)-window
-            data.data_array[swp, i, ch] = sum(data.data_array[swp, i:i+window, ch])/window
+            data.data_array[swp, i, ch] = sum(data.data_array[swp, i:i+window, ch]) / window
         end
     end
     return data
