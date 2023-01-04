@@ -1,36 +1,43 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.19
 
 using Markdown
 using InteractiveUtils
 
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
-    quote
-        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
-        local el = $(esc(element))
-        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
-        el
-    end
+     quote
+          local iv = try
+               Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value
+          catch
+               b -> missing
+          end
+          local el = $(esc(element))
+          global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+          el
+     end
 end
 
 # ╔═╡ a442e068-06ef-4d90-9228-0a03bc6d9379
 #This section will use the packages loaded in the environment
 begin
-	using Pkg
-	Pkg.activate("../../")
-	using Dates, PlutoUI
-	using ePhys
+     using Pkg
+     Pkg.activate("../../")
+     using Dates, PlutoUI
+     using ePhys
 
-	import ePhys: baseline_adjust!, truncate_data! , average_sweeps!
-	import ePhys: filter_data!, filter_data
-	import ePhys: dwt_filter!, cwt_filter!
-	import ePhys: fft_spectrum
-	#Use pyplot? for plotting
-	using PyPlot
-	#import PyPlot: plt
-	import ePhys.rcParams
-	pygui(true)
+     import ePhys: baseline_adjust!, truncate_data!, average_sweeps!
+     import ePhys: filter_data!, filter_data
+     import ePhys: dwt_filter!, cwt_filter!
+     import ePhys: fft_spectrum
+     #Use pyplot? for plotting
+     using PyPlot
+     #import PyPlot: plt
+     import ePhys.rcParams
+     import ePhys: wavelet, cDb2
+     using ContinuousWavelets
+     using Statistics
+     pygui(true)
 end
 
 # ╔═╡ e2fcae6f-d795-4258-a328-1aad5ea64195
@@ -45,7 +52,7 @@ md"
 
 # ╔═╡ 7b14b019-7545-4441-833b-f7e660c23dc6
 #enter in the file path of the file you would like to analyze here
-path = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2021_09_28_WT-30\Mouse2_Adult_WT\BaCl_LAP4\Rods\nd0_1p_0001.abf"
+path = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2022_12_20_Matt_WTAdult\Mouse2_WT_Adult\BaCl_LAP4\Rods\nd0_1p_0002.abf"
 
 # ╔═╡ b400dd0c-5a40-4ee7-9116-7339939b7456
 md"""
@@ -60,7 +67,7 @@ channels = ["Vm_prime", "Vm_prime4"]
 
 # ╔═╡ 05e38576-9650-4287-bac0-6d281db2ea9c
 if path != ""
-	data = readABF(path, channels = channels)
+     data = readABF(path, channels=channels)
 end;
 
 # ╔═╡ c8b4c855-64b8-4e18-9b2d-231260c67813
@@ -124,46 +131,46 @@ $(@bind WT_hi_val NumberField(1:50; default = 9))
 
 # ╔═╡ 5fdc0c43-9454-495d-9b8a-e47313d178b2
 begin
-	go
-	#This will act like the filtering pipeline. The pipeline goes as follows
-	#A) Baseline, Truncate, Average
+     go
+     #This will act like the filtering pipeline. The pipeline goes as follows
+     #A) Baseline, Truncate, Average
 
-	baseline_adjust!(data)
-	truncate_data!(data, t_pre = t_pre_pick, t_post = t_post_pick)
-	if avg_swp
-		average_sweeps!(data)
-	end
+     baseline_adjust!(data)
+     truncate_data!(data, t_pre=t_pre_pick, t_post=t_post_pick)
+     if avg_swp
+          average_sweeps!(data)
+     end
 
-	# This data can be plotted seperately
-	filtered_data = deepcopy(data)
-	filter_data!(filtered_data, 
-		mode = Symbol(filter_mode), 
-		pole = pole_val,
-		method = Symbol(filter_method), 
-		ripple = ripple_val,
-		attenuation = att_val, 
-		freq_start = freq_start, freq_stop = freq_stop
-	)
-	
-	if CWT_pick
-		cwt = cwt_filter!(filtered_data;
-		   period_window = (WT_low_val, WT_hi_val), return_cwt = true
-		)
-		println(cwt |> size)
-	else
-		cwt = nothing
-	end
-	
-	if DWT_pick
-		dwt = dwt_filter!(filtered_data;
-		   period_window = (WT_low_val, WT_hi_val), return_dwt = true
-		)
-		println(dwt |> size)
-	else
-		dwt = nothing
-	end
-	
-	"Filtering functions"
+     # This data can be plotted seperately
+     filtered_data = deepcopy(data)
+     filter_data!(filtered_data,
+          mode=Symbol(filter_mode),
+          pole=pole_val,
+          method=Symbol(filter_method),
+          ripple=ripple_val,
+          attenuation=att_val,
+          freq_start=freq_start, freq_stop=freq_stop
+     )
+
+     if CWT_pick
+          cwt = cwt_filter!(filtered_data;
+               period_window=(WT_low_val, WT_hi_val), return_cwt=true
+          )
+          println(cwt |> size)
+     else
+          cwt = nothing
+     end
+
+     if DWT_pick
+          dwt = dwt_filter!(filtered_data;
+               period_window=(WT_low_val, WT_hi_val), return_dwt=true
+          )
+          println(dwt |> size)
+     else
+          dwt = nothing
+     end
+
+     "Filtering functions"
 end
 
 # ╔═╡ 76025c46-2977-4300-8597-de04f313c667
@@ -173,7 +180,7 @@ md"""
 xlims:
 (
 $(@bind xlim1 NumberField(-1.0:0.01:10.000; default = -0.25)),
-$(@bind xlim2 NumberField(-1.0:0.01:10.000; default = 2.0))
+$(@bind xlim2 NumberField(-1.0:0.01:10.000; default = 5.0))
 )
 
 ylims:
@@ -186,61 +193,112 @@ $(@bind ylim2 NumberField(-10000.0:0.01:10000.000; default = maximum(data)))
 
 # ╔═╡ 669c877b-efcf-4c6b-a70f-e14164abdbff
 begin
-	#if we want to adjust some params adjust them here and add them to the default
-	#rcParams["font.size"] = 12.0
-	#C) Plot the data using Plotly (can be interactive)
-	fig, ax = plt.subplots(size(data,3), 2) 
-	freq, fft = fft_spectrum(data)
-	freq_filt, fft_filt = fft_spectrum(filtered_data)
-	fft_norm = abs.(fft)
-	fft_norm_filt = abs.(fft_filt)
-	
-	# Plot the experiments
-	if size(data,3) > 1
-		for ch in 1:size(data, 3)
-			ax[1, ch].set_xlim(xlim1, xlim2)
-			ax[1, ch].set_ylim(ylim1, ylim2)
-			plot_experiment(ax[1, ch], data, channel = ch, c = :black, alpha = 0.5)
-			plot_experiment(ax[1, ch], filtered_data, channel = ch, c = :red)
-			ax[1, ch].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
+     #if we want to adjust some params adjust them here and add them to the default
+     #rcParams["font.size"] = 12.0
+     #C) Plot the data using Plotly (can be interactive)
+     fig, ax = plt.subplots(size(data, 3), 2)
+     fig.subplots_adjust(hspace=0.4, wspace=0.4)
 
-			ax[2, ch].plot(freq, fft_norm[1, :, ch], c = :black, alpha = 0.5)
-			ax[2, ch].plot(freq, fft_norm_filt[1, :, ch], c = :red)
-		end
-		ax[1, size(data,3)].set_xlabel("Time (s)")
-	else
-		ax[1, 1].set_xlim(xlim1, xlim2)
-		ax[1, 1].set_ylim(ylim1, ylim2)
-		plot_experiment(ax[1, 1], data, channel = 1, c = :black, alpha = 0.5)
-		plot_experiment(ax[1, 1], filtered_data, channel = 1, c = :red)
-		ax[1, 1].set_ylabel("$(data.chNames[1]) ($(data.chUnits[1]))")
-		ax[1, 1].set_xlabel("Time (s)")
+     freq, fft = fft_spectrum(data)
+     freq_filt, fft_filt = fft_spectrum(filtered_data)
+     fft_norm = abs.(fft)
+     fft_norm_filt = abs.(fft_filt)
 
+     # Plot the experiments
+     if size(data, 3) > 1
+          for ch in 1:size(data, 3)
+               ax[1, ch].set_xlim(xlim1, xlim2)
+               ax[1, ch].set_ylim(ylim1, ylim2)
+               plot_experiment(ax[1, ch], data, channels=ch, c=:black, alpha=0.5)
+               plot_experiment(ax[1, ch], filtered_data, channels=ch, c=:red)
+               ax[1, ch].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
+               ax[1, ch].set_xlabel("Time (s)")
+               ax[2, ch].plot(freq, fft_norm[1, :, ch], c=:black, alpha=0.5)
+               ax[2, ch].plot(freq, fft_norm_filt[1, :, ch], c=:red)
+               ax[2, ch].set_xscale("log")
+               ax[2, ch].set_yscale("log")
+          end
+     else
+          ax[1, 1].set_xlim(xlim1, xlim2)
+          ax[1, 1].set_ylim(ylim1, ylim2)
+          plot_experiment(ax[1, 1], data, channels=1, c=:black, alpha=0.5)
+          plot_experiment(ax[1, 1], filtered_data, channel=1, c=:red)
+          ax[1, 1].set_ylabel("$(data.chNames[1]) ($(data.chUnits[1]))")
+          ax[1, 1].set_xlabel("Time (s)")
 
-		ax[2, 1].plot(freq, fft_norm[1, :, 1], c = :black, alpha = 0.5)
-		ax[2, 1].plot(freq, fft_norm_filt[1, :, 1], c = :red)
-	end
-	#Lets plot the frequency now
-	#Set the time label on the last variable
-	plt.xscale(:log)
-	plt.yscale(:log)
-	
-	fig
+          ax[2, 1].plot(freq, fft_norm[1, :, 1], c=:black, alpha=0.5)
+          ax[2, 1].plot(freq, fft_norm_filt[1, :, 1], c=:red)
+          ax[2, 1].set_xscale("log")
+     end
+
+     fig
 end
 
 # ╔═╡ 9d5c1286-1a13-428a-b772-67887ae1f7c8
 begin
-	#Plot the DWT info
-	fig2, ax2 = plt.subplots(size(data,3), 3) 
-
-	fig2
+     #Plot the DWT info
+     fig2, ax2 = plt.subplots(3, size(data, 3))
+     for ch in 1:size(data, 3)
+          ax2[1, ch].set_xlim(xlim1, xlim2)
+          ax2[1, ch].set_ylim(ylim1, ylim2)
+          plot_experiment(ax2[1, ch], data, channels=ch, c=:black, alpha=0.5)
+          plot_experiment(ax2[1, ch], filtered_data, channels=ch, c=:red)
+          ax2[1, ch].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
+          ax2[1, ch].set_xlabel("Time (s)")
+     end
+     fig2
 end
 
+# ╔═╡ dd65fd7a-b1c9-401d-8c37-149e2eaa3e5d
+begin
+     #settings
+     wave = ePhys.Morlet(0.50π)
+     period_window = (2^0, 2^4)
+     power_window = (0.0, 1.0)
+
+     dataCWT, CWT = cwt_filter(data*-1,
+          wave=wave,
+          period_window=period_window, power_window=power_window
+     )
+
+     #Plot the CWT info
+     fig3, ax3 = plt.subplots(2, size(data, 3))
+     for ch in 1:size(data, 3)
+          CWT_PROC = CWTprocess(CWT[1, :, :, ch])
+          mu = mean(CWT_PROC[.!isinf.(CWT_PROC)])
+          sig = std(CWT_PROC[.!isinf.(CWT_PROC)])
+          levels = LinRange(mu - 2 * sig, mu + 2 * sig, 40)
+          freqs = log.(2, 1:size(CWT, 3))
+     
+          ax3[1, ch].set_xlim(xlim1, xlim2)
+          ax3[1, ch].set_ylim(ylim1, ylim2)
+          imF1 = ax3[1, ch].contourf(data.t, freqs, CWT_PROC,
+               cmap="seismic", levels=levels, extend = "both", 
+          )
+
+          plot_experiment(ax3[1, ch], data, channels=ch, c=:black, alpha=0.5)
+          plot_experiment(ax3[1, ch], dataCWT*-1, channels=ch, c=:red)
+          ax3[1, ch].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
+          ax3[1, ch].set_xlabel("Time (s)")
+
+          imF1 = axTEST[1, 1].contourf(data.t, freqsO, CWTo_PROC,
+               cmap="seismic", levels=levelsA, extend="both",
+          )
+
+          ax3[2, ch].set_xlim(xlim1, xlim2)
+     end
+     fig3
+end
+
+# ╔═╡ e95eace2-9358-4ade-8e5d-32fa36bfd52f
+
+
 # ╔═╡ e284711a-5f0b-4204-ae20-3173d8496255
-plt.close("all"); clf()
+plt.close("all");
+clf();
 
 # ╔═╡ Cell order:
-# ╟─a442e068-06ef-4d90-9228-0a03bc6d9379
+# ╠═a442e068-06ef-4d90-9228-0a03bc6d9379
 # ╟─e2fcae6f-d795-4258-a328-1aad5ea64195
 # ╠═7b14b019-7545-4441-833b-f7e660c23dc6
 # ╟─b400dd0c-5a40-4ee7-9116-7339939b7456
@@ -251,5 +309,7 @@ plt.close("all"); clf()
 # ╟─5fdc0c43-9454-495d-9b8a-e47313d178b2
 # ╟─76025c46-2977-4300-8597-de04f313c667
 # ╟─669c877b-efcf-4c6b-a70f-e14164abdbff
-# ╠═9d5c1286-1a13-428a-b772-67887ae1f7c8
+# ╟─9d5c1286-1a13-428a-b772-67887ae1f7c8
+# ╟─dd65fd7a-b1c9-401d-8c37-149e2eaa3e5d
+# ╠═e95eace2-9358-4ade-8e5d-32fa36bfd52f
 # ╠═e284711a-5f0b-4204-ae20-3173d8496255
