@@ -43,6 +43,7 @@ function DataPathExtraction(path::String, calibration_file::String;
      end
      path_array = splitpath(path) #first we can split the file path into seperate strings
      nt = (Path=path,)
+     #println(path_array)
      date_info = findmatch(path_array, date_regex; verbose=verbose)
      if !isnothing(date_info)
           nt = merge(nt, date_info)
