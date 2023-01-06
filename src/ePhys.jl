@@ -139,7 +139,7 @@ function __init__()
           using DataFrames, Query, XLSX #Load these extra utilites immediately
           import XLSX: readtable, readxlsx #Import XLSX commands
           export readtable, readxlsx, XLSX
-          
+
           import Query: @filter #Import query commands
           export @filter, Query
           include("Datasheets/RegexFunctions.jl")
@@ -148,6 +148,13 @@ function __init__()
           export openDatasheet, createDatasheet, updateDatasheet
           export runAnalysis
           export matchExperiment
+          #This inner loop will allow you to revise the files listed in include if revise is available
+          @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
+               import .Revise
+               Revise.add_file(TrackRequires, "Datasheets/RegexFunctions.jl")
+               Revise.add_file(TrackRequires, "Datasheets/DatasheetFunctions.jl")
+               Revise.add_file(TrackRequires, "Datasheets/DatasheetAnalysis.jl")
+          end
           # This function will load all of the functions that need a require
      end
 
@@ -164,6 +171,12 @@ function __init__()
           include("Plotting/PlottingUtilities.jl")
           include("Plotting/PhysPyPlot.jl")
           export plot_experiment
+          @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
+               import .Revise
+               Revise.add_file(TrackRequires, "Plotting/DefaultSettings.jl")
+               Revise.add_file(TrackRequires, "Plotting/PlottingUtilities.jl")
+               Revise.add_file(TrackRequires, "Plotting/PhysPyPlot.jl")
+          end
      end
 
      @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin

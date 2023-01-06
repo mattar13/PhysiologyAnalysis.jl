@@ -4,11 +4,11 @@ date_regex = r"(?'Year'\d{2,4})_(?'Month'\d{1,2})_(?'Date'\d{1,2})_(?'Descriptio
 animal_regex = r"(?'Animal'\D+)(?'Number'\d)_(?'Age'.+)_(?'Genotype'.+)"
 nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
 
-
 NamedTuple(m::RegexMatch) = NamedTuple{Symbol.(Tuple(keys(m)))}(values(m.captures))
 
-function findmatch(str_array::Vector{String}, reg_format; verbose=false, first=true)
+function findmatch(str_array::Vector{String}, reg_format::Regex; verbose=false, first=true)
     matches = map(r -> match(reg_format, r), str_array)
+    println(any(!isnothing(matches)))
     if any(!isnothing(matches))
         if verbose
             println("We found a format")
@@ -23,6 +23,11 @@ function findmatch(str_array::Vector{String}, reg_format; verbose=false, first=t
             println("We did not find a format")
         end
     end
+end
+
+function findmatch(path::String, reg_format::Regex; kwargs...)
+    str_array = splitpath(path)
+    return findmatch(str_array, reg_format; kwargs...)
 end
 
 function find_condition(str_array; possible_conds=["BaCl", "BaCl_LAP4", "NoDrugs"])
