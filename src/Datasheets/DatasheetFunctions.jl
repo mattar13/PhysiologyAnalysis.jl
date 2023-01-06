@@ -1,5 +1,4 @@
-const calibration_file = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\Calibrations\photon_lookup.xlsx"
-
+const calibration_file = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\Calibrations\photon_lookup.xlsx"
 
 """
     photon_lookup(wavelength, nd, percent, stim_time, calibration_file[,sheet_name])
