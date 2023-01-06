@@ -88,10 +88,11 @@ Here are some useful settings for filtering artifacts
     if t_post = 1.0, wave = Morlet(0.25π)
 """
 function cwt_filter!(trace::Experiment{T};
-    wave=Morlet(0.50π), β=2.0,
+    wave=Morlet(1.0π), β=2.0,
     period_window::Tuple{Int64,Int64}=(-1, -1),
     power_window::Tuple{T,T}=(0.0, 1.0),
-    inverseStyle=NaiveDelta(),
+    inverseStyle = NaiveDelta(),
+    real_or_abs = :absolute,
     #Here are some other Wavelet options
     kwargs...
 ) where {T<:Real}
@@ -108,14 +109,22 @@ function cwt_filter!(trace::Experiment{T};
         y = ContinuousWavelets.cwt(trace[swp, :, ch], c)
         #It seems the only way to change
         if eltype(y) == ComplexF64
-            check_y = real.(y)
+            if real_or_abs == :absolute
+                check_y = abs.(y)
+                println("Absolute")
+            elseif real_or_abs == :real
+                check_y = real.(y)
+                println("Real")
+            end
         else
             check_y = y
         end
         #println(minimum(check_y))
         #println(maximum(check_y))
-
-        reconstruct = zeros(eltype(y), size(y))
+        #we can fill the reconstruct with the lowest number 
+        #println(min_val)
+        min_val = y[argmin(abs.(y))]
+        reconstruct = fill(min_val, size(y))
         #println(eltype(y))
         if period_window[1] == -1 && period_window[2] != -1
             reconstruct[:, 1:period_window[2]] .= y[:, 1:period_window[2]]
