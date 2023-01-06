@@ -150,10 +150,11 @@ function __init__()
           export matchExperiment
           #This inner loop will allow you to revise the files listed in include if revise is available
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
+               println("Revise and Dataframes loaded")
                import .Revise
-               Revise.add_file(TrackRequires, "Datasheets/RegexFunctions.jl")
-               Revise.add_file(TrackRequires, "Datasheets/DatasheetFunctions.jl")
-               Revise.add_file(TrackRequires, "Datasheets/DatasheetAnalysis.jl")
+               Revise.track(ePhys, "src/Datasheets/RegexFunctions.jl")
+               Revise.track(ePhys, "src/Datasheets/DatasheetFunctions.jl")
+               Revise.track(ePhys, "src/Datasheets/DatasheetAnalysis.jl")
           end
           # This function will load all of the functions that need a require
      end
@@ -173,9 +174,10 @@ function __init__()
           export plot_experiment
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                import .Revise
-               Revise.add_file(TrackRequires, "Plotting/DefaultSettings.jl")
-               Revise.add_file(TrackRequires, "Plotting/PlottingUtilities.jl")
-               Revise.add_file(TrackRequires, "Plotting/PhysPyPlot.jl")
+               println("Revise and Pyplot loaded")
+               Revise.track(ePhys, "src/Plotting/DefaultSettings.jl")
+               Revise.track(ePhys, "src/Plotting/PlottingUtilities.jl")
+               Revise.track(ePhys, "src/Plotting/PhysPyPlot.jl")
           end
      end
 

@@ -8,8 +8,9 @@ NamedTuple(m::RegexMatch) = NamedTuple{Symbol.(Tuple(keys(m)))}(values(m.capture
 
 function findmatch(str_array::Vector{String}, reg_format::Regex; verbose=false, first=true)
     matches = map(r -> match(reg_format, r), str_array)
-    println(any(!isnothing(matches)))
-    if any(!isnothing(matches))
+    #println("Revise is working")
+    #println(any(.! isnothing.(matches)))
+    if any(.! isnothing.(matches))
         if verbose
             println("We found a format")
         end
