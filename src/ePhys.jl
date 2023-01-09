@@ -151,7 +151,7 @@ function __init__()
           #This inner loop will allow you to revise the files listed in include if revise is available
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                println("Revise and Dataframes loaded")
-               import .Revise
+               #import .Revise
                Revise.track(ePhys, "src/Datasheets/RegexFunctions.jl")
                Revise.track(ePhys, "src/Datasheets/DatasheetFunctions.jl")
                Revise.track(ePhys, "src/Datasheets/DatasheetAnalysis.jl")
@@ -173,7 +173,7 @@ function __init__()
           include("Plotting/PhysPyPlot.jl")
           export plot_experiment
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
-               import .Revise
+               #import .Revise
                println("Revise and Pyplot loaded")
                Revise.track(ePhys, "src/Plotting/DefaultSettings.jl")
                Revise.track(ePhys, "src/Plotting/PlottingUtilities.jl")
