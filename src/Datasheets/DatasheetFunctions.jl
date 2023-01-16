@@ -206,6 +206,8 @@ function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx
           entry = DataPathExtraction(file)
           if isnothing(entry) #Throw this in the case that the entry cannot be fit
                println(entry)
+          elseif length(entry) != size(dataframe, 2)
+               println("Entry does not match dataframe size. Probably an extra category")
           else
                push!(dataframe, entry)
           end

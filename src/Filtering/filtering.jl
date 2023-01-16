@@ -1,7 +1,37 @@
 #TODO: Eventually I want to add all filter functions into a single function 
 
 """
-NEED DOCUMENTATION
+    Filters data in the `trace` object using a digital filter.
+
+    # Parameters
+    - trace : Experiment{T} 
+        an object containing the data to be filtered
+    - freq_start : float (optional) 
+        start frequency for the filter, default is 1.0
+    - freq_stop : float (optional) 
+        stop frequency for the filter, default is 55.0
+    - bandwidth : float (optional) 
+        bandwidth for the filter, default is 10.0
+    - mode : Symbol (optional) 
+        filter mode, can be :Lowpass, :Highpass, :Bandpass, :Bandstop, default is :Lowpass
+    - method : Symbol (optional) 
+        method used to design the filter, can be :Butterworth, :Chebyshev1, :Chebyshev2, :Elliptic, default is :Chebyshev2
+    - pole : int (optional) 
+        number of poles for the filter, default is 8
+    - ripple : float (optional) 
+        ripple for the filter, default is 15.0
+    - attenuation : float (optional) 
+        attenuation for the filter, default is 100.0
+    - filter_channels : int or Vector{String} (optional) 
+        channels to be filtered, can be an integer index or a vector of channel names, default is -1 (all channels)
+    # Returns
+    - The input trace object is modified in place.
+
+    # Example
+    ```julia
+    trace = Experiment(data_array, dt)
+    filter_data!(trace, freq_start=5, freq_stop=10, mode=:Bandpass)
+    ```
 """
 function filter_data(trace::Experiment{T}; kwargs...) where {T<:Real}
     data = deepcopy(trace)
@@ -12,7 +42,7 @@ end
 function filter_data!(trace::Experiment{T};
     freq_start=1.0, freq_stop=55.0, bandwidth=10.0,
     mode=:Lowpass, method=:Chebyshev2,
-    pole=8, ripple=15.0, attenuation=100.0,
+    pole=4, ripple=50.0, attenuation=100.0,
     filter_channels=-1
 ) where {T<:Real}
 
@@ -89,7 +119,7 @@ Here are some useful settings for filtering artifacts
 """
 function cwt_filter!(trace::Experiment{T};
     wave=Morlet(1.0π), β=2.0,
-    period_window::Tuple{Int64,Int64}=(-1, -1),
+    period_window::Tuple{Real,Real}=(-1, -1),
     power_window::Tuple{T,T}=(0.0, 1.0),
     inverseStyle = NaiveDelta(),
     real_or_abs = :absolute,
