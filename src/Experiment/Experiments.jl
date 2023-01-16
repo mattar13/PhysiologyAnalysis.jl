@@ -3,7 +3,7 @@ The experiment data object.
 This contains all the data for the sweep. 
     ### DataType is defined by {T}
     ## The options are: 
-        1) infoDict::Dict{String,Any} -> The information object that contains all the ABF info extracted from the binary file
+        1) HeaderDict::Dict{String,Any} -> The information object that contains all the ABF info extracted from the binary file
         2) dt::T -> The time differential for the y axis. This is the inverse of the sampling rate collected by the digitizers
         3) t::Vector{T} -> The y axis and timestamps for each data point.
         4) data_array::Array{T,3} -> The data collected by the digitization process. The data array is sized by {sweeps, datapoints, channels}
@@ -13,7 +13,7 @@ This contains all the data for the sweep.
         8) stim_protocol::Vector{StimulusProtocol{T}} -> The stimulus protocols for each sweep. 
 """
 mutable struct Experiment{T}
-    infoDict::Dict{String,Any}
+    HeaderDict::Dict{String,Any}
     dt::T
     t::Vector{T}
     data_array::Array{T,3}
