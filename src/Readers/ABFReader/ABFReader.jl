@@ -40,7 +40,7 @@ stimulus_name::Union{String, Vector{String}}
 """
 function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
     sweeps::Union{Int64,Vector{Int64}}=-1,
-    channels::Vector{String}=["Vm_prime", "Vm_prime4"],
+    channels::Union{Int64, Vector{String}}=["Vm_prime", "Vm_prime4"],
     average_sweeps::Bool=false,
     stimulus_name::Union{String, Vector{String}, Nothing}="IN 7",  #One of the best places to store digital stimuli
     stimulus_threshold::T=2.5, #This is the normal voltage rating on digital stimuli
@@ -55,7 +55,7 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
     elseif isa(channels, Vector{Int64}) #If chs is a vector of ints
         ch_idxs = channels
     elseif channels == -1 #if chs is -1 extract all channels
-        ch_idxs = headerSection["channelList"]
+        ch_idxs = HeaderDict["channelList"]
     end
     #Extract info for the adc names and units
     ch_names = Vector{String}(HeaderDict["adcNames"][ch_idxs])
@@ -165,9 +165,41 @@ function parseABF(super_folder::String; extension::String=".abf")
     file_list
 end
 
-function saveABF(exp::Experiment{T}, filename) where T <: Real
-    println("This function is not yet made")
-    println(exp.HeaderDict["dataByteStart"])
-    println(exp.HeaderDict["dataType"])
-    println(exp.HeaderDict["dataPointCount"])
+const BLOCKSIZE = 512
+function saveABF(exp::Experiment{T}, filename;) where {T<:Real}
+    println(exp.chNames)
+    path = joinpath(exp.HeaderDict["abfFolder"], exp.HeaderDict["abfPath"]) #This is the path of one of the og files
+    Header = exp.HeaderDict #Pull out header information
+    dataPointCount = Header["dataPointCount"] #Read the datapoint count
+    dataType = Header["dataType"]
+    bytesPerPoint = sizeof(dataType)
+    dataStart = Header["dataByteStart"]
+    dataGain = Header["dataGain"]
+    dataOffset = Header["dataOffset"]
+    #Determine the dimensions of the data you are writing
+    swpN, dataN, chN = size(exp)
+    dataArray = exp.data_array
+    dataArray = permutedims(dataArray, (3, 2, 1)) #Reorganize the data to ch, data, swp
+    dataArray = reshape(dataArray, chN, dataN * swpN)
+    dataArray = dataArray ./ dataGain
+    dataArray = dataArray .- dataOffset
+    try
+        dataArray = vec(Int16.(dataArray)) #Sometimes the numbers won't accurately convert
+        dataArray = reinterpret(UInt8, dataArray)
+    catch
+        #println("Numbers won't convert")
+        dataArray = round.(Int64, dataArray)
+        dataArray = vec(Int16.(dataArray)) #Sometimes the numbers won't accurately convert
+        dataArray = reinterpret(UInt8, dataArray)
+    end
+
+    #get the channel order
+    ABFINFO = readABFInfo(path)
+    println(ABFINFO["adcNames"])
+    
+    dat = read(path)
+    #dat[dataStart:dataStart+dataPointCount*bytesPerPoint-1]
+    dat[dataStart:dataStart+dataPointCount*bytesPerPoint-1] = dataArray
+    write(filename, dat)
+    println("Data written")
 end
