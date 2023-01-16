@@ -32,7 +32,7 @@ end
 function plot_experiment(exp::Experiment; kwargs...)
     fig, axis = plt.subplots(size(exp, 3))
     for (ch, ax) in enumerate(axis)
-        plot_experiment(ax::PyObject, exp::Experiment; channel=ch, kwargs...)
+        plot_experiment(ax::PyObject, exp::Experiment; channels=ch, kwargs...)
     end
     return fig
 end
