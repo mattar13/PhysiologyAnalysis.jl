@@ -24,5 +24,7 @@ datafile = raw"C:\Users\mtarc\OneDrive - The University of Akron\Projects\GNAT\c
 all_files = data_root |> parseABF
 createDatasheet(all_files; filename=datafile, verbose=true)
 dataset = openDatasheet(datafile, sheetName="all")
-updateDatasheet(datafile, all_files)
+#updateDatasheet(datafile, all_files)
+resB = ePhys.run_B_wave_analysis(dataset["All_Files"])
+
 runAnalysis(datafile)

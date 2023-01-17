@@ -334,18 +334,18 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true)
      k_fit = Float64[]
      n_fit = Float64[]
      for (idx, categ) in enumerate(extract_categories(qConditions))
-          allIR, fiti = extractIR(qTrace, categ, measure=:Maxima)
+          #allIR, fiti = extractIR(qTrace, categ, measure=:Maxima)
           #if categ[1] <= 11
           #else
           #     allIR, fiti = extractIR(qTrace, categ)
           #end
-          push!(rmax_fit, abs(fiti.param[1]))
-          push!(k_fit, fiti.param[2])
-          push!(n_fit, fiti.param[3])
+          #push!(rmax_fit, abs(fiti.param[1]))
+          #push!(k_fit, fiti.param[2])
+          #push!(n_fit, fiti.param[3])
      end
-     qConditions[!, :RmaxFit] = rmax_fit
-     qConditions[!, :k] = k_fit
-     qConditions[!, :n] = n_fit
+     #qConditions[!, :RmaxFit] = rmax_fit
+     #qConditions[!, :k] = k_fit
+     #qConditions[!, :n] = n_fit
 
      return qTrace, qExperiment, qConditions
 end
