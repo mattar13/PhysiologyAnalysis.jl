@@ -26,10 +26,7 @@ for path in cone_paths
           user = "Matt"
      end
      #Find the age and 
-     animal_res = findmatch(path, r"_m(?'Animal'\d)")
-     if isnothing(animal_res)
-          animal_res = findmatch(path, r"Mouse(?'Animal'\d)")
-     end
+     animal_res = findmatch(path, animal_n_regex)
      genotype_res = findmatch(path, r"_(?'Genotype'WT|DR)")
      age_res = findmatch(path, age_regex)
      if isnothing(age_res)
@@ -42,9 +39,9 @@ for path in cone_paths
      new_path = joinpath(rec_path, "$(date_res.Year)_$(date_res.Month)_$(date_res.Date)_ERG$(genotype_res.Genotype)$(AGE)")
 
      if AGE == "30"
-          new_path = joinpath(new_path, "Mouse$(animal_res.Animal)_$(genotype_res.Genotype)_Adult")
+          new_path = joinpath(new_path, "Mouse$(animal_res.Number)_Adult_$(genotype_res.Genotype)")
      else
-          new_path = joinpath(new_path, "Mouse$(animal_res.Animal)_$(genotype_res.Genotype)_P$(AGE)")
+          new_path = joinpath(new_path, "Mouse$(animal_res.Number)_P$(AGE)_$(genotype_res.Genotype)")
      end
 
      #Find the conditions
@@ -66,8 +63,8 @@ for path in cone_paths
      end
 
      if new_path ∉ previous_paths
-          #print("Append new folder: ")
-          #println(new_path)
+          print("Append new folder: ")
+          println(new_path)
           mkpath(new_path)
      else
           print("Path already exists: ")
@@ -80,7 +77,7 @@ for path in cone_paths
      nd_res = findmatch(path, nd_regex)
      flash_id = findmatch(path, r"\d") #find just a single digit
      if !isempty(flash_id)
-          println(flash_id)
+          #println(flash_id)
      end
      if !isnothing(corr_name) && !isnothing(nd_res)
           count_str = string(count)
@@ -98,19 +95,18 @@ for path in cone_paths
           str_lid = "$(join(repeat("0", addN)))$count_str"
           new_path = joinpath(new_path, "nd$(nd_res.ND)_$(nd_res.Percent)p_$str_lid.abf")
           #dat = read(path)
-          println(ispath(new_path))
+          #println(ispath(new_path))
           if !ispath(new_path)
                cp(path, new_path)
           end
      end
 end
-#%%
 
-rec_path |> parseABF
+#%%
 datafile = raw"C:\Users\mtarc\OneDrive - The University of Akron\Projects\GNAT\cone_data_analysis.xlsx"
-data_root = rec_path #The data root
+data_root = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\Restructured"
 all_files = data_root |> parseABF
 createDatasheet(all_files; filename=datafile, verbose=true)
 dataset = openDatasheet(datafile, sheetName="all")
-updateDatasheet(datafile, all_files)
+#updateDatasheet(datafile, all_files)
 runAnalysis(datafile)
