@@ -121,7 +121,6 @@ end
 
 DataPathExtraction(path::String; kwargs...) = DataPathExtraction(path, calibration_file; kwargs...)
 
-
 """
 This function cleans the data out of a dataframe if the dataframe is already open
 """
