@@ -5,16 +5,19 @@ animal_regex = r"(?'Animal'\D+)(?'Number'\d)_(?'Age'.+)_(?'Genotype'.+)"
 nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
 
 animal_n_regex = r"_m(?'Animal'\d)"
-age_regex = r"_P(?'Age'\d*)"
+age_regex = r"_P(?'Age'\d*|)"
 genotype_regex = r"_(?'Genotype'WT|DR)"
-cond_regex = r"(?'Condition'Drugs|NoDrugs|BaCl|BaCl_LAP4)"
+cond_regex = r"(?'Condition'Drugs|NoDrugs|BaCl|BaCl_LAP4|No drugs)"
 pc_regex = r"(?'Photoreceptors'Cones|Rods)"
 color_regex = r"(?'Color'Blue|Green|UV)"
-
+nd_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p"
+avg_regex = r"(?'Correct'Average|average)"
+digit_regex = r""
 NamedTuple(m::RegexMatch) = NamedTuple{Symbol.(Tuple(keys(m)))}(values(m.captures))
 
 function findmatch(str_array::Vector{String}, reg_format::Regex; verbose=false, first=true)
     matches = map(r -> match(reg_format, r), str_array)
+    #println(matches)
     #println("Revise is working")
     #println(any(.! isnothing.(matches)))
     if any(.! isnothing.(matches))
