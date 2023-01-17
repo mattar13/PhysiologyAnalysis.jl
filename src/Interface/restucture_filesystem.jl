@@ -16,9 +16,10 @@ mkdir(rec_path)
 previous_paths = rec_path |> parseABF
 previous_paths = map(path -> joinpath(splitpath(path)[1:end-1]), previous_paths)
 previous_paths = unique(previous_paths)
+
 count = 0
 for path in cone_paths
-     #println(path)
+     println(path)
      date_res = findmatch(path, date_regex)
      if parse(Int, date_res.Year) < 2020 && parse(Int, date_res.Month) >= 06
           user = "Paul"
@@ -45,9 +46,11 @@ for path in cone_paths
      end
 
      #Find the conditions
+     #println(cond_res)
      if cond_res.Condition == "Drugs"
           cond = "BaCl_LAP4"
-     elseif cond_res.Condition == "NoDrugs" || cond_res.Condition == "No drugs"
+     elseif cond_res.Condition == "NoDrugs" || cond_res.Condition == "No drugs" || cond_res.Condition == "No Drugs"
+          #println("No Drugs")
           cond = "BaCl"
      else
           cond = cond_res.Condition
@@ -63,11 +66,12 @@ for path in cone_paths
      end
 
      if new_path ∉ previous_paths
-          print("Append new folder: ")
+          print("Append: ")
           println(new_path)
           mkpath(new_path)
      else
-          print("Path already exists: ")
+          print("Already exists: ")
+          println(new_path)
           println(new_path)
      end
 
@@ -101,12 +105,3 @@ for path in cone_paths
           end
      end
 end
-
-#%%
-datafile = raw"C:\Users\mtarc\OneDrive - The University of Akron\Projects\GNAT\cone_data_analysis.xlsx"
-data_root = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\Restructured"
-all_files = data_root |> parseABF
-createDatasheet(all_files; filename=datafile, verbose=true)
-dataset = openDatasheet(datafile, sheetName="all")
-#updateDatasheet(datafile, all_files)
-runAnalysis(datafile)

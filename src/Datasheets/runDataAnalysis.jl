@@ -13,7 +13,16 @@ runAnalysis(datafile)
 data_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Gnat" #The data root
 datafile = raw"C:\Users\mtarc\OneDrive - The University of Akron\Projects\GNAT\data_analysis.xlsx"
 all_files = data_root |> parseABF
-createDatasheet(all_files; filename = datafile, verbose = true)
+createDatasheet(all_files; filename=datafile, verbose=true)
+dataset = openDatasheet(datafile, sheetName="all")
+updateDatasheet(datafile, all_files)
+runAnalysis(datafile)
+
+#%% Run the data analysis for the JGP files
+data_root = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\Restructured"
+datafile = raw"C:\Users\mtarc\OneDrive - The University of Akron\Projects\GNAT\cone_data_analysis.xlsx"
+all_files = data_root |> parseABF
+createDatasheet(all_files; filename=datafile, verbose=true)
 dataset = openDatasheet(datafile, sheetName="all")
 updateDatasheet(datafile, all_files)
 runAnalysis(datafile)
