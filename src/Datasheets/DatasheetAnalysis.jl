@@ -201,6 +201,7 @@ end
 function run_B_wave_analysis(all_files::DataFrame; verbose=true)
      trace_A = all_files |> @filter(_.Condition == "BaCl_LAP4" || _.Condition == "LAP4_BaCl") |> DataFrame
      trace_AB = all_files |> @filter(_.Condition == "BaCl") |> DataFrame
+     #println(isnothing(trace_AB))
      b_files = trace_A |> @join(trace_AB,
                     {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptors, _.Genotype},
                     {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptors, _.Genotype},
