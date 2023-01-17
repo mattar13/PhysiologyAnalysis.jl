@@ -180,7 +180,7 @@ function __init__()
                Revise.track(ePhys, "src/Plotting/PhysPyPlot.jl")
 
                #This files don't really track
-               Revise.track(ePhys, "src/Readers/ABFReader/ABFReader.jl")
+               #Revise.track(ePhys, "src/Readers/ABFReader/ABFReader.jl")
                #Revise.track(ePhys, "src/Datasheets/DatasheetFunctions.jl")
                #Revise.track(ePhys, "src/Datasheets/DatasheetAnalysis.jl")
           end
