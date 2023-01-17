@@ -1,18 +1,18 @@
 import Base.NamedTuple
 
 date_regex = r"(?'Year'\d{2,4})_(?'Month'\d{1,2})_(?'Date'\d{1,2})_(?'Description'.+)"
-animal_regex = r"(?'Animal'\D+)(?'Number'\d)_(?'Age'.+)_(?'Genotype'.+)"
-nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
+#animal_file_regex = r"(?'Animal'\D+)(?'Number'\d)_(?'Age'.+)_(?'Genotype'.+)"
+#nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
 
-animal_n_regex = r"_m(?'Animal'\d)"
+animal_regex = r"(_m|(?'Animal'Mouse|Zebrafish|Organoid))(?'Number'\d)"
 age_regex = r"_P(?'Age'\d*|)"
 genotype_regex = r"_(?'Genotype'WT|DR)"
 cond_regex = r"(?'Condition'Drugs|NoDrugs|BaCl|BaCl_LAP4|No drugs)"
 pc_regex = r"(?'Photoreceptors'Cones|Rods)"
-color_regex = r"(?'Color'Blue|Green|UV)"
+color_regex = r"(?'Color'Blue|Green|UV|365|365UV|520|520Green|525|525Green)"
 nd_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p"
 avg_regex = r"(?'Correct'Average|average)"
-digit_regex = r""
+
 NamedTuple(m::RegexMatch) = NamedTuple{Symbol.(Tuple(keys(m)))}(values(m.captures))
 
 function findmatch(str_array::Vector{String}, reg_format::Regex; verbose=false, first=true)

@@ -43,57 +43,62 @@ function DataPathExtraction(path::String, calibration_file::String;
      path_array = splitpath(path) #first we can split the file path into seperate strings
      nt = (Path=path,)
      #println(path_array)
-     date_info = findmatch(path_array, date_regex; verbose=verbose)
-     if !isnothing(date_info)
-          nt = merge(nt, date_info)
+     date_res = findmatch(path_array, date_regex; verbose=verbose)
+     if !isnothing(date_res)
+          nt = merge(nt, date_res)
      end
 
-     animal_info = findmatch(path_array, animal_regex; verbose=verbose)
-     if !isnothing(animal_info)
-          #try to match the age Regex
-          nt_keys = keys(animal_info)
-          nt_vals = [values(animal_info)...]
-          idx = findall(nt_keys .== :Age)[1]
-          if nt_vals[idx] == "Adult"
-               nt_vals[idx] = "30"
+     animal_res = findmatch(path_array, animal_regex; verbose=verbose)
+     if !isnothing(animal_res)
+          nt = merge(nt, animal_res)
+     end
+     genotype_res = findmatch(path, genotype_regex; verbose = verbose)
+     if !isnothing(genotype_res)
+          nt = merge(nt, genotype_res)
+     end
+     age_res = findmatch(path, age_regex; verbose = verbose)
+     if !isnothing(age_res) || parse(Int, age_res.Age) > 30
+          if age_res.Age == "Adult"
+               nt = merge(nt, ("Age" => "30"))
           else
-               nt_vals[idx] = filter_string(Int64, nt_vals[idx])
+               nt = merge(nt, age_res)
           end
-          #convert values like "P8" to 8, and Adult to 30
-
-          animal_info = NamedTuple{nt_keys}(nt_vals)
-          nt = merge(nt, animal_info)
      end
-
+     
      #now lets look for a condition in the possible conds
-     cond = find_condition(path_array; possible_conds=["BaCl", "BaCl_LAP4", "NoDrugs"])
-     nt = merge(nt, (Condition=cond,))
-
-     pc = find_condition(path_array; possible_conds=["Rods", "Cones"])
-     if !isnothing(pc)
-          nt = merge(nt, (Photoreceptor=pc,))
+     cond_res = findmatch(path, cond_regex)
+     if cond_res.Condition == "Drugs"
+          cond = "BaCl_LAP4"
+     elseif cond_res.Condition == "NoDrugs" || cond_res.Condition == "No drugs"
+          cond = "BaCl"
      else
-          nt = merge(nt, (Photoreceptor="Rods",))
+          cond = cond_res.Condition
      end
-
-     wv = find_condition(path_array; possible_conds=["365", "365UV", "520", "520Green", "525", "525Green"])
-     if !isnothing(wv)
-          wv_value = filter_string(Int64, wv)
-          if wv_value == "525" #This is a file error
-               println("Old file name made a mistake")
-               nt = merge(nt, (Wavelength="520",))
+     nt = merge(nt, (Condition=cond,))
+     
+     pc_res = findmatch(path, pc_regex)
+     
+     if !isnothing(pc_res)
+          nt = merge(nt, pc_res)
+          if pc_res.Photoreceptors == "Rods" #No further label is needed
+               nt = merge(nt, (Wavelength = "520",))
           else
-               nt = merge(nt, (Wavelength=wv_value,))
+               color_res = findmatch(path, color_regex)
+               if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" 
+                    nt = merge(nt, (Wavelength = "365",))
+               elseif  color_res.Color == "Green" || color_res.Color == "525" || color_res.Color == "525Green" 
+                    nt = merge(nt, (Wavelength="520",))
+               elseif color_res.Color == "520" || color_res.Color == "520Green" 
+                    nt = merge(nt, (Wavelength="520",))
+               else
+                    println(color_res)
+               end
           end
-     elseif any(path_array .== "UV")
-          nt = merge(nt, (Wavelength="365",))
-     elseif any(path_array .== "Green") || nt.Photoreceptor == "Rods"
-          nt = merge(nt, (Wavelength="520",))
      end
 
-     intensity_info = findmatch(path_array, nd_file_regex; verbose=verbose) #find and extract the intensity info
-     if !isnothing(intensity_info)
-          nt = merge(nt, intensity_info)
+     nd_res = findmatch(path, nd_regex; verbose = verbose)
+     if !isnothing(nd_res)
+          nt = merge(nt, nd_res)
           if extract_photons
                #extract the stimulus from the data
                stim_timestamps = extract_stimulus(path)[1].timestamps
@@ -101,20 +106,33 @@ function DataPathExtraction(path::String, calibration_file::String;
                #println(stim_time)
                nt = merge(nt, (Stim_Time=stim_time,))
                #now lets extract photons
-               #println(nt.Wavelength)
-               #println(intensity_info.ND)
-               #println(intensity_info.Percent)
-               photons = photon_lookup(
-                    parse(Int64, nt.Wavelength),
-                    parse(Int64, intensity_info.ND),
-                    parse(Int64, intensity_info.Percent),
-                    calibration_file
-               ) .* stim_time
-               nt = merge(nt, (Photons=photons,))
+               if nd_res.ND == "0.5"
+                    #println(intensity_info.Percent)
+                    println(nd_res)
+                    println(nt.Wavelength)
+                    photons = photon_lookup(
+                         parse(Int64, nt.Wavelength),
+                         0,
+                         parse(Int64, nd_res.Percent),
+                         calibration_file
+                    )
+                    println(photons)
+                    photons = (photons*stim_time) / (10^0.5)
+                    nt = merge(nt, (Photons=photons,))
+               else
+                    #println(intensity_info.Percent)
+                    photons = photon_lookup(
+                         parse(Int64, nt.Wavelength),
+                         parse(Int64, nd_res.ND),
+                         parse(Int64, nd_res.Percent),
+                         calibration_file
+                    ) .* stim_time
+                    nt = merge(nt, (Photons=photons,))
+               end
           end
           #now we can look for any date info
      end
-
+     #println(nt)
      #return nt |> clean_nt_numbers
      return nt |> parseNamedTuple
 end
@@ -165,7 +183,8 @@ function safe_convert(dataframe::DataFrame)
      for (idx, col) in enumerate(eachcol(dataframe))
           #println(names(dataframe)[idx])
           typ = typeof(col[1]) #Check if there are 
-          #We will try to convert each row. If it does not work, we can remove the NaNs
+          #We will try to convert each row. If it does not work, we can remove the NaN
+          #println(col)
           if ("NaN" ∈ col) #Check if there exists a word NaN in the row (excel will call these strings)
                #print("Is NaN") #debugging statements
                whereNaN = findall(col .== "NaN")
@@ -205,12 +224,17 @@ function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx
           entry = DataPathExtraction(file)
           if isnothing(entry) #Throw this in the case that the entry cannot be fit
                println(entry)
-          elseif length(entry) != size(dataframe, 2)
-               println("Entry does not match dataframe size. Probably an extra category")
+               #elseif length(entry) != size(dataframe, 2)
+          #     println("Entry does not match dataframe size. Probably an extra category")
           else
-               push!(dataframe, entry)
+               try
+                    push!(dataframe, entry)
+               catch
+                    println(entry.ND)
+                         println("Probably the ND filter. I don't know how to fix that")
+                    end
+               end
           end
-     end
      if !isnothing(filename)
           XLSX.openxlsx(filename, mode="w") do xf
                XLSX.rename!(xf[1], "All_Files") #Rename sheet 1
