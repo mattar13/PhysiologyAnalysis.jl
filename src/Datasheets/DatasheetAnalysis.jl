@@ -3,7 +3,7 @@
 function extract_categories(cond_df::DataFrame) 
      categories = []
      for row in eachrow(cond_df)
-          a = [row.Age, row.Genotype, row.Photoreceptor, row.Wavelength]
+          a = [row.Age, row.Genotype, row.Photoreceptors, row.Wavelength]
           push!(categories, a)
      end
      categories
@@ -16,7 +16,7 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
      allIR = trace_datafile |> 
           @filter(_.Age == category[1]) |>
           @filter(_.Genotype == category[2]) |>
-          @filter(_.Photoreceptor == category[3]) |>
+          @filter(_.Photoreceptors == category[3]) |>
           @filter(_.Wavelength == category[4]) |>
      DataFrame
 
@@ -36,7 +36,7 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
      select!(allIR, 
           [
                :Path, :Year, :Month, :Date, 
-               :Age, :Number, :Genotype, :Photoreceptor, :Wavelength, :Channel, :Gain,
+               :Age, :Number, :Genotype, :Photoreceptors, :Wavelength, :Channel, :Gain,
                :Photons, measure, :FitVariable, :Residual
           ]
      )
@@ -49,17 +49,18 @@ end
 function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, measure_minima = false)
      a_files = all_files |> @filter(_.Condition == "BaCl_LAP4") |> DataFrame #Extract all A-wave responses
      a_files[!, :Path] = string.(a_files[!, :Path]) #Make sure the path is a string
-     uniqueData = a_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame #Pull out all unique files
+     uniqueData = a_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptors, _.Genotype}) |> DataFrame #Pull out all unique files
      if verbose
           println("Completed data query")
      end
-
+     println(uniqueData)
+     println(size(uniqueData))
      qTrace = DataFrame() #Make empty dataframes for all traces
      qExperiment = DataFrame() #Make empty dataframe for all experiments
      for (idx, i) in enumerate(eachrow(uniqueData)) #Walk through each unique data
           qData = a_files |> @filter(
-                       (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
-                       (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
+                       (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptors, _.Genotype) ==
+                       (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptors, i.Genotype)
                   ) |>
                   DataFrame #Pull out the data 
           dataFile = readABF(qData.Path)
@@ -113,7 +114,7 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                               Path=qData[swp, :Path],
                               Year=qData[swp, :Year], Month=qData[swp, :Month], Date=qData[swp, :Date],
                               Age=qData[swp, :Age], Number=qData[swp, :Number], Genotype=qData[swp, :Genotype],
-                              Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
+                              Photoreceptors=qData[swp, :Photoreceptors], Wavelength=qData[swp, :Wavelength],
                               Photons=qData[swp, :Photons],
                               Channel=ch, Gain=gain,
                               Response=Resps[swp], Minima=minimas[swp], Maxima=maximas[swp],
@@ -149,7 +150,7 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
                push!(qExperiment, (
                     Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                     Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                    Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                    Photoreceptors=qData[1, :Photoreceptors], Wavelength=qData[1, :Wavelength],
                     #Photons=qData[1, :Photons], #We dont' need the first number of photons
                     rmax=maximum(Resps),
                     rmax_fit = rmax_FIT, k = k_FIT, n = n_FIT,
@@ -164,9 +165,9 @@ function run_A_wave_analysis(all_files::DataFrame; run_amp=false, verbose=true, 
      end
 
      qConditions = qExperiment |>
-                   @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
+                   @groupby({_.Age, _.Genotype, _.Photoreceptors, _.Wavelength}) |>
                    @map({
-                        Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
+                        Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptors = _.Photoreceptors[1], Wavelength = _.Wavelength[1],
                         N = length(_),
                         Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
                         Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
@@ -201,15 +202,15 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true)
      trace_A = all_files |> @filter(_.Condition == "BaCl_LAP4" || _.Condition == "LAP4_BaCl") |> DataFrame
      trace_AB = all_files |> @filter(_.Condition == "BaCl") |> DataFrame
      b_files = trace_A |> @join(trace_AB,
-                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptors, _.Genotype},
+                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptors, _.Genotype},
                     {__...,
                          A_condition = _.Condition,
                          A_Path = _.Path,
                     }) |> DataFrame
      b_files[!, :Path] = string.(b_files[!, :Path]) #XLSX.jl converts things into Vector{Any}      
      b_files[!, :A_Path] = string.(b_files[!, :A_Path]) #XLSX.jl converts things into Vector{Any}            
-     uniqueData = b_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame
+     uniqueData = b_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptors, _.Genotype}) |> DataFrame
      qTrace = DataFrame()
      qExperiment = DataFrame()
      for (idx, i) in enumerate(eachrow(uniqueData)) #We ca
@@ -218,8 +219,8 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true)
                println("Path: $(i.Path)")
           end
           qData = b_files |> @filter(
-                       (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
-                       (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
+                       (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptors, _.Genotype) ==
+                       (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptors, i.Genotype)
                   ) |>
                   DataFrame
 
@@ -278,7 +279,7 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true)
                               Path=qData[swp, :Path], A_Path=qData[swp, :A_Path],
                               Year=qData[swp, :Year], Month=qData[swp, :Month], Date=qData[swp, :Date],
                               Age=qData[swp, :Age], Number=qData[swp, :Number], Genotype=qData[swp, :Genotype],
-                              Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
+                              Photoreceptors=qData[swp, :Photoreceptors], Wavelength=qData[swp, :Wavelength],
                               Photons=qData[swp, :Photons],
                               Channel=ch, Gain=gain,
                               Response=Resps[swp], Unsubtracted_Response=Unsubtracted_Resp[swp],
@@ -303,7 +304,7 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true)
                push!(qExperiment, (
                     Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                     Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                    Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                    Photoreceptors=qData[1, :Photoreceptors], Wavelength=qData[1, :Wavelength],
                     Photons=qData[1, :Photons],
                     rmax=maximum(Resps),
                     unsubtracted_rmax=maximum(Unsubtracted_Resp),
@@ -316,9 +317,9 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true)
           end
      end
      qConditions = qExperiment |>
-                   @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
+                   @groupby({_.Age, _.Genotype, _.Photoreceptors, _.Wavelength}) |>
                    @map({
-                        Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
+                        Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptors = _.Photoreceptors[1], Wavelength = _.Wavelength[1],
                         N = length(_),
                         Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
                         Unsubtracted_Rmax = mean(_.unsubtracted_rmax), Unsubtracted_Rmax_sem = sem(_.unsubtracted_rmax),
@@ -355,8 +356,8 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
      trace_ABG = all_files |> @filter(_.Condition == "NoDrugs") |> DataFrame
      trace_AB = all_files |> @filter(_.Condition == "BaCl") |> DataFrame
      g_files = trace_AB |> @join(trace_ABG,
-                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptors, _.Genotype},
+                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptors, _.Genotype},
                     {__...,
                          AB_condition = _.Condition,
                          AB_Path = _.Path,
@@ -364,7 +365,7 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
      g_files[!, :Path] = string.(g_files[!, :Path]) #XLSX.jl converts things into Vector{Any}      
      g_files[!, :AB_Path] = string.(g_files[!, :AB_Path]) #XLSX.jl converts things into Vector{Any}            
 
-     uniqueData = g_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame
+     uniqueData = g_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptors, _.Genotype}) |> DataFrame
      #println(size(uniqueData))
      #println(size(trace_ABG))
      #println(size(trace_AB))
@@ -373,8 +374,8 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
      qExperiment = DataFrame()
      for (idx, i) in enumerate(eachrow(uniqueData)) #We ca
           qData = g_files |> @filter(
-                       (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
-                       (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
+                       (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptors, _.Genotype) ==
+                       (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptors, i.Genotype)
                   ) |>
                   DataFrame
           data_ABG = readABF(qData.Path)
@@ -423,7 +424,7 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                          Path=qData[swp, :Path], AB_Path=qData[swp, :AB_Path],
                          Year=qData[swp, :Year], Month=qData[swp, :Month], Date=qData[swp, :Date],
                          Age=qData[swp, :Age], Number=qData[swp, :Number], Genotype=qData[swp, :Genotype],
-                         Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
+                         Photoreceptors=qData[swp, :Photoreceptors], Wavelength=qData[swp, :Wavelength],
                          Photons=qData[swp, :Photons],
                          Channel=ch, Gain=gain,
                          Response=Resps[swp], Unsubtracted_Response=Unsubtracted_Resp[swp],
@@ -445,7 +446,7 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                push!(qExperiment, (
                     Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                     Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                    Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                    Photoreceptors=qData[1, :Photoreceptors], Wavelength=qData[1, :Wavelength],
                     Photons=qData[1, :Photons],
                     rmax=maximum(Resps),
                     unsubtracted_rmax=maximum(Unsubtracted_Resp),
@@ -460,9 +461,9 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
           end
      end
      qConditions = qExperiment |>
-                   @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
+                   @groupby({_.Age, _.Genotype, _.Photoreceptors, _.Wavelength}) |>
                    @map({
-                        Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
+                        Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptors = _.Photoreceptors[1], Wavelength = _.Wavelength[1],
                         N = length(_),
                         Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
                         Unsubtracted_Rmax = mean(_.unsubtracted_rmax), Unsubtracted_Rmax_sem = sem(_.unsubtracted_rmax),
