@@ -1,6 +1,6 @@
 import PyPlot.plt
 function plot_experiment(axis::PyObject, exp::Experiment;
-    channels=1, sweeps = :all, axes_off=false, yaxes_off=false, xaxes_off=false,
+    channels=1, sweeps = :all, axes_off=false, yaxes_off=false, xaxes_off=false, #Change this, this is confusing
     #cmap = nothing, cmap_direction = :sweeps,
     kwargs...
 )
