@@ -109,7 +109,7 @@ include("Plotting/PhysPyPlot.jl")
 #export plt #Export plotting utilities
 export plot_experiment
 =#
-
+using Crayons #Really cool package for coloring text for debugging
 #Once this is all ready, move this into the __init__ function
 #using DataFrames
 fTEST() = println("Revise works with init")
