@@ -188,44 +188,50 @@ function DataPathExtraction(path::String, calibration_file::String;
      if !isempty(flash_id) #This will be necessary whenever 
           println(flash_id)
      end
-
-     if extract_photons
-          #extract the stimulus from the data
-          stim_timestamps = extract_stimulus(path)[1].timestamps
-          stim_time = round(Int64, (stim_timestamps[2] - stim_timestamps[1]) * 1000)
-          #println(stim_time)
-          STIM_TIME=stim_time
-          #now lets extract photons
-          if ND == "0.5"
-               PHOTONS = photon_lookup(
-                    WAVE,
-                    0,
-                    PERCENT,
-                    calibration_file
-               )
-               println(PHOTONS)
-               PHOTONS = (PHOTONS*stim_time) / (10^0.5)
-          else
-               PHOTONS = photon_lookup(
-                    WAVE,
-                    ND,
-                    PERCENT,
-                    calibration_file
-               ) .* stim_time
+     corr_name = findmatch(path, avg_regex) # find the word "Average or average
+     nd_file_res = findmatch(path, nd_file_regex) #or find the nd_file description (plus .abf)
+     if !isnothing(corr_name) || !isnothing(nd_file_res)
+          println("Recording")
+          if extract_photons
+               #extract the stimulus from the data
+               stim_timestamps = extract_stimulus(path)[1].timestamps
+               stim_time = round(Int64, (stim_timestamps[2] - stim_timestamps[1]) * 1000)
+               #println(stim_time)
+               STIM_TIME=stim_time
+               #now lets extract photons
+               if ND == "0.5"
+                    PHOTONS = photon_lookup(
+                         WAVE,
+                         0,
+                         PERCENT,
+                         calibration_file
+                    )
+                    println(PHOTONS)
+                    PHOTONS = (PHOTONS*stim_time) / (10^0.5)
+               else
+                    PHOTONS = photon_lookup(
+                         WAVE,
+                         ND,
+                         PERCENT,
+                         calibration_file
+                    ) .* stim_time
+               end
           end
+          nt = (
+               Path = path, 
+               Year = YEAR, Month = MONTH, Date = DATE, 
+               Animal = ANIMAL, Number = NUMBER, Age = AGE, Genotype = GENOTYPE, 
+               Condition = COND, Photoreceptor = PC, Wavelength = WAVE, 
+               ND = ND, Percent = PERCENT, Stim_Time = STIM_TIME, 
+               Photons = PHOTONS
+          )
+          return nt
+          #corr_name = findmatch(path, avg_regex) # find the word "Average or average
+          #nd_file_res = findmatch(path, nd_file_regex) #or find the nd_file description (plus .abf)
+          #if the script finds either a average, or a nd filter and a percent. 
+     else
+          println("Not average nor nd")
      end
-     nt = (
-          Path = path, 
-          Year = YEAR, Month = MONTH, Date = DATE, 
-          Animal = ANIMAL, Number = NUMBER, Age = AGE, Genotype = GENOTYPE, 
-          Condition = COND, Photoreceptor = PC, Wavelength = WAVE, 
-          ND = ND, Percent = PERCENT, Stim_Time = STIM_TIME, 
-          Photons = PHOTONS
-     )
-     return nt
-     #corr_name = findmatch(path, avg_regex) # find the word "Average or average
-     #nd_file_res = findmatch(path, nd_file_regex) #or find the nd_file description (plus .abf)
-     #if the script finds either a average, or a nd filter and a percent. 
 
 end
 
