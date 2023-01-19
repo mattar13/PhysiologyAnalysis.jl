@@ -26,115 +26,207 @@ end
 These functions extract the file information from the datafile path
 
 ========================================================================================================================================#
-
-
-
-"""
-Lets shift to using Regex to extract file information
-"""
 function DataPathExtraction(path::String, calibration_file::String;
-     verbose=false,
-     extract_photons=true
+     unknown_genotype = :WT, conditions_error = false, 
+     verbose = false, extract_photons=true
 )
-     #The last line of the string should be the nd information
+
      if verbose
+          print("Extracting files from path: ")
           println(path)
      end
-     path_array = splitpath(path) #first we can split the file path into seperate strings
-     nt = (Path=path,)
-     #println(path_array)
-     date_res = findmatch(path_array, date_regex; verbose=verbose)
+
+     date_res = findmatch(path, date_regex)
      if !isnothing(date_res)
-          nt = merge(nt, date_res)
+          YEAR = date_res.Year
+          MONTH = date_res.Month
+          DATE = date_res.Date
+     else
+          throw("Incorrect date specification") #Always throw a date error
      end
 
-     animal_res = findmatch(path_array, animal_regex; verbose=verbose)
+     #Find the age and 
+     animal_res = findmatch(path, animal_regex)
      if !isnothing(animal_res)
-          nt = merge(nt, animal_res)
-     end
-     genotype_res = findmatch(path, genotype_regex; verbose = verbose)
-     if !isnothing(genotype_res)
-          nt = merge(nt, genotype_res)
-     end
-     age_res = findmatch(path, age_regex; verbose = verbose)
-     if !isnothing(age_res) || parse(Int, age_res.Age) > 30
-          if age_res.Age == "Adult"
-               nt = merge(nt, ("Age" => "30"))
+          if !isnothing(animal_res.Animal)
+               ANIMAL = animal_res.Animal
           else
-               nt = merge(nt, age_res)
+               ANIMAL = "Mouse"
+          end
+          NUMBER = animal_res.Number
+     else
+          if verbose
+               println(path)
+               println("Incorrect animal specification. Setting Default to Mouse 1") #Always throw an animal error
+          end
+          ANIMAL = "Mouse"
+          NUMBER = "1"
+     end
+
+     genotype_res = findmatch(path, genotype_regex)
+     if !isnothing(genotype_res)
+          GENOTYPE = genotype_res.Genotype
+     elseif unknown_genotype == :UNKNOWN
+          #println("Unknown Genotype")
+          GENOTYPE = "UNKNOWN"
+     elseif unknown_genotype == :WT
+          #println("Unknown Genotype")
+          GENOTYPE = "WT"
+     else
+          throw("Unknown genotype")
+     end
+
+     age_res = findmatch(path, age_regex)
+     if !isnothing(age_res)
+          AGE = "P$(age_res.Age)"
+     elseif !isnothing(age_res) && parse(Int, age_res.Age) >= 30
+          #println("Age over 30. Defaulting to Adult")
+          AGE = "Adult"
+     else
+          if conditions_error
+               throw("Age information not included. Erroring")
+          else
+               #println(path)
+               if verbose
+                    println("Age information not included. Skipping: $path")
+               end
+               AGE = nothing
           end
      end
-     
-     #now lets look for a condition in the possible conds
+
+     #Find Drugs, BaCl, NoDrugs
      cond_res = findmatch(path, cond_regex)
-     if cond_res.Condition == "Drugs"
-          cond = "BaCl_LAP4"
-     elseif cond_res.Condition == "NoDrugs" || cond_res.Condition == "No drugs"
-          cond = "BaCl"
-     else
-          cond = cond_res.Condition
-     end
-     nt = merge(nt, (Condition=cond,))
-     
-     pc_res = findmatch(path, pc_regex)
-     
-     if !isnothing(pc_res)
-          nt = merge(nt, pc_res)
-          if pc_res.Photoreceptors == "Rods" #No further label is needed
-               nt = merge(nt, (Wavelength = "520",))
+     if !isnothing(cond_res)
+          if cond_res.Condition == "Drugs"
+               COND = "BaCl_LAP4"
+          elseif cond_res.Condition == "NoDrugs" || cond_res.Condition == "No drugs" || cond_res.Condition == "No Drugs"
+               #println("No Drugs")
+               COND = "BaCl"
           else
+               COND = cond_res.Condition
+          end
+     else
+          #println(path)
+          if conditions_error
+               throw("Conditions not available")
+          else
+               if verbose
+                    @warn "Conditions not available"
+               end
+               COND = "UNKNOWN"
+          end
+     end
+
+     #Find photoreceptors
+     pc_res = findmatch(path, pc_regex)
+     if !isnothing(pc_res)
+          if pc_res.Photoreceptors == "Rods" #No further label is needed
+               PC = "Rods"
+               WAVE = 520 #Shouls actually be 498
+          else
+               PC = "Cones"
                color_res = findmatch(path, color_regex)
-               if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" 
-                    nt = merge(nt, (Wavelength = "365",))
-               elseif  color_res.Color == "Green" || color_res.Color == "525" || color_res.Color == "525Green" 
-                    nt = merge(nt, (Wavelength="520",))
+               if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" || color_res.Color == "blue"
+                    WAVE = 365
+               elseif  color_res.Color == "green" || color_res.Color == "525" || color_res.Color == "525Green" || color_res.Color == "Green"
+                    WAVE = 520
                elseif color_res.Color == "520" || color_res.Color == "520Green" 
-                    nt = merge(nt, (Wavelength="520",))
+                    WAVE = 520
                else
                     println(color_res)
                end
           end
+     else
+          #first we want to find out if   
+          #println("This case we are missing a photoreceptor category")
+          background_res = findmatch(path, background_regex)
+          if !isnothing(background_res)
+               if background_res.Background == "noback"
+                    PC = "Rods"
+               elseif background_res.Background == "withback"
+                    color_res = findmatch(path, color_regex)
+                    if !isnothing(color_res)
+                         PC = "Cones_$(color_res.Color)"
+                    else
+                         println(path)
+                         throw("No color information")
+                    end
+               else
+                    #println(path)
+                    #println(background_res.Background)
+                    throw("Some other keyword is used")
+               end
+               new_path = joinpath(new_path, "$PC")
+          else
+               #throw("Either Protocol or withback/noback is missing")
+          end
      end
 
-     nd_res = findmatch(path, nd_regex; verbose = verbose)
+     nd_res = findmatch(path, nd_regex) #lets try to find the ND filter settings
+     #println(nd_res)
      if !isnothing(nd_res)
-          nt = merge(nt, nd_res)
-          if extract_photons
-               #extract the stimulus from the data
-               stim_timestamps = extract_stimulus(path)[1].timestamps
-               stim_time = round(Int64, (stim_timestamps[2] - stim_timestamps[1]) * 1000)
-               #println(stim_time)
-               nt = merge(nt, (Stim_Time=stim_time,))
-               #now lets extract photons
-               if nd_res.ND == "0.5"
-                    #println(intensity_info.Percent)
-                    println(nd_res)
-                    println(nt.Wavelength)
-                    photons = photon_lookup(
-                         parse(Int64, nt.Wavelength),
-                         0,
-                         parse(Int64, nd_res.Percent),
-                         calibration_file
-                    )
-                    println(photons)
-                    photons = (photons*stim_time) / (10^0.5)
-                    nt = merge(nt, (Photons=photons,))
-               else
-                    #println(intensity_info.Percent)
-                    photons = photon_lookup(
-                         parse(Int64, nt.Wavelength),
-                         parse(Int64, nd_res.ND),
-                         parse(Int64, nd_res.Percent),
-                         calibration_file
-                    ) .* stim_time
-                    nt = merge(nt, (Photons=photons,))
-               end
+          ND = parse(Int, nd_res.ND)
+     else
+          if verbose
+               @warn ("ND information is missing. Setting default to ND0")
           end
-          #now we can look for any date info
+          ND = 0
      end
-     #println(nt)
-     #return nt |> clean_nt_numbers
-     return nt |> parseNamedTuple
+
+     percent_res = findmatch(path, percent_regex)
+     #println(percent_res)
+     if !isnothing(percent_res)
+          PERCENT = parse(Int, percent_res.Percent)
+     else
+          if verbose
+               @warn ("Percent information is missing. Setting Default to 1%")
+          end
+          PERCENT = 1
+     end
+
+     flash_id = findmatch(path, r"\d") #find just a single digit
+     if !isempty(flash_id) #This will be necessary whenever 
+          println(flash_id)
+     end
+
+     if extract_photons
+          #extract the stimulus from the data
+          stim_timestamps = extract_stimulus(path)[1].timestamps
+          stim_time = round(Int64, (stim_timestamps[2] - stim_timestamps[1]) * 1000)
+          #println(stim_time)
+          STIM_TIME=stim_time
+          #now lets extract photons
+          if ND == "0.5"
+               PHOTONS = photon_lookup(
+                    WAVE,
+                    0,
+                    PERCENT,
+                    calibration_file
+               )
+               println(PHOTONS)
+               PHOTONS = (PHOTONS*stim_time) / (10^0.5)
+          else
+               PHOTONS = photon_lookup(
+                    WAVE,
+                    ND,
+                    PERCENT,
+                    calibration_file
+               ) .* stim_time
+          end
+     end
+     nt = (
+          Path = path, 
+          Year = YEAR, Month = MONTH, Date = DATE, 
+          Animal = ANIMAL, Number = NUMBER, Age = AGE, Genotype = GENOTYPE, 
+          Condition = COND, Photoreceptor = PC, Wavelength = WAVE, 
+          ND = ND, Percent = PERCENT, Stim_Time = STIM_TIME, 
+          Photons = PHOTONS
+     )
+     return nt
+     #corr_name = findmatch(path, avg_regex) # find the word "Average or average
+     #nd_file_res = findmatch(path, nd_file_regex) #or find the nd_file description (plus .abf)
+     #if the script finds either a average, or a nd filter and a percent. 
+
 end
 
 DataPathExtraction(path::String; kwargs...) = DataPathExtraction(path, calibration_file; kwargs...)
@@ -341,7 +433,6 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
           return df
      end
 end
-
 
 
 #==========================================================================================
