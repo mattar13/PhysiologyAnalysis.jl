@@ -158,7 +158,11 @@ function parseABF(super_folder::String; extension::String=".abf")
         for file in files
             if file[end-3:end] == extension
                 path = joinpath(root, file)
-                push!(file_list, path)
+                try
+                    push!(file_list, path)
+                catch
+                    println(path)
+                end
             end
         end
     end
