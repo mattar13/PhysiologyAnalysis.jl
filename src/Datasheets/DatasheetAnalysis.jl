@@ -47,7 +47,9 @@ end
 
 """
 function run_A_wave_analysis(all_files::DataFrame; 
-          run_amp=false, verbose=true, measure_minima = false, a_cond = "BaCl_LAP4"
+          run_amp=false, verbose=true, measure_minima = false, a_cond = "BaCl_LAP4", 
+          t_pre = 1.0, t_post = 1.0, 
+          peak_method = false
      )
      a_files = all_files |> @filter(_.Condition == a_cond) |> DataFrame #Extract all A-wave responses
      if isnothing(a_files)
@@ -76,7 +78,7 @@ function run_A_wave_analysis(all_files::DataFrame;
                end
                for data in eachchannel(dataFile) #walk through each row of the data iterator
                     matches = match(r"P(?'Age'\d*|)", qData.Age[1])|> NamedTuple
-                    println(matches.Age)
+                    #println(matches.Age)
                     age = parse(Int, matches.Age) #Extract the age
                     ch = data.chNames[1] #Extract channel information
                     gain = data.chTelegraph[1] #Extract the gain
@@ -85,15 +87,22 @@ function run_A_wave_analysis(all_files::DataFrame;
                     end
                     #======================DATA ANALYSIS========================#
                     if age <= 11 #If the data is below P11 calculate the response differently
-                         filt_data = data_filter(data, avg_swp = false, t_post=5.0) #This function is found in the filter pipeline 
+                         filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post) #This function is found in the filter pipeline 
                          responses = minimas = minimum(filt_data, dims=2)[:, 1, :]
                          maximas = maximum(filt_data, dims=2)[:, 1, :]
                          Resps = abs.(responses)
                          rmaxes = minimum(responses, dims=1)
                     else
-                         filt_data = data_filter(data, avg_swp = false, t_post=5.0)
+                         filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                         if peak_method
+                              #println(argmin(filt_data))
+                              peak_time = filt_data.t[argmin(filt_data)[1][2]]
+                              #println(peak_time)
+                              truncate_data!(filt_data, t_pre = -peak_time) #Cut the trace before peak
+                         end
                          if measure_minima
                               responses = minimas = minimum(filt_data, dims=2)[:, 1, :]
+                              #println(minimas)
                          else
                               responses = saturated_response(filt_data)
                               minimas = minimum(filt_data, dims=2)[:, 1, :]
@@ -474,47 +483,18 @@ end
 
 function add_analysis_sheets(results, save_file::String; append="A")
      trace, experiments, conditions = results
-     XLSX.openxlsx(save_file, mode="rw") do xf
-          try
-               sheet = xf["trace_$(append)"] #try to open the sheet
-               #clean the data from the sheet
-               println("Cleaning Data")
-               cleanDatasheet!(xf, "trace_$(append)")
-          catch #the sheet is not made and must be created
-               println("Adding trace sheets")
-               XLSX.addsheet!(xf, "trace_$(append)")
-          end
-          XLSX.writetable!(xf["trace_$(append)"],
-               collect(DataFrames.eachcol(trace)),
-               DataFrames.names(trace))
+     all_files = openDatasheet(save_file; sheetName = "All_Files")
+     println(all_files)
+     if isfile(save_file)
+          rm(save_file)
      end
-     #Extract experiments for A wave
-
-     XLSX.openxlsx(save_file, mode="rw") do xf
-          try
-               sheet = xf["experiments_$(append)"]
-               cleanDatasheet!(xf, "experiments_$(append)")
-          catch #the sheet is not made and must be created
-               println("Adding experiment sheets")
-               XLSX.addsheet!(xf, "experiments_$(append)")
-          end
-          XLSX.writetable!(xf["experiments_$(append)"],
-               collect(DataFrames.eachcol(experiments)),
-               DataFrames.names(experiments))
-     end
-
-     XLSX.openxlsx(save_file, mode="rw") do xf
-          try
-               sheet = xf["conditions_$(append)"]
-               cleanDatasheet!(xf, "conditions_$(append)")
-          catch
-               println("Adding condition sheets")
-               XLSX.addsheet!(xf, "conditions_$(append)")
-          end
-          XLSX.writetable!(xf["conditions_$(append)"],
-               collect(DataFrames.eachcol(conditions)),
-               DataFrames.names(conditions))
-     end
+     XLSX.writetable(
+          save_file, 
+          "All_Files" => all_files, 
+          "Trace_$(append)" => trace, 
+          "Experiments_$(append)" => experiments, 
+          "Conditions_$(append)" => conditions     
+     )
 end
 
 function runAnalysis(datafile::String; measure_minima = false)
