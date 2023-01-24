@@ -28,7 +28,7 @@ These functions extract the file information from the datafile path
 ========================================================================================================================================#
 function DataPathExtraction(path::String, calibration_file::String;
      unknown_genotype = :WT, conditions_error = false, 
-     verbose = false, extract_photons=true
+     verbose = true, extract_photons=true
 )
 
      if verbose
@@ -119,46 +119,40 @@ function DataPathExtraction(path::String, calibration_file::String;
 
      #Find photoreceptors
      pc_res = findmatch(path, pc_regex)
+     background_res = findmatch(path, background_regex)
+     color_res = findmatch(path, color_regex)
      if !isnothing(pc_res)
           if pc_res.Photoreceptors == "Rods" #No further label is needed
                PC = "Rods"
                WAVE = 520 #Shouls actually be 498
-          else
+          elseif pc_res.Photoreceptors == "Cones" && !isnothing(color_res) #This 
                PC = "Cones"
-               color_res = findmatch(path, color_regex)
                if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" || color_res.Color == "blue"
                     WAVE = 365
                elseif  color_res.Color == "green" || color_res.Color == "525" || color_res.Color == "525Green" || color_res.Color == "Green"
                     WAVE = 520
                elseif color_res.Color == "520" || color_res.Color == "520Green" 
                     WAVE = 520
-               else
-                    println(color_res)
                end
-          end
-     else
-          #first we want to find out if   
-          #println("This case we are missing a photoreceptor category")
-          background_res = findmatch(path, background_regex)
-          if !isnothing(background_res)
+          elseif !isnothing(background_res)
                if background_res.Background == "noback"
                     PC = "Rods"
-               elseif background_res.Background == "withback"
-                    color_res = findmatch(path, color_regex)
-                    if !isnothing(color_res)
-                         PC = "Cones_$(color_res.Color)"
-                    else
-                         println(path)
-                         throw("No color information")
+                    WAVE = 520
+               elseif background_res.Background == "withback" && !isnothing(color_res)
+                    PC = "Cones"
+                    if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" || color_res.Color == "blue"
+                         WAVE = 365
+                    elseif  color_res.Color == "green" || color_res.Color == "525" || color_res.Color == "525Green" || color_res.Color == "Green"
+                         WAVE = 520
+                    elseif color_res.Color == "520" || color_res.Color == "520Green" 
+                         WAVE = 520
                     end
-               else
-                    #println(path)
-                    #println(background_res.Background)
-                    throw("Some other keyword is used")
+               elseif isnothing(color_res)
+                    println(path)
+                    throw("No color information")
                end
-               new_path = joinpath(new_path, "$PC")
-          else
-               #throw("Either Protocol or withback/noback is missing")
+          elseif !isnothing(color_res)
+               throw("Either Protocol or withback/noback is missing")
           end
      end
 
@@ -319,20 +313,20 @@ function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx
           if verbose
                println("Analyzing file $idx of $(size(all_files, 1)): $file")
           end
-          entry = DataPathExtraction(file)
-          if isnothing(entry) #Throw this in the case that the entry cannot be fit
-               println(entry)
-               #elseif length(entry) != size(dataframe, 2)
-          #     println("Entry does not match dataframe size. Probably an extra category")
-          else
-               try
+          try
+               entry = DataPathExtraction(file)
+               if isnothing(entry) #Throw this in the case that the entry cannot be fit
+                    println(entry)
+                    #elseif length(entry) != size(dataframe, 2)
+               #     println("Entry does not match dataframe size. Probably an extra category")
+               else
                     push!(dataframe, entry)
-               catch
-                    println(entry.ND)
-                         println("Probably the ND filter. I don't know how to fix that")
-                    end
                end
+          catch error
+               println(file)
+               println(error)
           end
+     end
      if !isnothing(filename)
           XLSX.openxlsx(filename, mode="w") do xf
                XLSX.rename!(xf[1], "All_Files") #Rename sheet 1
@@ -354,14 +348,14 @@ end
 This function opens an old datasheet
 """
 
-function openDatasheet(data_file::String; sheetName::String="All_Files", typeConvert=true)
+function openDatasheet(data_file::String; sheetName::String="all", typeConvert=true)
      xf = readxlsx(data_file)
      if sheetName == "all"
           sheetnames = XLSX.sheetnames(xf)
           df_set = Dict()
           for sn in sheetnames
                #println(sn) #Use this to debug 
-               df_set[sn] = openDatasheet(data_file, sheetName=sn)
+               df_set[sn] = openDatasheet(data_file; sheetName=sn, typeConvert = typeConvert)
           end
           return df_set
      else
@@ -382,7 +376,7 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
      if reset
           #If this is selected, completely reset the analysis
      else
-          df = openDatasheet(data_file) #First, open the old datasheet
+          df = openDatasheet(data_file; sheetName = "All_Files") #First, open the old datasheet
           nrows, ncols = size(df)
 
           println("Searching for files that need to be added and removed")
