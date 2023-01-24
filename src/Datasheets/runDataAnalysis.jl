@@ -1,4 +1,4 @@
-using ePhys
+using Revise, ePhys
 using DataFrames, Query, XLSX
 using Dates
 import ePhys: openDatasheet, run_B_wave_analysis
@@ -36,9 +36,17 @@ resB = ePhys.run_A_wave_analysis(dataset["All_Files"], verbose=true,
 )
 datafile = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Members Folders\Brittney\JGP_data_analysis.xlsx"
 ePhys.add_analysis_sheets(resB, datafile; append = "B")
+runAnalysis(datafile)
 
-using PyPlot
-path = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\JGP_Files\Traces\Cones_photopic\Adult\NR\2019_24_09_WT_P34_m2_green_photopic\nd1_100p_1ms\Average076.abf"
-data = readABF(path) 
-data_filter!(data, t_pre = 0.5, t_post = 0.5)
-plot_experiment(data)
+#%% Run some other files
+data_files1 = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\Paul\Cones" |> parseABF
+data_files2 = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\Paul\Rods" |> parseABF
+data_files3 = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\JGP_Files\Traces" |> parseABF
+data_files4 = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\Restructured" |> parseABF
+all_files = [data_files1..., data_files2..., data_files4...]
+datafile = "C:\\Users\\mtarc\\OneDrive - The University of Akron\\Projects\\GNAT\\cone_data_analysis.xlsx"
+updateDatasheet(datafile, all_files)
+runAnalysis(datafile)
+#%%
+
+test_file
