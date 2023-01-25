@@ -22,7 +22,7 @@ function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = 0.0, 
         data.t = trace.t[start_rng:end_rng] .- trace.t[start_rng]
         return data
     else
-        for swp = 1:size(trace, 1)
+        for swp = axes(trace, 1)
             stim_protocol = trace.stim_protocol[swp]
             #We are going to iterate through each sweep and truncate it
             if truncate_based_on == :stimulus_beginning
@@ -92,7 +92,7 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
         trace.data_array = trace.data_array[:, 1:size_of_array, :] #remake the array with only the truncated data
         trace.t = range(0.0, t_post, length=size_of_array)
     else
-        for swp = 1:size(trace, 1)
+        for swp = axes(trace, 1)
             stim_protocol = trace.stim_protocol[swp]
             #We are going to iterate through each sweep and truncate it
             #println(trace.stim_protocol[swp].index_range)
@@ -182,7 +182,7 @@ split_by::Symbol
 function split_data(exp::Experiment; split_by::Symbol=:channel)
     if split_by == :channel
         split_exp = Array{Experiment}([])
-        for ch = 1:size(exp, 3)
+        for ch = axes(exp, 3)
             new_data = deepcopy(exp)
             split_trace = reshape(exp[:, :, ch], (size(exp, 1), size(exp, 2), 1))
             println(size(split_trace))
@@ -194,7 +194,7 @@ function split_data(exp::Experiment; split_by::Symbol=:channel)
         split_exp
     elseif split_by == :sweep
         split_exp = Array{Experiment}([])
-        for ch = 1:size(exp, 1)
+        for ch = axes(exp, 1)
             new_data = deepcopy(exp)
             split_trace = reshape(exp[:, :, ch], (size(exp, 1), size(exp, 2), 1))
             println(size(split_trace))
@@ -253,7 +253,7 @@ function baseline_adjust!(trace::Experiment{T};
     if isempty(trace.stim_protocol)
         #println("No stim protocol exists")
     else
-        for swp in 1:size(trace, 1)
+        for swp in axes(trace, 1)
             if isa(region, Tuple{Float64,Float64})
                 rng_begin = round(Int, region[1] / trace.dt) + 1
                 if region[2] > trace.t[end]
@@ -270,7 +270,7 @@ function baseline_adjust!(trace::Experiment{T};
                 rng_begin = 1
                 rng_end = trace.stim_protocol[swp].index_range[1] #Get the first stimulus index
             end
-            for ch in 1:size(trace, 3)
+            for ch in axes(trace, 3)
                 if mode == :mean
                     if (rng_end - rng_begin) != 0
                         baseline_adjust = sum(trace.data_array[swp, rng_begin:rng_end, ch]) / (rng_end - rng_begin)

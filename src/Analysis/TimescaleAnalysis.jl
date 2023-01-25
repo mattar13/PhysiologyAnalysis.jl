@@ -53,7 +53,7 @@ function get_timestamps(tseries::Vector{T}, spike_array::Array{Bool,N}; dim=2) w
     return tstamps
     test = map(x, spike_array)
     for d in dims
-        for idx in 1:size(spike_array, d) #focus the analysis on the last data channel
+        for idx in axes(spike_array, d) #focus the analysis on the last data channel
             #tstamps[i] = get_timestamps(tseries, spike_array[i, :])
             println(idx)
         end
@@ -61,7 +61,7 @@ function get_timestamps(tseries::Vector{T}, spike_array::Array{Bool,N}; dim=2) w
     return tstamps
 
 
-    for i in 1:size(spike_array, dims) #focus the analysis on the last data channel
+    for i in axes(spike_array, dims) #focus the analysis on the last data channel
         tstamps[i] = get_timestamps(tseries, spike_array[i, :])
     end
     return tstamps

@@ -49,7 +49,7 @@ function gaussian_saturation(data::Experiment{T};
     #model(xs, p) = map(x -> f(x, p), xs)
     t = data.t
 
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
+    for swp = axes(data, 1), ch = axes(data, 3)
         ȳ = data.data_array[swp, :, ch]
 
         fit = curve_fit(f, t, ȳ, p0, upper=ub)
@@ -68,7 +68,7 @@ function histogram_saturation(data::Experiment{T}; precision::Int64=100) where {
     rmaxes = zeros(size(data, 1), size(data, 3))
     minima = minimum(data, dims=2)[:, 1, :]
 
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
+    for swp = axes(data, 1), ch = axes(data, 3)
         #Lets try to quickly zero any positive results
         #y_data = data[swp, :, ch]
         #y_data *= y_data[swp, y_data .==]
@@ -114,7 +114,7 @@ end
 function minima_to_peak(data::Experiment; verbose=false)
     #We need to exclude the area 
     resp = zeros(size(data, 1), size(data, 3))
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
+    for swp = axes(data, 1), ch = axes(data, 3)
         past_stim = findall(data.t .> 0.0)
 
         data_section = data[swp, past_stim, ch] #Isolate all the items past the stim
@@ -166,7 +166,7 @@ function percent_recovery_interval(data::Experiment{T}, rmaxes::Matrix{T}; iᵣ:
     @assert size(data,3) == size(rmaxes, 2) #rmax data matches data channels
     #Tᵣ = fill(NaN, size(data,1), size(data,3))
     Tᵣ = zeros(size(data,1), size(data,3))
-    for swp in 1:size(data, 1), ch in 1:size(data, 3)
+    for swp in axes(data, 1), ch in axes(data, 3)
         data_percent = data.data_array[swp, :, ch] ./ rmaxes[ch]
         recovery_seqs = findsequential(data_percent .> iᵣ, seq_to_find=:all)
         #we have to eliminate all datavalues under data.t = 0.0
@@ -226,7 +226,7 @@ function recovery_time_constant(data::Experiment{T}, resp::Union{T,Matrix{T}};
     gofs = zeros(T, size(data, 1), size(data, 3))
     #This function uses the recovery model and takes t as a independent variable
     model(x, p) = map(t -> REC(t, -1.0, p[2]), x)
-    for swp in 1:size(data, 1), ch in 1:size(data, 3)
+    for swp in axes(data, 1), ch in axes(data, 3)
         # println(dim_idx[ch])
         xdata = data.t
         ydata = data[swp, :, ch]
@@ -278,7 +278,7 @@ function amplification(data::Experiment{T}, resp::Union{T,Matrix{T}}; #This argu
     amp = zeros(2, size(data, 1), size(data, 3))
     gofs = zeros(T, size(data, 1), size(data, 3))
 
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
+    for swp = axes(data, 1), ch = axes(data, 3)
         if isa(resp, Matrix{T})
             resp_0 = resp[swp, ch]
         else

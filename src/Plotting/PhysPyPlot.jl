@@ -1,17 +1,34 @@
 import PyPlot.plt
+
+#We need an auxillary function 
+function is_cmap(color)
+    try
+        plt.get_cmap(color)
+        return true
+    catch
+        return false
+    end
+end
+
 function plot_experiment(axis::PyObject, exp::Experiment;
-    channels=1, sweeps = :all, axes_off=false, yaxes_off=false, xaxes_off=false, #Change this, this is confusing
-    #cmap = nothing, cmap_direction = :sweeps,
+    channels=1, sweeps = :all, 
+    axes_off=false, yaxes_off=false, xaxes_off=false, #Change this, this is confusing
+    color = :black, clims = (0.0, 1.0), #still want to figure out how this wil work
     kwargs...
 )
-    #if !isnothing(cmap) && cmap_direction == :sweeps#cmap needs to be an array of colors
-    #    for swp in 1:size(exp, 1)
-    #        println(swp)
-    #    end
-    #else
+    dataX, dataY = plot_prep(exp; channels=channels, sweeps = sweeps)
+    println(size(dataY))
+    if is_cmap(color)
+        cmapI = plt.get_cmap(color)
+        
+        for swp in axes(dataY, 2)
+            axis.plot(dataX, dataY[:, swp], c = cmapI, kwargs...)
+        end
+    else
+        axis.plot(dataX, dataY; c = color, kwargs...)
+    end
     axis.spines["top"].set_visible(false)
     axis.spines["right"].set_visible(false)
-    axis.plot(plot_prep(exp; channels=channels, sweeps = sweeps)...; kwargs...)
     if yaxes_off || axes_off
         axis.spines["left"].set_visible(false)
         axis.yaxis.set_visible(false)
@@ -25,14 +42,18 @@ end
 
 function plot_experiment(axis::Vector{PyObject}, exp::Experiment; kwargs...)
     for (ch, ax) in enumerate(axis)
-        plot_experiment(ax::PyObject, exp::Experiment; channel=ch, kwargs...)
+        plot_experiment(ax::PyObject, exp::Experiment; channels=ch, kwargs...)
     end
 end
 
 function plot_experiment(exp::Experiment; kwargs...)
     fig, axis = plt.subplots(size(exp, 3))
-    for (ch, ax) in enumerate(axis)
-        plot_experiment(ax::PyObject, exp::Experiment; channels=ch, kwargs...)
+    if size(exp,3) == 1
+        plot_experiment(axis::PyObject, exp::Experiment; channels=1, kwargs...)
+    else
+        for (ch, ax) in enumerate(axis)
+            plot_experiment(ax::PyObject, exp::Experiment; channels=ch, kwargs...)
+        end
     end
     return fig
 end
