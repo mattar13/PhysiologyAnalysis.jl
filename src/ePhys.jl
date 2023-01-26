@@ -39,7 +39,7 @@ include("Utilities/DataUtilities.jl")
 #export truncate_data, truncate_data!
 #export baseline_adjust
 export downsample, downsample!
-export split_data
+export eachchannel
 #=Add filtering capability=#
 using DSP #Used for lowpass, highpass, EI, and notch filtering
 using FFTW

@@ -21,8 +21,8 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     if is_cmap(color)
         cmapI = plt.get_cmap(color)
         
-        for swp in axes(dataY, 2)
-            axis.plot(dataX, dataY[:, swp], c = cmapI, kwargs...)
+        for (idx, swp) in enumerate(axes(dataY, 2))
+            axis.plot(dataX, dataY[:, swp], c = cmapI(idx/size(dataY,2)), kwargs...)
         end
     else
         axis.plot(dataX, dataY; c = color, kwargs...)
