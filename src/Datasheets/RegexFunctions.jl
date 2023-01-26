@@ -6,7 +6,7 @@ nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
 
 animal_regex = r"(_m|(?'Animal'Mouse|Zebrafish|Organoid)|m)(?'Number'\d)"
 age_regex = r"_P(?'Age'\d*|)"
-genotype_regex = r"_(?'Genotype'WT|DR|R141C|RS1KO|C59S|MelKO)"
+genotype_regex = r"_(?'Genotype'WT|DR|R141C|RS1KO|C59S|MelKO|GNAT-KO|GNAT-HT)"
 cond_regex = r"(?'Condition'Drugs|NoDrugs|BaCl_LAP4|BaCl|No drugs|No Drugs)"
 pc_regex = r"(?'Photoreceptors'Cones|Rods)"
 color_regex = r"(?'Color'blue|green|Blue|Green|UV|365|365UV|520|520Green|525|525Green)"

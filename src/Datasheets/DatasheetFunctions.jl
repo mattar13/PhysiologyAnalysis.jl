@@ -117,22 +117,25 @@ function DataPathExtraction(path::String, calibration_file::String;
           end
      end
 
-     #Find photoreceptors
-     pc_res = findmatch(path, pc_regex)
-     background_res = findmatch(path, background_regex)
+     #Find color of the light stim used
      color_res = findmatch(path, color_regex)
+     if !isnothing(color_res) #This 
+          if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" || color_res.Color == "blue"
+               WAVE = 365
+          elseif  color_res.Color == "green" || color_res.Color == "525" || color_res.Color == "525Green" || color_res.Color == "Green"
+               WAVE = 520
+          elseif color_res.Color == "520" || color_res.Color == "520Green" 
+               WAVE = 520
+          end
+     end
+     
+     background_res = findmatch(path, background_regex)
+     pc_res = findmatch(path, pc_regex)
      if !isnothing(pc_res)
           if pc_res.Photoreceptors == "Rods" #No further label is needed
                PC = "Rods"
-               WAVE = 520 #Shouls actually be 498
-          elseif pc_res.Photoreceptors == "Cones" && !isnothing(color_res) #This 
-               PC = "Cones"
-               if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" || color_res.Color == "blue"
-                    WAVE = 365
-               elseif  color_res.Color == "green" || color_res.Color == "525" || color_res.Color == "525Green" || color_res.Color == "Green"
-                    WAVE = 520
-               elseif color_res.Color == "520" || color_res.Color == "520Green" 
-                    WAVE = 520
+               if isnothing(color_res) #only do this if wave is empty, but it is rods
+                    WAVE = 520 #Shouls actually be 498
                end
           elseif !isnothing(background_res)
                if background_res.Background == "noback"
@@ -154,6 +157,9 @@ function DataPathExtraction(path::String, calibration_file::String;
           elseif !isnothing(color_res)
                throw("Either Protocol or withback/noback is missing")
           end
+     elseif GENOTYPE == "GNAT-KO" #This is specific to my dataset. I don't like doing this
+          #println("Here")
+          PC = "Cones"
      end
 
      nd_res = findmatch(path, nd_regex) #lets try to find the ND filter settings
@@ -180,12 +186,12 @@ function DataPathExtraction(path::String, calibration_file::String;
 
      flash_id = findmatch(path, r"\d") #find just a single digit
      if !isempty(flash_id) #This will be necessary whenever 
-          println(flash_id)
+          #println(flash_id)
      end
      corr_name = findmatch(path, avg_regex) # find the word "Average or average
      nd_file_res = findmatch(path, nd_file_regex) #or find the nd_file description (plus .abf)
      if !isnothing(corr_name) || !isnothing(nd_file_res)
-          println("Recording")
+          #println("Recording")
           if extract_photons
                #extract the stimulus from the data
                stim_timestamps = extract_stimulus(path)[1].timestamps
@@ -200,7 +206,7 @@ function DataPathExtraction(path::String, calibration_file::String;
                          PERCENT,
                          calibration_file
                     )
-                    println(PHOTONS)
+                    #println(PHOTONS)
                     PHOTONS = (PHOTONS*stim_time) / (10^0.5)
                else
                     PHOTONS = photon_lookup(
