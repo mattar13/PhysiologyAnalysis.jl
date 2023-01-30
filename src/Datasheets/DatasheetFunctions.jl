@@ -77,10 +77,13 @@ function DataPathExtraction(path::String, calibration_file::String;
      end
 
      age_res = findmatch(path, age_regex)
+     adult_res = findmatch(path, adult_regex) #This only checks if the word adult exists
      if !isnothing(age_res)
           AGE = "P$(age_res.Age)"
      elseif !isnothing(age_res) && parse(Int, age_res.Age) >= 30
           #println("Age over 30. Defaulting to Adult")
+          AGE = "Adult"
+     elseif !isnothing(adult_res)
           AGE = "Adult"
      else
           if conditions_error
@@ -131,25 +134,21 @@ function DataPathExtraction(path::String, calibration_file::String;
      
      background_res = findmatch(path, background_regex)
      pc_res = findmatch(path, pc_regex)
+     #println(pc_res)
      if !isnothing(pc_res)
           if pc_res.Photoreceptors == "Rods" #No further label is needed
                PC = "Rods"
                if isnothing(color_res) #only do this if wave is empty, but it is rods
-                    WAVE = 520 #Shouls actually be 498
+                    WAVE = 520 #Should actually be 498
                end
+          elseif pc_res.Photoreceptors == "Cones"
+               PC = "Cones"          
           elseif !isnothing(background_res)
                if background_res.Background == "noback"
                     PC = "Rods"
                     WAVE = 520
                elseif background_res.Background == "withback" && !isnothing(color_res)
                     PC = "Cones"
-                    if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" || color_res.Color == "blue"
-                         WAVE = 365
-                    elseif  color_res.Color == "green" || color_res.Color == "525" || color_res.Color == "525Green" || color_res.Color == "Green"
-                         WAVE = 520
-                    elseif color_res.Color == "520" || color_res.Color == "520Green" 
-                         WAVE = 520
-                    end
                elseif isnothing(color_res)
                     println(path)
                     throw("No color information")
