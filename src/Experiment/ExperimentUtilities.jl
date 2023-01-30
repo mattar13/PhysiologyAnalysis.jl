@@ -49,18 +49,27 @@ function concat!(data::Experiment{T}, data_add::Experiment{T};
         end
     end
 
-    if size(data, 3) < size(data_add, 3)
+    if size(data, 3) != size(data_add, 3) #This means the cannels do not match
         if verbose
             println("Concatenated file has too many channels")
             println(data_add.chNames)
         end
         #We want to remove channels that are hanging. 
-        hanging_channels = findall((occursin.(data.chNames, data_add.chNames)).==false)
-        data_dropped = drop(data_add, dim = 3, drop_idx = hanging_channels[1])
-        push!(data, data_dropped)
-        push!(data.stim_protocol, data_dropped.stim_protocol...)
-    elseif size(data, 3) > size(data_add, 3)
-        println("Original file has too many channels")
+        ch1in2 = indexin(data.chNames, data_add.chNames)
+        ch2in1 = indexin(data_add.chNames, data.chNames)
+        println(ch2in1)
+        println(ch1in2)
+        if any(isnothing.(ch1in2))
+            hanging_channels = findall(isnothing.(ch1in2))
+            data_dropped = drop(data, dim = 3, drop_idx = hanging_channels[1])
+            push!(data_dropped, data_add)
+            push!(data_dropped.stim_protocol, data_add.stim_protocol...)
+        elseif any(isnothing.(ch2in1))
+            hanging_channels = findall(isnothing.(ch2in1))
+            data_dropped = drop(data_add, dim = 3, drop_idx = hanging_channels[1])
+            push!(data, data_dropped)
+            push!(data.stim_protocol, data_dropped.stim_protocol...)
+        end
     else
         push!(data, data_add)
         push!(data.stim_protocol, data_add.stim_protocol...)
