@@ -48,7 +48,7 @@ md"
 
 # ╔═╡ 7b14b019-7545-4441-833b-f7e660c23dc6
 #enter in the file path of the file you would like to analyze here
-path = "C:\\Users\\mtarc\\OneDrive - The University of Akron\\Data\\ERG\\Gnat\\2020_08_26_gnat8\\Mouse2_P8_GNAT-KO\\BaCl_LAP4\\525Green\\nd0_25p_1ms_0000.abf"
+path = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Organoids\2023_01_25_MattOrganoid\Organoid2_ILC42-3_d263\BrainPhys\BF\nd0_25p_0000.abf"
 
 # ╔═╡ b400dd0c-5a40-4ee7-9116-7339939b7456
 md"""
@@ -63,12 +63,6 @@ channels = ["Vm_prime", "Vm_prime4"]
 
 # ╔═╡ d6d59ac3-e6e8-4b49-9ac6-2a17cf72f30b
 @bind go Button("Filter")
-
-# ╔═╡ 05e38576-9650-4287-bac0-6d281db2ea9c
-if path != ""
-	go
-	data = readABF(path, channels=channels)
-end;
 
 # ╔═╡ c8b4c855-64b8-4e18-9b2d-231260c67813
 md"""
@@ -114,6 +108,37 @@ hz
 
 """
 
+# ╔═╡ 5fdc0c43-9454-495d-9b8a-e47313d178b2
+begin
+	go
+	#This will act like the filtering pipeline. The pipeline goes as follows
+	#A) Baseline, Truncate, Average
+	data = readABF(path, channels=channels)
+	baseline_adjust!(data)
+	truncate_data!(data, t_pre=t_pre_pick, t_post=t_post_pick)
+	
+	
+	# This data can be plotted seperately
+	filtered_data = deepcopy(data)
+	filter_data!(filtered_data,
+	  mode=Symbol(filter_mode),
+	  pole=pole_val,
+	  method=Symbol(filter_method),
+	  ripple=ripple_val,
+	  attenuation=att_val,
+	  freq_start=freq_start, freq_stop=freq_stop
+	)
+	dataSWEEP = deepcopy(data)
+	filtered_dataSWEEP = deepcopy(filtered_data)
+
+	 if avg_swp
+	 	average_sweeps!(data)
+		average_sweeps!(filtered_data)
+		"Averaging Sweeps"
+	 end;
+	"Filtering functions"
+end
+
 # ╔═╡ 76025c46-2977-4300-8597-de04f313c667
 md"""
 ### Plotting:
@@ -126,89 +151,40 @@ $(@bind xlim2 NumberField(-1.0:0.01:10.000; default = 5.0))
 
 ylims:
 (
-$(@bind ylim1 NumberField(-10000.0:0.01:10000.000; default = minimum(data))),
-$(@bind ylim2 NumberField(-10000.0:0.01:10000.000; default = maximum(data)))
+$(@bind ylim1 NumberField(-10000.0:0.001:10000.000; default = minimum(data))),
+$(@bind ylim2 NumberField(-10000.0:0.001:10000.000; default = maximum(data)))
 )
 
 """
 
+# ╔═╡ 2084267b-64a8-4d5b-8ce1-dd41f7feaa3a
+begin #Plot individual traces
+	fig1SWEEP, axSWEEP = plt.subplots(size(dataSWEEP,1), size(dataSWEEP, 3))
+	fig1SWEEP.subplots_adjust(hspace=0.4, wspace=0.4, 
+		left = 0.1
+	)
+	for swp in axes(dataSWEEP,1), ch in axes(dataSWEEP,3)
+		axSWEEP[swp, ch].spines["left"].set_visible(false)
+		axSWEEP[swp, ch].yaxis.set_visible(false)
+		if swp != size(dataSWEEP,1)
+			#remove the ylabel
+			axSWEEP[swp, ch].spines["bottom"].set_visible(false) #We want the spine to fully
+        	axSWEEP[swp, ch].xaxis.set_visible(false)
+		end
+		plot_experiment(axSWEEP[swp, ch], dataSWEEP, channels = ch, 
+			alpha=0.5, sweeps = swp
+		)
+		plot_experiment(axSWEEP[swp, ch], filtered_dataSWEEP, 
+			color = :red, channels = ch, sweeps = swp
+		)
+	   axSWEEP[swp, ch].set_xlim(xlim1, xlim2)
+	   #axSWEEP[swp, ch].set_ylim(ylim1, ylim2)
+	end
+	fig1SWEEP
+end
+
 # ╔═╡ 4daf9c1a-8b73-4049-8a13-b080e43f87cd
 @bind do_plot Button("Plot")
-
-# ╔═╡ 9d5c1286-1a13-428a-b772-67887ae1f7c8
-begin
-     #Plot the DWT info
-     fig2, ax2 = plt.subplots(3, size(data, 3))
-     for ch in 1:size(data, 3)
-          ax2[1, ch].set_xlim(xlim1, xlim2)
-          ax2[1, ch].set_ylim(ylim1, ylim2)
-          plot_experiment(ax2[1, ch], data, channels=ch, c=:black, alpha=0.5)
-          ax2[1, ch].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
-          ax2[1, ch].set_xlabel("Time (s)")
-     end
-     fig2
-end
-
-# ╔═╡ 4b3cabb0-8de6-4364-b6dc-b23a1ff1af48
-md"""
-##### These filters are experimental and only work on small noisy waveforms
-DWT Filter
-$(@bind DWT_pick CheckBox(default = false))
-CWT Filter
-$(@bind CWT_pick CheckBox(default = false))
-
-Period limits
-$(@bind PER_lo NumberField(1:50; default = 2^0)) ->
-$(@bind PER_hi NumberField(1:50; default = 2^4))
-
-Power limits
-$(@bind POW_lo NumberField(0.0:1.0; default = 0.0)) ->
-$(@bind POW_hi NumberField(0.0:1.0; default = 1.0))
-"""
-
-# ╔═╡ 5fdc0c43-9454-495d-9b8a-e47313d178b2
-begin
-     go
-     #This will act like the filtering pipeline. The pipeline goes as follows
-     #A) Baseline, Truncate, Average
-
-     baseline_adjust!(data)
-     truncate_data!(data, t_pre=t_pre_pick, t_post=t_post_pick)
-     if avg_swp
-          average_sweeps!(data)
-     end
-
-     # This data can be plotted seperately
-     filtered_data = deepcopy(data)
-     filter_data!(filtered_data,
-          mode=Symbol(filter_mode),
-          pole=pole_val,
-          method=Symbol(filter_method),
-          ripple=ripple_val,
-          attenuation=att_val,
-          freq_start=freq_start, freq_stop=freq_stop
-     )
-
-     if CWT_pick
-          cwt = cwt_filter!(filtered_data;
-               period_window=(WT_low_val, WT_hi_val), return_cwt=true
-          )
-          println(cwt |> size)
-     else
-          cwt = nothing
-     end
-
-     if DWT_pick
-          dwt = dwt_filter!(filtered_data;
-               period_window=(WT_low_val, WT_hi_val), return_dwt=true
-          )
-          println(dwt |> size)
-     else
-          dwt = nothing
-     end
-
-     "Filtering functions"
-end
 
 # ╔═╡ 669c877b-efcf-4c6b-a70f-e14164abdbff
 begin
@@ -253,6 +229,37 @@ begin
 
 	fig1
 end
+
+# ╔═╡ 9d5c1286-1a13-428a-b772-67887ae1f7c8
+begin
+     #Plot the DWT info
+     fig2, ax2 = plt.subplots(3, size(data, 3))
+     for ch in 1:size(data, 3)
+          ax2[1, ch].set_xlim(xlim1, xlim2)
+          ax2[1, ch].set_ylim(ylim1, ylim2)
+          plot_experiment(ax2[1, ch], data, channels=ch, c=:black, alpha=0.5)
+          ax2[1, ch].set_ylabel("$(data.chNames[ch]) ($(data.chUnits[ch]))")
+          ax2[1, ch].set_xlabel("Time (s)")
+     end
+     fig2
+end
+
+# ╔═╡ 4b3cabb0-8de6-4364-b6dc-b23a1ff1af48
+md"""
+##### These filters are experimental and only work on small noisy waveforms
+DWT Filter
+$(@bind DWT_pick CheckBox(default = false))
+CWT Filter
+$(@bind CWT_pick CheckBox(default = false))
+
+Period limits
+$(@bind PER_lo NumberField(1:50; default = 2^0)) ->
+$(@bind PER_hi NumberField(1:50; default = 2^4))
+
+Power limits
+$(@bind POW_lo NumberField(0.0:1.0; default = 0.0)) ->
+$(@bind POW_hi NumberField(0.0:1.0; default = 1.0))
+"""
 
 # ╔═╡ dd65fd7a-b1c9-401d-8c37-149e2eaa3e5d
 begin
@@ -308,10 +315,10 @@ end
 # ╟─b400dd0c-5a40-4ee7-9116-7339939b7456
 # ╠═971d6f11-2936-4d75-9641-36f81a94c2c4
 # ╟─d6d59ac3-e6e8-4b49-9ac6-2a17cf72f30b
-# ╟─05e38576-9650-4287-bac0-6d281db2ea9c
 # ╟─c8b4c855-64b8-4e18-9b2d-231260c67813
 # ╟─5fdc0c43-9454-495d-9b8a-e47313d178b2
 # ╟─76025c46-2977-4300-8597-de04f313c667
+# ╠═2084267b-64a8-4d5b-8ce1-dd41f7feaa3a
 # ╟─4daf9c1a-8b73-4049-8a13-b080e43f87cd
 # ╟─669c877b-efcf-4c6b-a70f-e14164abdbff
 # ╟─9d5c1286-1a13-428a-b772-67887ae1f7c8
