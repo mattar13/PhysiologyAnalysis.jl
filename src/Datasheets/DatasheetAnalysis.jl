@@ -77,9 +77,14 @@ function run_A_wave_analysis(all_files::DataFrame;
                     println("Path: $(i.Path)")
                end
                for data in eachchannel(dataFile) #walk through each row of the data iterator
-                    matches = match(r"P(?'Age'\d*|)", qData.Age[1])|> NamedTuple
-                    #println(matches.Age)
-                    age = parse(Int, matches.Age) #Extract the age
+                    #println(qData.Age)
+                    matches = match(r"P(?'Age'\d*|)", qData.Age[1])
+                    isadult = match(r"Adult", qData.Age[1]) 
+                    if !isnothing(matches)
+                         age = parse(Int, matches[:Age]) #Extract the age
+                    elseif !isnothing(isadult)
+                         age = 30
+                    end
                     ch = data.chNames[1] #Extract channel information
                     gain = data.chTelegraph[1] #Extract the gain
                     if gain == 1
@@ -218,6 +223,8 @@ end
 function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_LAP4", b_cond = "BaCl")
      trace_A = all_files |> @filter(_.Condition == a_cond) |> DataFrame
      trace_AB = all_files |> @filter(_.Condition == b_cond) |> DataFrame
+     println(size(trace_A))
+     println(size(trace_AB))
      if isempty(trace_AB)
           return nothing
      elseif isempty(trace_A)
@@ -254,7 +261,8 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_
                     (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
                ) |>
                DataFrame
-
+          #println(qData)
+          #println(qData.Path)
           data_AB = readABF(qData.Path)
           filt_data_AB = data_filter(data_AB, avg_swp = false, t_post=5.0)
 
