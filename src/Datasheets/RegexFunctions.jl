@@ -6,6 +6,7 @@ nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
 
 animal_regex = r"(_m|(?'Animal'Mouse|Zebrafish|Organoid)|m)(?'Number'\d)"
 age_regex = r"_P(?'Age'\d*|)"
+adult_regex = r"(?'IsAdult'(?i)adult)"
 genotype_regex = r"_(?'Genotype'WT|DR|R141C|RS1KO|C59S|MelKO|GNAT-KO|GNAT-HT)"
 cond_regex = r"(?'Condition'Drugs|NoDrugs|BaCl_LAP4|BaCl|No drugs|No Drugs)"
 pc_regex = r"(?'Photoreceptors'Cones|Rods)"
@@ -13,7 +14,7 @@ color_regex = r"(?'Color'blue|green|Blue|Green|UV|365|365UV|520|520Green|525|525
 avg_regex = r"(?'Correct'Average|average)"
 background_regex = r"(?'Background'withback|noback)"
 percent_regex = r"(?'Percent'\d{1,3})(%|p)"
-nd_regex = r"(nd|ND)(?'ND'\d{1,3})"
+nd_regex = r"nd(?'ND'\d{1,3})"
 
 #nd_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p"
 NamedTuple(m::RegexMatch) = NamedTuple{Symbol.(Tuple(keys(m)))}(values(m.captures))
