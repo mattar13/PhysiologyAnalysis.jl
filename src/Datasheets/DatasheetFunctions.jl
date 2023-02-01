@@ -317,7 +317,7 @@ function parseColumn!(T::Type, dataframe::DataFrame, col::Symbol)
           dataframe[! , col] = parse.(T, dataframe[:, col])
      end
 end
-parseColumn!(dataframe::DataFrame, col::Symbol) = parse_column!(Int64, dataframe, col)
+parseColumn!(dataframe::DataFrame, col::Symbol) = parseColumn!(Int64, dataframe, col)
 
 """
 This function creates a new datasheet
