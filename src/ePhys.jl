@@ -192,7 +192,7 @@ function __init__()
           include("Plotting/PhysRecipes.jl")
      end
 
-     @require Pluto = Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin
+     @require Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin
           
 
 
