@@ -104,7 +104,7 @@ function DataPathExtraction(path::String, calibration_file::String;
                COND = "BaCl_LAP4"
           elseif cond_res.Condition == "NoDrugs" || cond_res.Condition == "No drugs" || cond_res.Condition == "No Drugs"
                #println("No Drugs")
-               COND = "BaCl"
+               COND = "NoDrugs"
           else
                COND = cond_res.Condition
           end
@@ -278,8 +278,9 @@ This function converts a dataframe of Any to one matching each row type.
 function safe_convert(dataframe::DataFrame)
      new_obj = DataFrame(dataframe)
      for (idx, col) in enumerate(eachcol(dataframe))
-          #println(names(dataframe)[idx])
+          println(names(dataframe)[idx])
           typ = typeof(col[1]) #Check if there are 
+          println(typ)
           #We will try to convert each row. If it does not work, we can remove the NaN
           #println(col)
           if ("NaN" ∈ col) #Check if there exists a word NaN in the row (excel will call these strings)
@@ -309,6 +310,15 @@ function safe_convert(dataframe::DataFrame)
      return new_obj
 end
 
+function parseColumn!(T::Type, dataframe::DataFrame, col::Symbol) 
+     if all(isa.(dataframe[!, col], T))
+          println("Already converted")
+     else
+          dataframe[! , col] = parse.(T, dataframe[:, col])
+     end
+end
+parseColumn!(dataframe::DataFrame, col::Symbol) = parse_column!(Int64, dataframe, col)
+
 """
 This function creates a new datasheet
 """
@@ -316,15 +326,16 @@ function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
-               println("Analyzing file $idx of $(size(all_files, 1)): $file")
+               print("Analyzing file $idx of $(size(all_files, 1)): $file ...")
           end
           try
                entry = DataPathExtraction(file)
                if isnothing(entry) #Throw this in the case that the entry cannot be fit
-                    println(entry)
+                    println("Failed")
                     #elseif length(entry) != size(dataframe, 2)
                #     println("Entry does not match dataframe size. Probably an extra category")
                else
+                    println("Success")
                     push!(dataframe, entry)
                end
           catch error
