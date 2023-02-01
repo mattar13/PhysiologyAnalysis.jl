@@ -48,7 +48,7 @@ end
 """
 function run_A_wave_analysis(all_files::DataFrame; 
           run_amp=false, verbose=true, measure_minima = false, a_cond = "BaCl_LAP4", 
-          t_pre = 1.0, t_post = 1.0, 
+          t_pre = 1.0, t_post = 0.6, 
           peak_method = false
      )
      a_files = all_files |> @filter(_.Condition == a_cond) |> DataFrame #Extract all A-wave responses
@@ -78,12 +78,16 @@ function run_A_wave_analysis(all_files::DataFrame;
                end
                for data in eachchannel(dataFile) #walk through each row of the data iterator
                     #println(qData.Age)
-                    matches = match(r"P(?'Age'\d*|)", qData.Age[1])
-                    isadult = match(r"Adult", qData.Age[1]) 
-                    if !isnothing(matches)
-                         age = parse(Int, matches[:Age]) #Extract the age
-                    elseif !isnothing(isadult)
-                         age = 30
+                    if isa(qData.Age[1], String)
+                         matches = match(r"P(?'Age'\d*|)", qData.Age[1])
+                         isadult = match(r"Adult", qData.Age[1]) 
+                         if !isnothing(matches)
+                              age = parse(Int, matches[:Age]) #Extract the age
+                         elseif !isnothing(isadult)
+                              age = 30
+                         end
+                    else
+                         age = qData.Age[1]
                     end
                     ch = data.chNames[1] #Extract channel information
                     gain = data.chTelegraph[1] #Extract the gain
@@ -367,6 +371,8 @@ There is no version of G component analysis that is not subtractive
 function run_G_wave_analysis(all_files::DataFrame; verbose=true)
      trace_ABG = all_files |> @filter(_.Condition == "NoDrugs") |> DataFrame
      trace_AB = all_files |> @filter(_.Condition == "BaCl") |> DataFrame
+     println(trace_ABG)
+     println(trace_AB)
      if isempty(trace_ABG)
           return nothing
      elseif isempty(trace_AB)
