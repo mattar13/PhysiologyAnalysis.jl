@@ -148,6 +148,7 @@ function __init__()
           export openDatasheet, createDatasheet, updateDatasheet
           export runAnalysis
           export matchExperiment
+          export parseColumn!
           #This inner loop will allow you to revise the files listed in include if revise is available
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                println("Revise and Dataframes loaded")
@@ -189,6 +190,12 @@ function __init__()
      @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
           using RecipesBase
           include("Plotting/PhysRecipes.jl")
+     end
+
+     @require Pluto = Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin
+          
+
+
      end
 end
 
