@@ -59,8 +59,8 @@ begin #Split the paths into A, AB, ABG waves
 	#filter out rods or cones if you have that
 	all_files = all_files |> @filter(_.Photoreceptor == pcs) |> DataFrame
 	@time ATrace, AExperiment, qConditions = ePhys.run_A_wave_analysis(all_files, verbose = false)
-	@time BTrace, BExperiment, qConditions = ePhys.run_B_wave_analysis(all_files, verbose = false)
-	@time GTrace, GExperiment, qConditions = ePhys.run_G_wave_analysis(all_files, verbose = false)
+	#@time BTrace, BExperiment, qConditions = ePhys.run_B_wave_analysis(all_files, verbose = false)
+	#@time GTrace, GExperiment, qConditions = ePhys.run_G_wave_analysis(all_files, verbose = false)
 end
 
 # ╔═╡ 1495d044-e661-4aee-bfd4-6e029f2cb51d
