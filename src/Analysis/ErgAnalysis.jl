@@ -199,10 +199,9 @@ end
 
 #=========================== The below functions are created by fitting a model ===========================#
 function IRfit(intensity, response;
-    r=100.0, k=1000.0, n=2.0,
-    rmin=0.0, rmax=2000.0, #This is the maximum ERG response we have gotten
-    kmin=0.05, kmax=1e6,
-    nmin=1.0, nmax=10.0
+    rmin=0.0, r=100.0, rmax=2000.0, #This is the maximum ERG response we have gotten
+    kmin=0.05, k=1000.0,  kmax=1e6,
+    nmin=1.0, n=2.0, nmax=10.0
 )
     p0 = [r, k, n]
     ub = [rmax, kmax, nmax]
@@ -210,6 +209,19 @@ function IRfit(intensity, response;
     #println(response)
     model(I, p) = map(i -> p[1] * IR(i, p[2], p[3]), I)
     fit = curve_fit(model, intensity, response, p0, lower=lb, upper=ub)
+    return fit
+end
+
+function STFfit(a_wave, b_wave;
+    rmin=0.001, r=1.0, rmax=Inf, #This should be the b-wave
+    kmin=0.001, k=10.0, kmax=Inf, #This should have been the maximum A-wave we are expecting
+    nmin=0.1, n=2.0, nmax=4.0
+)
+    p0 = [r, k, n]
+    ub = [rmax, kmax, nmax]
+    lb = [rmin, kmin, nmin]
+    #println(response)
+    fit = curve_fit(model, a_wave, b_wave, p0, lower=lb, upper=ub) #for some reason this works the best when b is in log units
     return fit
 end
 
