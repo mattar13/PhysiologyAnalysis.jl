@@ -143,12 +143,15 @@ function __init__()
           import Query: @filter #Import query commands
           export @filter, Query
           include("Datasheets/RegexFunctions.jl")
+          include("Datasheets/FilePathExtraction.jl")
           include("Datasheets/DatasheetFunctions.jl")
+          include("Datasheets/DatasheetCreation.jl")
           include("Datasheets/DatasheetAnalysis.jl")
           export openDatasheet, createDatasheet, updateDatasheet
           export runAnalysis
           export matchExperiment
           export parseColumn!
+          export GenerateFitFrame
           #This inner loop will allow you to revise the files listed in include if revise is available
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                println("Revise and Dataframes loaded")
@@ -172,7 +175,7 @@ function __init__()
           include("Plotting/DefaultSettings.jl") #This requires PyPlot
           include("Plotting/PlottingUtilities.jl")
           include("Plotting/PhysPyPlot.jl")
-          export plot_experiment
+          export plot_experiment, plot_experiment_fit
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                #import .Revise
                println("Revise and Pyplot loaded")

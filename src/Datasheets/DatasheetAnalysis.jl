@@ -549,215 +549,53 @@ function runAnalysis(datafile::String; measure_minima = false)
      return (df, resA, resB, resG)
 end
 
-#Couldn't we potentially use this function to extract the datasheet anyways
-#TODO: We want to change this to use the DataPathExtraction instead
-function restructure_filesystem(prev_paths, restruc_path; 
-          remove_old = false, 
-          unknown_genotype = :WT, conditions_error = false, 
-          verbose = false, mode = :save   
-     )
-     if remove_old
-          rm(restruc_path, recursive=true)
+
+
+#%% Calculate a better way to fit them
+#This can be used for IR or STF
+function GenerateFitFrame(df_TRACE, xData, yData; 
+     model = nothing,
+     rmin = 100.0, r = 500.0, rmax = 2400, #The highest b-wave ever seen is (2400)
+     kmin = 1.0, k = 200.0, kmax = 400, #Half of the highest a-wave ever seen (800), 
+     nmin = 0.1, n = 2.5, nmax = 4.0,
+)
+     df_EXP = df_TRACE |> @unique({_.Year, _.Month, _.Date, _.Number, _.Channel}) |> 
+          @map({
+               _.Year, _.Month, _.Date, _.Number, _.Channel,      
+               rmin = rmin, r = r, rmax = rmax, #The highest b-wave ever seen is (2400)
+               kmin = kmin, k = k, kmax = kmax, #Half of the highest a-wave ever seen (800), 
+               nmin = nmin, n = n, nmax = nmax,
+               RMAX = 0.0, K = 0.0, N = 0.0, 
+               MSE = 0.0,
+               SS_Resid = 0.0, SS_Total = 0.0, 
+               RSQ = 0.0
+
+          }) |> DataFrame
+     for (idx, exp) in enumerate(eachrow(df_EXP))
+          #println(exp)
+          YEAR = exp.Year 
+          MONTH = exp.Month 
+          DATE = exp.Date 
+          NUMBER = exp.Number 
+          CHANNEL = exp.Channel
+          println("Fitting exp $idx: $YEAR $MONTH $DATE $NUMBER $CHANNEL")
+          exp_traces = df_TRACE |> @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == (exp.Year, exp.Month, exp.Date, exp.Number, exp.Channel)) |> DataFrame
+          #println(exp_traces)
+          exp_STF = STFfit(exp_traces[:, xData], exp_traces[:, yData], 
+               rmin = exp.rmin, r = exp.r, rmax = exp.rmax,
+               kmin = exp.kmin, k = exp.k, kmax = exp.kmax, 
+               nmin = exp.nmin, n = exp.n, nmax = exp.nmax
+          )
+          df_EXP[idx, :RMAX] = exp_STF.param[1]
+          df_EXP[idx, :K] = exp_STF.param[2]
+          df_EXP[idx, :N] = exp_STF.param[3]
+          df_EXP[idx, :SS_Resid] = ss_resid = sum(exp_STF.resid.^2)
+          df_EXP[idx, :MSE] = ss_resid/size(exp_traces,1)
+          yTrue = exp_traces[:, yData]
+          yMean = mean(yTrue)
+          df_EXP[idx, :SS_Total] = ss_total = sum((yTrue .- yMean).^2)
+          df_EXP[idx, :RSQ] = 1 - (ss_resid/ss_total)
+          println(df_EXP[idx, :RSQ])
      end
-     if !isdir(restruc_path) #If the file does not exist
-          mkdir(restruc_path) #Make the file
-     end
-     count = 0
-     current_paths = restruc_path |> parseABF #These are all the files that exist inside of the resturctured path
-     for path in prev_paths
-          if verbose
-               print("Extracting files from path: ")
-               println(path)
-          end
-
-          date_res = findmatch(path, date_regex)
-          if !isnothing(date_res) 
-               YEAR = date_res.Year
-               MONTH = date_res.Month
-               DATE = date_res.Date
-          else
-               throw("Incorrect date specification") #Always throw a date error
-          end
-
-          #Find the age and 
-          animal_res = findmatch(path, animal_regex)
-          if !isnothing(animal_res)
-               if !isnothing(animal_res.Animal)
-                    ANIMAL = animal_res.Animal
-               else
-                    ANIMAL = "Mouse"
-               end
-               NUMBER = animal_res.Number
-          else
-               if verbose
-                    println(path)
-                    println("Incorrect animal specification. Setting Default to Mouse 1") #Always throw an animal error
-               end
-               ANIMAL = "Mouse"
-               NUMBER = "1"
-          end
-
-          genotype_res = findmatch(path, genotype_regex)
-          if !isnothing(genotype_res)
-               GENOTYPE = genotype_res.Genotype
-          elseif unknown_genotype == :UNKNOWN
-               #println("Unknown Genotype")
-               GENOTYPE = "UNKNOWN"
-          elseif unknown_genotype == :WT
-               #println("Unknown Genotype")
-               GENOTYPE = "WT"
-          else
-               throw("Unknown genotype")
-          end
-
-          age_res = findmatch(path, age_regex)
-          if !isnothing(age_res)
-               AGE = "P$(age_res.Age)"
-          elseif !isnothing(age_res) && parse(Int, age_res.Age) >= 30
-               #println("Age over 30. Defaulting to Adult")
-               AGE = "Adult"
-          else
-               if conditions_error
-                    throw("Age information not included. Erroring")
-               else
-                    #println(path)
-                    if verbose
-                         println("Age information not included. Skipping: $path")
-                    end
-                    continue
-               end
-          end
-          new_path = joinpath(restruc_path, "$(YEAR)_$(MONTH)_$(DATE)_ERG$(GENOTYPE)$(AGE)")
-          new_path = joinpath(new_path, "$(ANIMAL)$(NUMBER)_$(AGE)_$(GENOTYPE)")
-          
-          #Find Drugs, BaCl, NoDrugs
-          cond_res = findmatch(path, cond_regex)
-          if !isnothing(cond_res) 
-               if cond_res.Condition == "Drugs"
-                    COND = "BaCl_LAP4"
-               elseif cond_res.Condition == "NoDrugs" || cond_res.Condition == "No drugs" || cond_res.Condition == "No Drugs"
-                    #println("No Drugs")
-                    COND = "BaCl"
-               else
-                    COND = cond_res.Condition
-               end
-          else
-               #println(path)
-               if conditions_error
-                    throw("Conditions not available")
-               else
-                    if verbose
-                         @warn "Conditions not available"
-                    end
-                    COND = "UNKNOWN"
-               end
-          end
-          new_path = joinpath(new_path, "$COND")
-          #println(new_path)
-          #Find Photoreceptor
-          pc_res = findmatch(path, pc_regex)
-          if !isnothing(pc_res)
-               if pc_res.Photoreceptor == "Rods" #No further label is needed
-                    PC = "Rods"
-               else
-                    color_res = findmatch(path, color_regex)
-                    PC = "$(pc_res.Photoreceptor)_$(color_res.Color)"
-               end
-               new_path = joinpath(new_path, "$PC")
-          else
-               #first we want to find out if   
-               #println("This case we are missing a photoreceptor category")
-               background_res = findmatch(path, background_regex)
-               if !isnothing(background_res)
-                    if background_res.Background == "noback"
-                         PC = "Rods"
-                    elseif background_res.Background == "withback"
-                         color_res = findmatch(path, color_regex)
-                         if !isnothing(color_res)
-                              PC = "Cones_$(color_res.Color)"
-                         else
-                              println(path)
-                              throw("No color information")
-                         end
-                    else
-                         #println(path)
-                         #println(background_res.Background)
-                         throw("Some other keyword is used")
-                    end
-                    new_path = joinpath(new_path, "$PC")
-               else
-                    #throw("Either Protocol or withback/noback is missing")
-               end
-          end
-          
-          nd_res = findmatch(path, nd_regex) #lets try to find the ND filter settings
-          #println(nd_res)
-          if !isnothing(nd_res)
-               ND = nd_res.ND
-          else
-               if verbose
-                    @warn ("ND information is missing. Setting default to ND0")
-               end
-               ND = 0
-          end
-
-          percent_res = findmatch(path, percent_regex)
-          #println(percent_res)
-          if !isnothing(percent_res)
-               PERCENT = percent_res.Percent
-          else
-               if verbose
-                    @warn ("Percent information is missing. Setting Default to 1%")
-               end
-               PERCENT = 1
-          end
-
-          flash_id = findmatch(path, r"\d") #find just a single digit
-          if !isempty(flash_id) #This will be necessary whenever 
-               println(flash_id)
-          end
-          
-          corr_name = findmatch(path, avg_regex) # find the word "Average or average
-          nd_file_res = findmatch(path, nd_file_regex) #or find the nd_file description (plus .abf)
-          #if the script finds either a average, or a nd filter and a percent. 
-          if !isnothing(corr_name) || !isnothing(nd_file_res)
-               print("Checking if file exists:  ")
-               count_str = string(count)
-               #println(count_str)
-               count += 1
-               if count > 9999
-                    count = 0
-               end
-
-               if length(count_str) < 4
-                    addN = 4 - length(count_str)
-               else
-                    addN = 0
-               end
-               str_lid = "$(join(repeat("0", addN)))$count_str"
-               copy_path = joinpath(new_path, "nd$(ND)_$(PERCENT)p_$str_lid.abf")
-
-               if copy_path ∉ current_paths
-                    #if true
-                    print("NO! New file: $copy_path")
-                    #end
-                    if mode == :save
-                         mkpath(new_path) #Disable this for the time being
-                    end
-               else#if verbose
-                    print("YES! Ignore: ")
-                    println(copy_path)
-                    #println(new_path)
-               end
-               #println(!ispath(copy_path))
-               if !ispath(copy_path)
-                    println("Copying file to path: $path")
-                    if mode == :save
-                         cp(path, copy_path) #Disable these for the time being
-                    end
-               else#if verbose
-                    println("Path already copied: $path")
-               end
-          end
-     end
+     return df_EXP
 end
