@@ -60,8 +60,8 @@ if Response values are normalized to 1, then \$R_{max}\$ = 1 and can be cancelle
 
 [OUT 1]: Response
 """
-IR(I, k, n) = I^n / (k^n + I^n)
-
+HILL(x, rmax, k, n) = rmax * (x^n / (k^n + x^n)) #This is the basic form of the model
+HILL_MODEL(X, p) = map(x -> HILL(x, p[1], p[2], p[3]), X) #This is used for fitting a larger dataset
 """
 # Developmental Intensity response (>P14)
 
@@ -84,12 +84,12 @@ if Response values are normalized to 1, then \$R_{max}\$ = 1 and can be cancelle
 - (\$\\alpha\$): The temperature-dependent weighting coefficient:  
 - S: he fractional sensitivity
 ### Function usage
-[IN 1]:  IR_dev(I, Ih, n, α, S)
+[IN 1]:  IR_dev(I, rmax, k, n, α, S)
 
 [OUT 1]: Response_dev
 """
-IR_dev(I, Ih, n, α, S) = α*(1-exp(S*I)) + (1-α)*(I^n / (Ih^n + S))
-
+modHILL(x, rmax, k, n, α, S) = rmax * (α*(1-exp(S*x)) + (1-α)*(x^n / (k^n + S)))
+modHILL_MODEL(X, p) = map(x -> modHILL(x, p[1], p[2], p[3], p[4], p[5]), X) #This is used for fitting a larger dataset
 """
 # Amplification 
 
