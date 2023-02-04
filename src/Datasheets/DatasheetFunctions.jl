@@ -30,9 +30,9 @@ This function converts a dataframe of Any to one matching each row type.
 function safe_convert(dataframe::DataFrame)
      new_obj = DataFrame(dataframe)
      for (idx, col) in enumerate(eachcol(dataframe))
-          println(names(dataframe)[idx])
+          #println(names(dataframe)[idx])
           typ = typeof(col[1]) #Check if there are 
-          println(typ)
+          #println(typ)
           #We will try to convert each row. If it does not work, we can remove the NaN
           #println(col)
           if ("NaN" ∈ col) #Check if there exists a word NaN in the row (excel will call these strings)
