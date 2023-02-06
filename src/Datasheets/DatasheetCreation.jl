@@ -44,12 +44,14 @@ function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx
           end
           try
                entry = DataPathExtraction(file)
-               if isnothing(entry) #Throw this in the case that the entry cannot be fit
+               if isnothing(entry) && verbose #Throw this in the case that the entry cannot be fit
                     println("Failed")
                     #elseif length(entry) != size(dataframe, 2)
                #     println("Entry does not match dataframe size. Probably an extra category")
                else
-                    println("Success")
+                    if verbose
+                         println("Success")
+                    end
                     push!(dataframe, entry)
                end
           catch error
@@ -69,6 +71,9 @@ function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx
                XLSX.writetable!(xf["All_Files"],
                     collect(DataFrames.eachcol(dataframe)),
                     DataFrames.names(dataframe))
+          end
+          if verbose
+               println("Save file success")
           end
      end
      dataframe
