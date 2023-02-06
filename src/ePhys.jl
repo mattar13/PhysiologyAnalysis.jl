@@ -77,7 +77,7 @@ export RSQ
 
 using Distributions
 include("Analysis/Models.jl")
-export IR
+export HILL_MODEL
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -196,8 +196,13 @@ function __init__()
      end
 
      @require Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin
-          
-
+          println("Loading pluto notebooks")
+          include("Interface/opening_interface.jl")
+          export run_experiment_analysis
+          export run_trace_analysis
+          export run_filter_determination
+          export run_subtraction_analysis
+          #include("Interface/filter_determination.jl")
 
      end
 end
