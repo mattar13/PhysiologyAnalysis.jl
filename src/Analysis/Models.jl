@@ -154,7 +154,4 @@ The image has i and j features (equal to 1->M-1 and 1->N-1)
 """
 RMS_Contrast(I::Array{T, 2}; normalized = true) where T <: Real = (1/(size(I,1)*size(I,2))) .* sum((I.-sum(I)/length(I))^2)
 
-
-"""
-Maybe we can add a differential equation for the ERG
-"""
+#%% Lets write some fitting equations into the 
