@@ -90,3 +90,42 @@ function add_scalebar(ax, loc::Tuple{T,T}, dloc::Tuple{T,T};
     ax.annotate("$yscale $yunits", (x - (data_width / xlabeldist), y + dy / 2), va="center", ha="center", rotation="vertical", fontsize=fontsize)
     ax.annotate("$xscale $xunits", (x + dx / 2, y - (data_height / ylabeldist)), va="center", ha="center", rotation="horizontal", fontsize=fontsize)
 end
+
+function plot_exp_fits(ax, df_EXPs::DataFrame, df_TRACEs::DataFrame;
+          xlims = (-10.0, 200.0), ylims = (1.0, 3000.0)
+     )
+     #ax.set_title("P14 Rods NR")
+     ax.set_xlim(xlims)
+     ax.set_ylim(ylims)
+     cmap = plt.get_cmap(:RdYlGn)
+     for litter in eachrow(df_EXPs)
+          println(litter.RSQ)
+          RET = df_TRACEs |> @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == (litter.Year, litter.Month, litter.Date, litter.Number, litter.Channel)) |> DataFrame
+          #println(litter)
+          ax.scatter(
+               RET.Response, RET.Total, 
+               alpha = 0.5, 
+               color = cmap(litter.RSQ), 
+               marker = "o", label = "$(litter.Year)_$(litter.Month)_$(litter.Date)_$(litter.Number)"
+          )
+          # Find the STF data
+          #STF_RES = p14RodsDR_EXP |> @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == (litter.Year, litter.Month, litter.Date, litter.Number, litter.Channel)) |> DataFrame
+          rmax = litter.RMAX; k = litter.K; n = litter.N
+
+          FIT = model(A_rng, [rmax, k, n])
+          ax.plot(A_rng, FIT, color = cmap(litter.RSQ))
+          ax.vlines(k, ymin=1.0, ymax = rmax/2, linestyle=(0, (5, 3)))#10 ^ (p14RodsNR_STF.param[1] / 2), color = color, )
+          ax.hlines(rmax/2, xmin=-10.0, xmax = k, linestyle=(0, (5, 3)))
+     end
+     ax.legend(loc = "lower right")
+     #ax.set_xscale("Log")
+     ax.set_xlabel("a-wave (μV)", fontsize=10.0)
+     ax.set_yscale("Log", base = 10)
+     ax.set_ylabel("b-wave (μV)", fontsize=10.0)
+     #return fig
+end
+
+function plot_exp_fits(df_EXPs::DataFrame, df_TRACEs::DataFrame; kwargs...)
+    fig,ax = plt.subplots(1)
+    plot_exp_fits(ax, df_EXPs, df_TRACEs; kwargs...)
+end
