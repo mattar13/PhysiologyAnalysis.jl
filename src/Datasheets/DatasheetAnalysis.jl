@@ -47,9 +47,13 @@ end
 
 """
 function run_A_wave_analysis(all_files::DataFrame; 
-          run_amp=false, verbose=true, measure_minima = false, a_cond = "BaCl_LAP4", 
+          measure_minima = false, a_cond = "BaCl_LAP4", 
           t_pre = 1.0, t_post = 0.6, 
-          peak_method = false
+          peak_method = false, 
+          lb = (1.0, 1.0, 0.1), #Default rmin = 100, kmin = 0.1, nmin = 0.1 
+          p0 = (500.0, 1000.0, 2.0), #Default r = 500.0, k = 200.0, n = 2.0
+          ub = (Inf, Inf, 10.0), #Default rmax = 2400, kmax = 800
+          verbose=false, 
      )
      a_files = all_files |> @filter(_.Condition == a_cond) |> DataFrame #Extract all A-wave responses
      if isnothing(a_files)
@@ -60,8 +64,6 @@ function run_A_wave_analysis(all_files::DataFrame;
           if verbose
                println("Completed data query")
           end
-          #println(uniqueData)
-          #println(size(uniqueData))
           qTrace = DataFrame() #Make empty dataframes for all traces
           qExperiment = DataFrame() #Make empty dataframe for all experiments
           for (idx, i) in enumerate(eachrow(uniqueData)) #Walk through each unique data
@@ -92,6 +94,9 @@ function run_A_wave_analysis(all_files::DataFrame;
                     ch = data.chNames[1] #Extract channel information
                     gain = data.chTelegraph[1] #Extract the gain
                     if gain == 1
+                         if verbose 
+                              println("Gain is a different")
+                         end
                          data / 100.0
                     end
                     #======================DATA ANALYSIS========================#
@@ -121,14 +126,8 @@ function run_A_wave_analysis(all_files::DataFrame;
                          rmaxes = minimum(responses, dims=1)
                     end
                     Peak_Times = time_to_peak(filt_data) #Calculate the time to peak
-                    Integrated_Times = abs.(integral(filt_data))
-                    rec_res = recovery_time_constant(filt_data, responses)
-                    Recovery_Taus = rec_res[1] |> vec
-                    Tau_GOFs = rec_res[2] |> vec
-
-                    #The 60% Bandwith can be used to measure the percent recovery interval
-                    Percent_Recoveries = percent_recovery_interval(filt_data, rmaxes)
-                    #We need to program the amplification as well. But that may be longer
+                    Integrated_Times = abs.(integral(filt_data)) #Calculate the area under the curve
+                    Percent_Recoveries = percent_recovery_interval(filt_data, rmaxes) #Calculate the 60% recovery
 
                     #======================GLUING TOGETHER THE QUERY========================#
                     #now we can walk through each one of the responses and add it to the qTrace 
@@ -144,14 +143,13 @@ function run_A_wave_analysis(all_files::DataFrame;
                                    Channel=ch, Gain=gain,
                                    Response=Resps[swp], Minima=minimas[swp], Maxima=maximas[swp],
                                    Peak_Time=Peak_Times[swp], Integrated_Time=Integrated_Times[swp],
-                                   Recovery_Tau=Recovery_Taus[swp], Tau_GOF=Tau_GOFs[swp],
                                    Percent_Recovery=Percent_Recoveries[swp]
+                                   #Recovery_Tau=Recovery_Taus[swp], Tau_GOF=Tau_GOFs[swp],
                               )
                          )
 
                     end
 
-                    #Each data entry will be added to the qExperiment frame
                     #This section we need to extract Rdim responses. 
                     norm_resp = Resps ./ maximum(Resps)
                     rdim_idxs = findall(0.20 .< norm_resp .< 0.50)
@@ -161,29 +159,22 @@ function run_A_wave_analysis(all_files::DataFrame;
                          rdim_min = argmin(Resps[rdim_idxs])
                          rdim_idx = rdim_idxs[rdim_min]
                     end
-                    #try fitting the data for the rmax and k individually
-                    rmax_FIT = 0.0
-                    k_FIT = 0.0
-                    n_FIT = 0.0
-                    try
-                         fit = IRfit(qData[:, :Photons], Resps[:,1], r = maximum(Resps))
-                         rmax_FIT, k_FIT, n_FIT = fit.param
-                    catch
-                         println("Something went wrong")
-                         
-                    end
+                    
+                    fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
+                    #Fitting each data trace to a IR curve
                     push!(qExperiment, (
                          Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                          Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                         Channel = ch,
                          Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                         #Photons=qData[1, :Photons], #We dont' need the first number of photons
-                         rmax=maximum(Resps),
-                         rmax_fit = rmax_FIT, k = k_FIT, n = n_FIT,
+                         rmax = maximum(Resps),
+                         RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
+                         RSQ_fit = rsq, #, MSE_fit = mse_FIT,
                          rdim=Resps[rdim_idx],
                          integration_time=Integrated_Times[rdim_idx],
                          time_to_peak=Peak_Times[rdim_idx],
-                         recovery_tau=Recovery_Taus[rdim_idx],
-                         percent_recovery=maximum(Percent_Recoveries) # sum(Percent_Recoveries) / length(Percent_Recoveries) #really strange these usually are averaged
+                         percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
+                         #recovery_tau=Recovery_Taus[rdim_idx],
                     ))
 
                end
@@ -198,37 +189,24 @@ function run_A_wave_analysis(all_files::DataFrame;
                          Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
                          Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
                          Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
-                         Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
-                         Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery)
+                         Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
+                         K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit)
+                         #Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
                     }) |>
                     DataFrame
-          #retroactively go through and fit all IR data
-          rmax_fit = Float64[]
-          k_fit = Float64[]
-          n_fit = Float64[]
-          for (idx, categ) in enumerate(extract_categories(qConditions))
-               allIR, fiti = extractIR(qTrace, categ, measure = :Minima)
-               #if categ[1] <= 11
-               #else
-               #     allIR, fiti = extractIR(qTrace, categ)
-               #end
-               push!(rmax_fit, abs(fiti.param[1]))
-               push!(k_fit, fiti.param[2])
-               push!(n_fit, fiti.param[3])
-          end
-          qConditions[!, :RmaxFit] = rmax_fit
-          qConditions[!, :k] = k_fit
-          qConditions[!, :n] = n_fit
           return qTrace, qExperiment, qConditions
      end
 end
 
 #We can update this with our updated channel analysis
-function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_LAP4", b_cond = "BaCl")
+function run_B_wave_analysis(all_files::DataFrame; 
+     t_pre = 1.0, t_post = 2.0, 
+     a_cond = "BaCl_LAP4", 
+     b_cond = "BaCl",
+     verbose=false, 
+)
      trace_A = all_files |> @filter(_.Condition == a_cond) |> DataFrame
      trace_AB = all_files |> @filter(_.Condition == b_cond) |> DataFrame
-     println(size(trace_A))
-     println(size(trace_AB))
      if isempty(trace_AB)
           return nothing
      elseif isempty(trace_A)
@@ -241,6 +219,9 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_
                     A_condition = _.Condition,
                     A_Path = _.Path,
                }) |> DataFrame
+          if verbose
+               println("Completed data query")
+          end
      else
           b_files = trace_A |> @join(trace_AB,
                {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
@@ -249,6 +230,9 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_
                     A_condition = _.Condition,
                     A_Path = _.Path,
                }) |> DataFrame
+          if verbose
+               println("Completed data query")
+          end
      end
      b_files[!, :Path] = string.(b_files[!, :Path]) #XLSX.jl converts things into Vector{Any}      
      b_files[!, :A_Path] = string.(b_files[!, :A_Path]) #XLSX.jl converts things into Vector{Any}            
@@ -261,35 +245,36 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_
                println("Path: $(i.Path)")
           end
           qData = b_files |> @filter(
-                    (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
-                    (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
-               ) |>
-               DataFrame
-          #println(qData)
-          #println(qData.Path)
-          data_AB = readABF(qData.Path)
-          filt_data_AB = data_filter(data_AB, avg_swp = false, t_post=5.0)
+               (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
+               (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
+          ) |> DataFrame
+
+          
+          data_AB = readABF(qData.Path) #Read the AB data
+          filt_data_AB = data_filter(data_AB, avg_swp = false, t_pre = t_pre, t_post=t_post)
 
           data_A = readABF(qData.A_Path)
-          filt_data_A = data_filter(data_A, avg_swp = false, t_post=5.0)
+          filt_data_A = data_filter(data_A, avg_swp = false, t_pre = t_pre, t_post=t_post)
+
           #if we want to subtract we need to filter first
           sub_data = filt_data_AB - filt_data_A
           for (ch_idx, data_ch) in enumerate(eachchannel(sub_data)) #walk through each row of the data iterator
 
                unsubtracted_data_ch = getchannel(filt_data_AB, ch_idx)
-               age = qData.Age[1] #Extract the age
                ch = data_ch.chNames[1] #Extract channel information
                gain = data_ch.chTelegraph[1]
                #Calculate the response based on the age
                if gain == 1
-                    println("Gain is a different")
+                    if verbose 
+                         println("Gain is a different")
+                    end
                     data_ch / 100
                end
                #======================DATA ANALYSIS========================#
                #data from P11 doesn't always make sense, so we can invert it 
-               if age == 11
-                    data_ch * -1
-               end
+               #if age == 11
+               #     data_ch * -1
+               #end
                responses = Resps = maximas = maximum(data_ch, dims=2)[:, 1, :]
                rmaxes = maximum(responses, dims=1)
                Unsubtracted_Resp = abs.(minima_to_peak(unsubtracted_data_ch)) #This is the unsubtracted Response
@@ -297,11 +282,6 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_
                maximas = maximum(data_ch, dims=2)[:, 1, :]
                Peak_Times = time_to_peak(data_ch)
                Integrated_Times = integral(data_ch)
-               rec_res = recovery_time_constant(data_ch, Resps)
-               Recovery_Taus = rec_res[1] |> vec
-               Tau_GOFs = rec_res[2] |> vec
-
-               #We need to program the amplification as well. But that may be longer
                Percent_Recoveries = percent_recovery_interval(data_ch, rmaxes)
                #======================GLUING TOGETHER THE QUERY========================#
                for swp = 1:size(data_ch, 1) #Walk through all sweep info, since sweeps will represent individual datafiles most of the time
@@ -316,7 +296,6 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_
                               Response=Resps[swp], Unsubtracted_Response=Unsubtracted_Resp[swp],
                               Minima=minimas[swp], Maxima=maximas[swp],
                               Peak_Time=Peak_Times[swp], Integrated_Time=Integrated_Times[swp],
-                              Recovery_Tau=Recovery_Taus[swp], Tau_GOF=Tau_GOFs[swp],
                               Percent_Recovery=Percent_Recoveries[swp]
                          )
                     )
@@ -331,23 +310,25 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_
                     rdim_min = argmin(Resps[rdim_idxs])
                     rdim_idx = rdim_idxs[rdim_min]
                end
-
+               fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
+               #println(fit, rsq)
                push!(qExperiment, (
                     Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                     Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
                     Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                    Channel = ch,
                     Photons=qData[1, :Photons],
                     rmax=maximum(Resps),
+                    RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
+                    RSQ_fit = rsq, #, MSE_fit = mse_FIT,
                     unsubtracted_rmax=maximum(Unsubtracted_Resp),
                     rdim=Resps[rdim_idx],
                     integration_time=Integrated_Times[rdim_idx],
                     time_to_peak=Peak_Times[rdim_idx],
-                    recovery_tau=Recovery_Taus[rdim_idx],
                     percent_recovery=maximum(Percent_Recoveries) #sum(Percent_Recoveries) / length(Percent_Recoveries) #really strange these usually are averaged
                ))
           end
      end
-     println(qExperiment)
      qConditions = qExperiment |>
           @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
           @map({
@@ -358,9 +339,9 @@ function run_B_wave_analysis(all_files::DataFrame; verbose=true, a_cond = "BaCl_
                Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
                Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
                Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
-               Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
-               Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery)}) |>
-          DataFrame
+               Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
+               K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit)
+          }) |> DataFrame
 
      return qTrace, qExperiment, qConditions
 end
@@ -368,54 +349,45 @@ end
 """
 There is no version of G component analysis that is not subtractive
 """
-function run_G_wave_analysis(all_files::DataFrame; verbose=true)
+function run_G_wave_analysis(all_files::DataFrame; 
+     t_pre = 1.0, t_post = 4.0, 
+     verbose=false, 
+)
      trace_ABG = all_files |> @filter(_.Condition == "NoDrugs") |> DataFrame
      trace_AB = all_files |> @filter(_.Condition == "BaCl") |> DataFrame
-     println(trace_ABG)
-     println(trace_AB)
      if isempty(trace_ABG)
           return nothing
      elseif isempty(trace_AB)
           return nothing
      else
           g_files = trace_AB |> @join(trace_ABG,
-                         {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                         {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                         {__...,
-                              AB_condition = _.Condition,
-                              AB_Path = _.Path,
-                         }) |> DataFrame
+               {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+               {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+               {__...,
+                    AB_condition = _.Condition,
+                    AB_Path = _.Path,
+          }) |> DataFrame
           g_files[!, :Path] = string.(g_files[!, :Path]) #XLSX.jl converts things into Vector{Any}      
           g_files[!, :AB_Path] = string.(g_files[!, :AB_Path]) #XLSX.jl converts things into Vector{Any}            
 
           uniqueData = g_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype}) |> DataFrame
-          #println(size(uniqueData))
-          #println(size(trace_ABG))
-          #println(size(trace_AB))
-          #println(size(g_files))
           qTrace = DataFrame()
           qExperiment = DataFrame()
           for (idx, i) in enumerate(eachrow(uniqueData)) #We ca
                qData = g_files |> @filter(
                          (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
                          (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
-                    ) |>
-                    DataFrame
+               ) |> DataFrame
                data_ABG = readABF(qData.Path)
-               filt_data_ABG = data_filter(data_ABG, avg_swp = false, t_post=5.0)
+               filt_data_ABG = data_filter(data_ABG, avg_swp = false, t_pre = t_pre, t_post = t_post)
                data_AB = readABF(qData.AB_Path)
-               filt_data_AB = data_filter(data_AB, avg_swp = false, t_post=5.0)
+               filt_data_AB = data_filter(data_AB, avg_swp = false, t_pre = t_pre, t_post = t_post)
                #if we want to subtract we need to filter first
-               #println(qData.Path)
-               #println(qData.AB_Path)
-               filt_data = filt_data_ABG - filt_data_AB
-
-
+               sub_data = filt_data_ABG - filt_data_AB
                if verbose
                     println("Completeing Glial analysis for $idx out of $(size(uniqueData,1))")
                end
-               for (ch_idx, data_ch) in enumerate(eachchannel(filt_data)) #walk through each row of the data iterator
-                    age = qData.Age[1] #Extract the age
+               for (ch_idx, data_ch) in enumerate(eachchannel(sub_data)) #walk through each row of the data iterator
                     ch = data_ch.chNames[1] #Extract channel information
                     gain = data_ch.chTelegraph[1]
                     if gain == 1
@@ -432,12 +404,7 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                     #minimas = minimum(data_ch, dims=2)[:, 1, :]
                     Peak_Times = time_to_peak(data_ch)
                     Integrated_Times = integral(data_ch)
-                    rec_res = recovery_time_constant(data_ch, Resps)
-                    Recovery_Taus = rec_res[1] |> vec
-                    Tau_GOFs = rec_res[2] |> vec
                     Percent_Recoveries = percent_recovery_interval(data_ch, rmaxes)
-                    #println(Percent_Recoveries)
-                    #We need to program the amplification as well. But that may be longer
 
                     #======================GLUING TOGETHER THE QUERY========================#
                     #now we can walk through each one of the responses and add it to the qTrace 
@@ -452,8 +419,8 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                               Channel=ch, Gain=gain,
                               Response=Resps[swp], Unsubtracted_Response=Unsubtracted_Resp[swp],
                               Minima=minimas[swp], Maxima=maximas[swp],
-                              Peak_Time=Peak_Times[swp], Integrated_Time=Integrated_Times[swp],
-                              Recovery_Tau=Recovery_Taus[swp], Tau_GOF=Tau_GOFs[swp],
+                              Peak_Time=Peak_Times[swp], 
+                              Integrated_Time=Integrated_Times[swp],
                               Percent_Recovery=Percent_Recoveries[swp])
                          )
                     end
@@ -466,20 +433,20 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                          rdim_min = argmin(Resps[rdim_idxs])
                          rdim_idx = rdim_idxs[rdim_min]
                     end
+                    fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
                     push!(qExperiment, (
                          Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                          Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
                          Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
                          Photons=qData[1, :Photons],
                          rmax=maximum(Resps),
+                         RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
+                         RSQ_fit = rsq, #, MSE_fit = mse_FIT,
                          unsubtracted_rmax=maximum(Unsubtracted_Resp),
                          rdim=Resps[rdim_idx],
                          integration_time=Integrated_Times[rdim_idx],
                          time_to_peak=Peak_Times[rdim_idx],
-                         recovery_tau=Recovery_Taus[rdim_idx],
-                         #percent_recovery=sum(Percent_Recoveries) / length(Percent_Recoveries) #really strange these usually are averaged
                          percent_recovery=maximum(Percent_Recoveries) #This is maximum vs average
-                         #percent_recovery= Percent_Recoveries[rdim_idx] #this is the recovery associated with the rdim
                     ))
                end
           end
@@ -493,9 +460,9 @@ function run_G_wave_analysis(all_files::DataFrame; verbose=true)
                          Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
                          Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
                          Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
-                         Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
-                         Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery)}) |>
-                    DataFrame
+                         Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
+                         K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit)
+                    }) |> DataFrame
 
           return qTrace, qExperiment, qConditions
      end
@@ -551,21 +518,22 @@ end
 
 #This can be used for IR and STF, but not for Tau or LP model
 function GenerateFitFrame(df_TRACE, xData, yData; 
-     model = nothing,
-     rmin = 100.0, r = 500.0, rmax = 2400, #The highest b-wave ever seen is (2400)
-     kmin = 1.0, k = 200.0, kmax = 400, #Half of the highest a-wave ever seen (800), 
-     nmin = 0.1, n = 2.5, nmax = 4.0,
+     MODEL = HILL_MODEL, #These function
+     lb = (100.0, 1.0, 0.1), #Default rmin = 100, kmin = 0.1, nmin = 0.1 
+     p0 = (500.0, 200.0, 2.0), #Default r = 500.0, k = 200.0, n = 2.0
+     ub = (2400, 400, 4.0), #Default rmax = 2400, kmax = 800
+     verbose = true
 )
      df_EXP = df_TRACE |> @unique({_.Year, _.Month, _.Date, _.Number, _.Channel}) |> 
           @map({
                _.Year, _.Month, _.Date, _.Number, _.Channel,      
-               rmin = rmin, r = r, rmax = rmax, #The highest b-wave ever seen is (2400)
-               kmin = kmin, k = k, kmax = kmax, #Half of the highest a-wave ever seen (800), 
-               nmin = nmin, n = n, nmax = nmax,
                RMAX = 0.0, K = 0.0, N = 0.0, 
+               RSQ = 0.0,
+               rmin = lb[1], r = p0[1], rmax = ub[1], #The highest b-wave ever seen is (2400)
+               kmin = lb[2], k = p0[2], kmax = ub[2], #Half of the highest a-wave ever seen (800), 
+               nmin = lb[3], n = p0[3], nmax = ub[3],
                MSE = 0.0,
                SS_Resid = 0.0, SS_Total = 0.0, 
-               RSQ = 0.0
 
           }) |> DataFrame
      for (idx, exp) in enumerate(eachrow(df_EXP))
@@ -575,13 +543,16 @@ function GenerateFitFrame(df_TRACE, xData, yData;
           DATE = exp.Date 
           NUMBER = exp.Number 
           CHANNEL = exp.Channel
-          println("Fitting exp $idx: $YEAR $MONTH $DATE $NUMBER $CHANNEL")
+          if verbose
+               print("Fitting exp $idx: $(YEAR)_$(MONTH)_$(DATE)_$(NUMBER)_$(CHANNEL)")
+          end
           exp_traces = df_TRACE |> @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == (exp.Year, exp.Month, exp.Date, exp.Number, exp.Channel)) |> DataFrame
+          println(exp_traces)
           #Conduct the fitting 
           p0 = [exp.r, exp.k, exp.n]
           ub = [exp.rmax, exp.kmax, exp.nmax]
           lb = [exp.rmin, exp.kmin, exp.nmin]
-          exp_STF = curve_fit(HILL_MODEL, exp_traces[:, xData], exp_traces[:, yData], p0, lower = lb, upper = ub)
+          exp_STF = curve_fit(MODEL, exp_traces[:, xData], exp_traces[:, yData], p0, lower = lb, upper = ub)
 
           df_EXP[idx, :RMAX] = exp_STF.param[1]
           df_EXP[idx, :K] = exp_STF.param[2]
@@ -592,7 +563,9 @@ function GenerateFitFrame(df_TRACE, xData, yData;
           yMean = mean(yTrue)
           df_EXP[idx, :SS_Total] = ss_total = sum((yTrue .- yMean).^2)
           df_EXP[idx, :RSQ] = 1 - (ss_resid/ss_total)
-          println(df_EXP[idx, :RSQ])
+          if verbose
+               println("RSQ is at $(println(df_EXP[idx, :RSQ]))")
+          end
      end
      return df_EXP
 end
