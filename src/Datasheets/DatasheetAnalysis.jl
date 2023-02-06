@@ -549,10 +549,7 @@ function runAnalysis(datafile::String; measure_minima = false)
      return (df, resA, resB, resG)
 end
 
-
-
-#%% Calculate a better way to fit them
-#This can be used for IR or STF
+#This can be used for IR and STF, but not for Tau or LP model
 function GenerateFitFrame(df_TRACE, xData, yData; 
      model = nothing,
      rmin = 100.0, r = 500.0, rmax = 2400, #The highest b-wave ever seen is (2400)
@@ -580,12 +577,12 @@ function GenerateFitFrame(df_TRACE, xData, yData;
           CHANNEL = exp.Channel
           println("Fitting exp $idx: $YEAR $MONTH $DATE $NUMBER $CHANNEL")
           exp_traces = df_TRACE |> @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == (exp.Year, exp.Month, exp.Date, exp.Number, exp.Channel)) |> DataFrame
-          #println(exp_traces)
-          exp_STF = STFfit(exp_traces[:, xData], exp_traces[:, yData], 
-               rmin = exp.rmin, r = exp.r, rmax = exp.rmax,
-               kmin = exp.kmin, k = exp.k, kmax = exp.kmax, 
-               nmin = exp.nmin, n = exp.n, nmax = exp.nmax
-          )
+          #Conduct the fitting 
+          p0 = [exp.r, exp.k, exp.n]
+          ub = [exp.rmax, exp.kmax, exp.nmax]
+          lb = [exp.rmin, exp.kmin, exp.nmin]
+          exp_STF = curve_fit(HILL_MODEL, exp_traces[:, xData], exp_traces[:, yData], p0, lower = lb, upper = ub)
+
           df_EXP[idx, :RMAX] = exp_STF.param[1]
           df_EXP[idx, :K] = exp_STF.param[2]
           df_EXP[idx, :N] = exp_STF.param[3]
@@ -598,4 +595,8 @@ function GenerateFitFrame(df_TRACE, xData, yData;
           println(df_EXP[idx, :RSQ])
      end
      return df_EXP
+end
+
+function GenerateTimeFitFrame(df_TRACE)
+
 end
