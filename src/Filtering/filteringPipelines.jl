@@ -1,5 +1,5 @@
 function data_filter!(data::Experiment;
-     t_pre=1.0, t_post=4.0,
+     t_pre=1.0, t_post=5.0,
      avg_swp=false,
      scale=1000.0,
      remove_global_drift = false,
