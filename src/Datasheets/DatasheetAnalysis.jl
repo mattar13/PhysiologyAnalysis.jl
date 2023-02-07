@@ -48,7 +48,7 @@ end
 """
 function run_A_wave_analysis(all_files::DataFrame; 
           measure_minima = false, a_cond = "BaCl_LAP4", 
-          t_pre = 1.0, t_post = 0.6, 
+          t_pre = 1.0, t_post = 2.0, #Extend these to see the end of the a-wave
           peak_method = false, 
           lb = (1.0, 1.0, 0.1), #Default rmin = 100, kmin = 0.1, nmin = 0.1 
           p0 = (500.0, 1000.0, 2.0), #Default r = 500.0, k = 200.0, n = 2.0
@@ -200,7 +200,7 @@ end
 
 #We can update this with our updated channel analysis
 function run_B_wave_analysis(all_files::DataFrame; 
-     t_pre = 1.0, t_post = 2.0, 
+     t_pre = 1.0, t_post = 2.0, #This can be very quick, the initiation of the b-wave is faster
      a_cond = "BaCl_LAP4", 
      b_cond = "BaCl",
      verbose=false, 
@@ -350,7 +350,7 @@ end
 There is no version of G component analysis that is not subtractive
 """
 function run_G_wave_analysis(all_files::DataFrame; 
-     t_pre = 1.0, t_post = 4.0, 
+     t_pre = 1.0, t_post = 2.0, 
      verbose=false, 
 )
      trace_ABG = all_files |> @filter(_.Condition == "NoDrugs") |> DataFrame
