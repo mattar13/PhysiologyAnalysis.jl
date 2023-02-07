@@ -5,7 +5,7 @@ These functions extract the file information from the datafile path
 ========================================================================================================================================#
 function DataPathExtraction(path::String, calibration_file::String;
      unknown_genotype = :WT, conditions_error = false, 
-     verbose = true, extract_photons=true
+     verbose = false, extract_photons=true
 )
 
      if verbose
