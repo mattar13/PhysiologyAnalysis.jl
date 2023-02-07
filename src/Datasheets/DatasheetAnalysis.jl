@@ -437,6 +437,7 @@ function run_G_wave_analysis(all_files::DataFrame;
                     push!(qExperiment, (
                          Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                          Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                         Channel = ch,
                          Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
                          Photons=qData[1, :Photons],
                          rmax=maximum(Resps),
