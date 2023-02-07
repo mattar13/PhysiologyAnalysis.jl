@@ -17,23 +17,23 @@ end
 # ╔═╡ a442e068-06ef-4d90-9228-0a03bc6d9379
 #This section will use the packages loaded in the environment
 begin
-     using Pkg
-     Pkg.activate("../../")
-     using Dates, PlutoUI
-     using ePhys
-
-     import ePhys: baseline_adjust!, truncate_data!, average_sweeps!
-     import ePhys: filter_data!, filter_data
-     import ePhys: dwt_filter!, cwt_filter!
-     import ePhys: fft_spectrum
-     #Use pyplot? for plotting
-     using PyPlot
-     #import PyPlot: plt
-     import ePhys.rcParams
-     import ePhys: wavelet, cDb2
-     using ContinuousWavelets
-     using Statistics
-     pygui(true)
+	using Pkg
+	Pkg.activate("../../")
+	using Dates, PlutoUI
+	using ePhys
+	import ePhys: baseline_adjust!, truncate_data!, average_sweeps!
+	import ePhys: filter_data!, filter_data
+	import ePhys: dwt_filter!, cwt_filter!
+	import ePhys: fft_spectrum
+	#Use pyplot? for plotting
+	using PyPlot
+	import ePhys.plot_experiment
+	#import PyPlot: plt
+	import ePhys.rcParams
+	import ePhys: wavelet, cDb2
+	using ContinuousWavelets
+	using Statistics
+	pygui(true)
 end
 
 # ╔═╡ e2fcae6f-d795-4258-a328-1aad5ea64195
@@ -60,9 +60,6 @@ a) Type in the channels you want to analyze here:
 
 # ╔═╡ 971d6f11-2936-4d75-9641-36f81a94c2c4
 channels = ["Vm_prime", "Vm_prime4"]
-
-# ╔═╡ d6d59ac3-e6e8-4b49-9ac6-2a17cf72f30b
-@bind go Button("Filter")
 
 # ╔═╡ c8b4c855-64b8-4e18-9b2d-231260c67813
 md"""
@@ -106,6 +103,7 @@ Attenuation
 $(@bind att_val NumberField(0.0:10.0:400.0; default = 100.0))
 hz
 
+$(@bind go Button("Filter"))
 """
 
 # ╔═╡ 5fdc0c43-9454-495d-9b8a-e47313d178b2
@@ -314,11 +312,10 @@ end
 # ╠═7b14b019-7545-4441-833b-f7e660c23dc6
 # ╟─b400dd0c-5a40-4ee7-9116-7339939b7456
 # ╠═971d6f11-2936-4d75-9641-36f81a94c2c4
-# ╟─d6d59ac3-e6e8-4b49-9ac6-2a17cf72f30b
 # ╟─c8b4c855-64b8-4e18-9b2d-231260c67813
 # ╟─5fdc0c43-9454-495d-9b8a-e47313d178b2
 # ╟─76025c46-2977-4300-8597-de04f313c667
-# ╠═2084267b-64a8-4d5b-8ce1-dd41f7feaa3a
+# ╟─2084267b-64a8-4d5b-8ce1-dd41f7feaa3a
 # ╟─4daf9c1a-8b73-4049-8a13-b080e43f87cd
 # ╟─669c877b-efcf-4c6b-a70f-e14164abdbff
 # ╟─9d5c1286-1a13-428a-b772-67887ae1f7c8
