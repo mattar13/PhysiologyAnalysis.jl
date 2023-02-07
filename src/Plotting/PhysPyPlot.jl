@@ -17,7 +17,6 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     kwargs...
 )
     dataX, dataY = plot_prep(exp; channels=channels, sweeps = sweeps)
-    println(size(dataY))
     if is_cmap(color)
         cmapI = plt.get_cmap(color)
         
