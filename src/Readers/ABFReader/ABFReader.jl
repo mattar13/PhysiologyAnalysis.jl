@@ -93,7 +93,7 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
 
 
     dt = HeaderDict["dataSecPerPoint"]
-    t = collect(0:size(data, 2)-1) .* dt #Time is usually in seconds, but works better in ms
+    t = collect(0:size(data, 2)) .* dt #Time is usually in seconds, but works better in ms
     if time_unit == :ms
         dt *= 1000
         t .*= 1000
