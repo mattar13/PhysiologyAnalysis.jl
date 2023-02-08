@@ -121,9 +121,8 @@ function truncate_data!(trace::Experiment;
             have_before = truncate_loc
             have_after = size(trace, 2) - truncate_loc
             #println("We have $have_before and $have_after indexes before and after")
-
             if needed_before > have_before
-                #println("Not enough indexes preceed the stimulus point")
+                println("Not enough indexes preceed the stimulus point")
                 extra_indexes = needed_before - have_before
                 overrun_time = extra_indexes * dt
                 #println("t_pre goes $extra_indexes indexes too far")
@@ -131,9 +130,9 @@ function truncate_data!(trace::Experiment;
                 stim_begin_adjust = stim_protocol.index_range[1]
             else
                 #println("Enough indexes preceed the stimulus point")
-                idxs_begin = truncate_loc - round(Int, t_pre / dt)
+                idxs_begin = truncate_loc - round(Int, t_pre / dt) +1
+                #println(idxs_begin)
                 stim_begin_adjust = round(Int, t_pre / dt) 
-                println(stim_begin_adjust)
             end
 
             if needed_after > have_after
@@ -141,7 +140,7 @@ function truncate_data!(trace::Experiment;
                 idxs_end = size(trace, 2)
             else
                 #println("Enough indexes proceed the stimulus point")
-                idxs_end = truncate_loc + round(Int, t_post / dt) + 1
+                idxs_end = truncate_loc + round(Int, t_post / dt)+1
             end
 
             stim_end_adjust = stim_begin_adjust + (stim_protocol.index_range[2] - stim_protocol.index_range[1])
@@ -150,9 +149,9 @@ function truncate_data!(trace::Experiment;
             #println(trace.stim_protocol[swp])
 
             if size_of_array == 0
-                size_of_array = idxs_end - idxs_begin
+                size_of_array = (idxs_end - idxs_begin)+1
             end
-            trace.data_array[swp, 1:idxs_end-idxs_begin+1, :] .= trace.data_array[swp, idxs_begin:idxs_end, :]
+            trace.data_array[swp, 1:size_of_array, :] .= trace.data_array[swp, idxs_begin:idxs_end, :]
 
             #println(size_of_array)
         end
@@ -161,6 +160,7 @@ function truncate_data!(trace::Experiment;
         trace.data_array = trace.data_array[:, 1:size_of_array, :] #remake the array with only the truncated data
         trace.t = range(-t_pre + overrun_time, t_post, length=size_of_array)
     end
+    return trace
 end
 
 function truncate_data(trace::Experiment; kwargs...) 
