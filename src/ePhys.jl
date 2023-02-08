@@ -110,6 +110,11 @@ export plot_experiment
 =#
 using Crayons #Really cool package for coloring text for debugging
 #Once this is all ready, move this into the __init__ function
+
+#Test this here before adding it to the Requires section
+using DelimitedFiles
+include("Readers/CSVReader/CSVReader.jl")
+export readCSV
 #using DataFrames
 fTEST() = println("Revise works with init")
 function __init__()
