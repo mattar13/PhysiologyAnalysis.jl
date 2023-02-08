@@ -71,7 +71,11 @@ function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = 0.0, 
 end
 =#
 
-function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = nothing, t_end = nothing, truncate_based_on=:stimulus_beginning)
+function truncate_data!(trace::Experiment; 
+    t_pre=1.0, t_post=4.0, 
+    t_begin = nothing, t_end = nothing, 
+    truncate_based_on=:stimulus_beginning
+)
     dt = trace.dt
     size_of_array = 0
     overrun_time = 0 #This is for if t_pre is set too far before the stimulus
@@ -108,10 +112,11 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
                 t_end_adjust = 0.0
             end
             trace.stim_protocol[swp].timestamps = (t_begin_adjust, t_end_adjust)
-
+            
             #First lets calculate how many indexes we need before the stimulus
             needed_before = round(Int, t_pre / dt)
             needed_after = round(Int, t_post / dt)
+            
             #println("We need $needed_before and $needed_after indexes before and after")
             have_before = truncate_loc
             have_after = size(trace, 2) - truncate_loc
@@ -127,7 +132,8 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
             else
                 #println("Enough indexes preceed the stimulus point")
                 idxs_begin = truncate_loc - round(Int, t_pre / dt)
-                stim_begin_adjust = round(Int, t_pre / dt) + 1
+                stim_begin_adjust = round(Int, t_pre / dt) 
+                println(stim_begin_adjust)
             end
 
             if needed_after > have_after
