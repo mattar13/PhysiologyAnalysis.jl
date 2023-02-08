@@ -23,6 +23,34 @@ mutable struct Experiment{T}
     stim_protocol::Vector{StimulusProtocol{T}}
 end
 
+#Make a basic constructor for the experiment
+function Experiment(data_array::AbstractArray; data_idx = 2)
+    Experiment(
+        Dict{String, Any}(), #Pass an empty header info
+        1.0, 
+        collect(1.0:size(data_array, data_idx)),
+        data_array,
+        ["Channel 1"],
+        ["mV"],
+        [1.0], 
+        [StimulusProtocol()]
+    )
+end
+
+function Experiment(time::Vector, data_array::Array{T, 3}) where T <: Real
+    dt = time[2]-time[2]
+    Experiment(
+        Dict{String, Any}(), #Pass an empty header info
+        dt, 
+        time,
+        data_array,
+        ["Channel 1"],
+        ["mV"],
+        [1.0], 
+        [StimulusProtocol()]
+    )
+end
+
 import Base: +, -, *, / #Import these basic functions to help 
 function +(exp::Experiment, val::Real) 
     data = deepcopy(exp)
