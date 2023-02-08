@@ -159,24 +159,42 @@ function run_A_wave_analysis(all_files::DataFrame;
                          rdim_min = argmin(Resps[rdim_idxs])
                          rdim_idx = rdim_idxs[rdim_min]
                     end
-                    
-                    fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
-                    #Fitting each data trace to a IR curve
-                    push!(qExperiment, (
-                         Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
-                         Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                         Channel = ch,
-                         Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                         rmax = maximum(Resps),
-                         RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
-                         RSQ_fit = rsq, #, MSE_fit = mse_FIT,
-                         rdim=Resps[rdim_idx],
-                         integration_time=Integrated_Times[rdim_idx],
-                         time_to_peak=Peak_Times[rdim_idx],
-                         percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
-                         #recovery_tau=Recovery_Taus[rdim_idx],
-                    ))
-
+                    println(qData[:, :Photons])
+                    if size(Resps,1) > 1
+                         #if Resps |> vec
+                         fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
+                         #Fitting each data trace to a IR curve
+                         push!(qExperiment, (
+                              Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
+                              Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                              Channel = ch,
+                              Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                              rmax = maximum(Resps),
+                              RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
+                              RSQ_fit = rsq, #, MSE_fit = mse_FIT,
+                              rdim=Resps[rdim_idx],
+                              integration_time=Integrated_Times[rdim_idx],
+                              time_to_peak=Peak_Times[rdim_idx],
+                              percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
+                              #recovery_tau=Recovery_Taus[rdim_idx],
+                         ))
+                    else
+                         #Fitting each data trace to a IR curve
+                         push!(qExperiment, (
+                              Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
+                              Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                              Channel = ch,
+                              Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                              rmax = maximum(Resps),
+                              RMAX_fit = 0.0, K_fit = 0.0, N_fit = 0.0,
+                              RSQ_fit = 0.0, #, MSE_fit = mse_FIT,
+                              rdim=Resps[rdim_idx],
+                              integration_time=Integrated_Times[rdim_idx],
+                              time_to_peak=Peak_Times[rdim_idx],
+                              percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
+                              #recovery_tau=Recovery_Taus[rdim_idx],
+                         ))
+                    end
                end
           end
 
@@ -386,6 +404,7 @@ function run_G_wave_analysis(all_files::DataFrame;
                sub_data = filt_data_ABG - filt_data_AB
                if verbose
                     println("Completeing Glial analysis for $idx out of $(size(uniqueData,1))")
+                    println("Path: $(i.Path)")
                end
                for (ch_idx, data_ch) in enumerate(eachchannel(sub_data)) #walk through each row of the data iterator
                     ch = data_ch.chNames[1] #Extract channel information
@@ -497,20 +516,20 @@ function add_analysis_sheets(results, save_file::String; append="A")
      end
 end
 
-function runAnalysis(datafile::String; measure_minima = false)
+function runAnalysis(datafile::String; measure_minima = false, verbose = false)
      print("Opening datafile $(datafile)... ")
      df = openDatasheet(datafile)
      println("complete")
      #%% Test the a, b, and g wave analysis
-     resA = ePhys.run_A_wave_analysis(df["All_Files"]; measure_minima = measure_minima)
+     resA = ePhys.run_A_wave_analysis(df["All_Files"]; measure_minima = measure_minima, verbose = verbose)
      if !isnothing(resA)
           add_analysis_sheets(resA, datafile; append="A")
      end
-     resB = ePhys.run_B_wave_analysis(df["All_Files"])
+     resB = ePhys.run_B_wave_analysis(df["All_Files"], verbose = verbose)
      if !isnothing(resB)
           add_analysis_sheets(resB, datafile; append="B")
      end
-     resG = ePhys.run_G_wave_analysis(df["All_Files"])
+     resG = ePhys.run_G_wave_analysis(df["All_Files"], verbose = verbose)
      if !isnothing(resG)
           add_analysis_sheets(resG, datafile; append="G")
      end
