@@ -44,4 +44,4 @@ b = maximum(data, dims = 2)
 ax[2].scatter(a, b.-a)
 
 #%% Test out some git stuff here
-println("This is the master branch")
+println("This is the stable branch")
