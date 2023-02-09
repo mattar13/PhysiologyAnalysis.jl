@@ -117,15 +117,6 @@ end
 
 readABF(abf_path::Union{String,Vector{UInt8}}; kwargs...) = readABF(Float64, abf_path; kwargs...)
 
-<<<<<<< HEAD
-#This function utilizes concat
-function readABF(abf_folder::AbstractArray{String}; average_sweeps=false, kwargs...)
-    #println("Currently stable")
-    data = concat(abf_folder; kwargs...) #In the inner loop we don't want to average the sweeps
-    #Save the sweep averaging for here
-    if average_sweeps
-        average_sweeps!(data)
-=======
 function readABF(filenames::AbstractArray{String}; average_sweeps_inner=true, kwargs...)
     #println("Currently stable")
     #println("Data length is $(size(filenames, 1))")
@@ -136,7 +127,6 @@ function readABF(filenames::AbstractArray{String}; average_sweeps_inner=true, kw
         #println(size(data_add))
         concat!(data, data_add; kwargs...)
         #println(size(data, 1))
->>>>>>> origin/main
     end
 
     return data
