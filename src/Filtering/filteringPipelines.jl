@@ -1,7 +1,8 @@
 function data_filter!(data::Experiment;
-     t_pre=1.0, t_post=4.0,
+     t_pre=1.0, t_post=5.0,
      avg_swp=false,
      scale=1000.0,
+     remove_global_drift = false,
      dwt_periods=false, #dwt_periods = (1,9),
      cwt_periods=false, #cwt_periods = (1,9)
      kwargs...
@@ -9,6 +10,13 @@ function data_filter!(data::Experiment;
      #Truncate first
      truncate_data!(data, t_pre=t_pre, t_post=t_post)
      baseline_adjust!(data)
+
+     #Add an extra baseline step to remove global drift
+     if remove_global_drift == :polyfit
+          baseline_adjust!(data, polyN = 2, region = :whole)
+     elseif remove_global_drift == :Highpass
+          filter_data!(data, mode = :Highpass, freq_start = 0.05)
+     end
 
      #change from mV to uV
      scaleby!(data, scale) #scale the data by the scale number (usually is conversion from mV to μV

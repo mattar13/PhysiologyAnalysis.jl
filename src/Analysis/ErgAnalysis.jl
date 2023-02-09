@@ -49,7 +49,7 @@ function gaussian_saturation(data::Experiment{T};
     #model(xs, p) = map(x -> f(x, p), xs)
     t = data.t
 
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
+    for swp = axes(data, 1), ch = axes(data, 3)
         ȳ = data.data_array[swp, :, ch]
 
         fit = curve_fit(f, t, ȳ, p0, upper=ub)
@@ -68,7 +68,7 @@ function histogram_saturation(data::Experiment{T}; precision::Int64=100) where {
     rmaxes = zeros(size(data, 1), size(data, 3))
     minima = minimum(data, dims=2)[:, 1, :]
 
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
+    for swp = axes(data, 1), ch = axes(data, 3)
         #Lets try to quickly zero any positive results
         #y_data = data[swp, :, ch]
         #y_data *= y_data[swp, y_data .==]
@@ -107,14 +107,10 @@ function saturated_response(data::Experiment{T}; mode = :Gaussian, kwargs...) wh
     end
 end
 
-function dim_response(data::Experiment{T}, resps; lims = [0.20, 0.30]) where {T <: Real}
-    #Calculate
-end
-
 function minima_to_peak(data::Experiment; verbose=false)
     #We need to exclude the area 
     resp = zeros(size(data, 1), size(data, 3))
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
+    for swp = axes(data, 1), ch = axes(data, 3)
         past_stim = findall(data.t .> 0.0)
 
         data_section = data[swp, past_stim, ch] #Isolate all the items past the stim
@@ -166,7 +162,7 @@ function percent_recovery_interval(data::Experiment{T}, rmaxes::Matrix{T}; iᵣ:
     @assert size(data,3) == size(rmaxes, 2) #rmax data matches data channels
     #Tᵣ = fill(NaN, size(data,1), size(data,3))
     Tᵣ = zeros(size(data,1), size(data,3))
-    for swp in 1:size(data, 1), ch in 1:size(data, 3)
+    for swp in axes(data, 1), ch in axes(data, 3)
         data_percent = data.data_array[swp, :, ch] ./ rmaxes[ch]
         recovery_seqs = findsequential(data_percent .> iᵣ, seq_to_find=:all)
         #we have to eliminate all datavalues under data.t = 0.0
@@ -195,109 +191,4 @@ function integral(data::Experiment{T}) where {T<:Real}
     data_section = abs.(data_section)
     data_section ./= maximum(data_section, dims=2)
     return sum(data_section, dims=2) * data.dt
-end
-
-#=========================== The below functions are created by fitting a model ===========================#
-function IRfit(intensity, response;
-    r=100.0, k=1000.0, n=2.0,
-    rmin=0.0, rmax=2000.0, #This is the maximum ERG response we have gotten
-    kmin=0.05, kmax=1e6,
-    nmin=1.0, nmax=10.0
-)
-    p0 = [r, k, n]
-    ub = [rmax, kmax, nmax]
-    lb = [rmin, kmin, nmin]
-    #println(response)
-    model(I, p) = map(i -> p[1] * IR(i, p[2], p[3]), I)
-    fit = curve_fit(model, intensity, response, p0, lower=lb, upper=ub)
-    return fit
-end
-
-"""
-The recovery time constant is calculated by fitting the normalized Rdim with the response recovery equation
-"""
-function recovery_time_constant(data::Experiment{T}, resp::Union{T,Matrix{T}};
-    τRec::T=1.0
-) where {T<:Real}
-    #Make sure the sizes are the same
-    #@assert size(resp) == (size(data, 1), size(data,3))
-
-    trec = zeros(T, size(data, 1), size(data, 3))
-    gofs = zeros(T, size(data, 1), size(data, 3))
-    #This function uses the recovery model and takes t as a independent variable
-    model(x, p) = map(t -> REC(t, -1.0, p[2]), x)
-    for swp in 1:size(data, 1), ch in 1:size(data, 3)
-        # println(dim_idx[ch])
-        xdata = data.t
-        ydata = data[swp, :, ch]
-        #Test both scenarios to ensure that
-        ydata ./= minimum(ydata) #Normalize the Rdim to the minimum value
-        #ydata ./= resp #Normalize the Rdim to the saturated response
-
-        #cutoff all points below -0.5 and above -1.0
-        over_1 = findall(ydata .>= 1.0)
-        if !isempty(over_1)
-            begin_rng = over_1[end]
-        
-            xdata = xdata[begin_rng:end]
-            ydata = ydata[begin_rng:end]
-
-            cutoff = findall(ydata .< 0.5)
-            if isempty(cutoff)
-                #println("Exception")
-                end_rng = length(ydata)
-            else
-                end_rng = cutoff[1]
-            end
-
-            xdata = xdata[1:end_rng] .- xdata[1]
-            ydata = -ydata[1:end_rng]
-            p0 = [ydata[1], τRec]
-            fit = curve_fit(model, xdata, ydata, p0)
-            #report the goodness of fit
-            SSE = sum(fit.resid .^ 2)
-            ȳ = sum(model(xdata, fit.param)) / length(xdata)
-            SST = sum((ydata .- ȳ) .^ 2)
-            GOF = 1 - SSE / SST
-            trec[swp, ch] = fit.param[2]
-            gofs[swp, ch] = GOF
-        end
-    end
-    return trec, gofs
-end
-
-function amplification(data::Experiment{T}, resp::Union{T,Matrix{T}}; #This argument should be offloaded to a single value 
-    time_cutoff=0.1,
-    lb::Vector{T}=[0.0, 0.001],
-    p0::Vector{T}=[200.0, 0.002],
-    ub::Vector{T}=[Inf, 0.040]
-) where {T<:Real}
-
-    #@assert size(resp) == (size(data, 1), size(data,3))
-
-    amp = zeros(2, size(data, 1), size(data, 3))
-    gofs = zeros(T, size(data, 1), size(data, 3))
-
-    for swp = 1:size(data, 1), ch = 1:size(data, 3)
-        if isa(resp, Matrix{T})
-            resp_0 = resp[swp, ch]
-        else
-            resp_0 = resp
-        end
-        model(x, p) = map(t -> AMP(t, p[1], p[2], resp_0), x)
-        idx_end = findall(data.t .>= time_cutoff)[1]
-        xdata = data.t[1:idx_end]
-        ydata = data[swp, 1:idx_end, ch]
-
-        fit = curve_fit(model, xdata, ydata, p0, lower=lb, upper=ub)
-        #Check Goodness of fit
-        SSE = sum(fit.resid .^ 2)
-        ȳ = sum(model(xdata, fit.param)) / length(xdata)
-        SST = sum((ydata .- ȳ) .^ 2)
-        GOF = 1 - SSE / SST
-        amp[1, swp, ch] = fit.param[1] #Alpha amp value
-        amp[2, swp, ch] = fit.param[2] #Effective time value
-        gofs[swp, ch] = GOF
-    end
-    return amp, gofs
 end

@@ -1,15 +1,30 @@
 import Base.NamedTuple
 
 date_regex = r"(?'Year'\d{2,4})_(?'Month'\d{1,2})_(?'Date'\d{1,2})_(?'Description'.+)"
-animal_regex = r"(?'Animal'\D+)(?'Number'\d)_(?'Age'.+)_(?'Genotype'.+)"
+#animal_file_regex = r"(?'Animal'\D+)(?'Number'\d)_(?'Age'.+)_(?'Genotype'.+)"
 nd_file_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p_.+abf"
 
+animal_regex = r"(_m|(?'Animal'Mouse|Zebrafish|Organoid)|m)(?'Number'\d)"
+age_regex = r"_P(?'Age'\d*|)"
+adult_regex = r"(?'IsAdult'(?i)adult)"
+genotype_regex = r"_(?'Genotype'WT|DR|R141C|RS1KO|C59S|MelKO|GNAT-KO|GNAT-HT)"
+cond_regex = r"(?'Condition'Drugs|NoDrugs|BaCl_LAP4|BaCl|No drugs|No Drugs)"
+pc_regex = r"(?'Photoreceptors'Cones|Rods)"
+color_regex = r"(?'Color'blue|green|Blue|Green|UV|365|365UV|520|520Green|525|525Green)"
+avg_regex = r"(?'Correct'Average|average)"
+background_regex = r"(?'Background'withback|noback)"
+percent_regex = r"(?'Percent'\d{1,3})(%|p)"
+nd_regex = r"nd(?'ND'\d{1,3})"
 
+#nd_regex = r"nd(?'ND'.{1,3})_(?'Percent'\d{1,3})p"
 NamedTuple(m::RegexMatch) = NamedTuple{Symbol.(Tuple(keys(m)))}(values(m.captures))
 
-function findmatch(str_array::Vector{String}, reg_format; verbose=false, first=true)
+function findmatch(str_array::Vector{String}, reg_format::Regex; verbose=false, first=true)
     matches = map(r -> match(reg_format, r), str_array)
-    if any(!isnothing(matches))
+    #println(matches)
+    #println("Revise is working")
+    #println(any(.! isnothing.(matches)))
+    if any(.! isnothing.(matches))
         if verbose
             println("We found a format")
         end
@@ -23,6 +38,11 @@ function findmatch(str_array::Vector{String}, reg_format; verbose=false, first=t
             println("We did not find a format")
         end
     end
+end
+
+function findmatch(path::String, reg_format::Regex; kwargs...)
+    str_array = splitpath(path)
+    return findmatch(str_array, reg_format; kwargs...)
 end
 
 function find_condition(str_array; possible_conds=["BaCl", "BaCl_LAP4", "NoDrugs"])

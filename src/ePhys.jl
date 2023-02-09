@@ -19,7 +19,6 @@ c) Do more complicated machine learning and cancellation
 using Requires #This will help us load only the things we need
 using Dates
 using Base: String, println
-import RCall as R #This allows us to use some R functionality
 import PyCall as py
 #using PyCall
 #export R, py
@@ -40,7 +39,7 @@ include("Utilities/DataUtilities.jl")
 #export truncate_data, truncate_data!
 #export baseline_adjust
 export downsample, downsample!
-export split_data
+export eachchannel
 #=Add filtering capability=#
 using DSP #Used for lowpass, highpass, EI, and notch filtering
 using FFTW
@@ -71,14 +70,13 @@ export MeanSquaredError
 
 #====================Import all the tools needed to analyze the data====================#
 #First import models necessary for the analysis
-
 using Statistics, StatsBase #These functions use R functions as well as StatsBase
 include("Analysis/Stats.jl")
 export RSQ
 
 using Distributions
 include("Analysis/Models.jl")
-export IR
+export HILL_MODEL
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -110,11 +108,21 @@ include("Plotting/PhysPyPlot.jl")
 #export plt #Export plotting utilities
 export plot_experiment
 =#
-
+using Crayons #Really cool package for coloring text for debugging
 #Once this is all ready, move this into the __init__ function
+
+#Test this here before adding it to the Requires section
+using DelimitedFiles
+include("Readers/CSVReader/CSVReader.jl")
+export readCSV
 #using DataFrames
 fTEST() = println("Revise works with init")
 function __init__()
+     @require RCall = "6f49c342-dc21-5d91-9882-a32aef131414" begin
+          println("Loading R")
+          export RCall
+     end
+
      @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
           include("Filtering/make_spectrum.jl")
      end
@@ -135,15 +143,27 @@ function __init__()
           using DataFrames, Query, XLSX #Load these extra utilites immediately
           import XLSX: readtable, readxlsx #Import XLSX commands
           export readtable, readxlsx, XLSX
-          
+
           import Query: @filter #Import query commands
           export @filter, Query
           include("Datasheets/RegexFunctions.jl")
+          include("Datasheets/FilePathExtraction.jl")
           include("Datasheets/DatasheetFunctions.jl")
+          include("Datasheets/DatasheetCreation.jl")
           include("Datasheets/DatasheetAnalysis.jl")
           export openDatasheet, createDatasheet, updateDatasheet
           export runAnalysis
           export matchExperiment
+          export parseColumn!
+          export GenerateFitFrame
+          #This inner loop will allow you to revise the files listed in include if revise is available
+          @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
+               println("Revise and Dataframes loaded")
+               #import .Revise
+               Revise.track(ePhys, "src/Datasheets/RegexFunctions.jl")
+               Revise.track(ePhys, "src/Datasheets/DatasheetFunctions.jl")
+               Revise.track(ePhys, "src/Datasheets/DatasheetAnalysis.jl")
+          end
           # This function will load all of the functions that need a require
      end
 
@@ -159,12 +179,35 @@ function __init__()
           include("Plotting/DefaultSettings.jl") #This requires PyPlot
           include("Plotting/PlottingUtilities.jl")
           include("Plotting/PhysPyPlot.jl")
-          export plot_experiment
+          export plot_experiment, plot_experiment_fit
+          @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
+               #import .Revise
+               println("Revise and Pyplot loaded")
+               Revise.track(ePhys, "src/Plotting/DefaultSettings.jl")
+               Revise.track(ePhys, "src/Plotting/PlottingUtilities.jl")
+               Revise.track(ePhys, "src/Plotting/PhysPyPlot.jl")
+
+               #This files don't really track
+               #Revise.track(ePhys, "src/Readers/ABFReader/ABFReader.jl")
+               #Revise.track(ePhys, "src/Datasheets/DatasheetFunctions.jl")
+               #Revise.track(ePhys, "src/Datasheets/DatasheetAnalysis.jl")
+          end
      end
 
      @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
           using RecipesBase
           include("Plotting/PhysRecipes.jl")
+     end
+
+     @require Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin
+          println("Loading pluto notebooks")
+          include("Interface/opening_interface.jl")
+          export run_experiment_analysis
+          export run_trace_analysis
+          export run_filter_determination
+          export run_subtraction_analysis
+          #include("Interface/filter_determination.jl")
+
      end
 end
 

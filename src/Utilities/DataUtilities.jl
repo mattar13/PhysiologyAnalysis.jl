@@ -22,7 +22,7 @@ function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = 0.0, 
         data.t = trace.t[start_rng:end_rng] .- trace.t[start_rng]
         return data
     else
-        for swp = 1:size(trace, 1)
+        for swp = axes(trace, 1)
             stim_protocol = trace.stim_protocol[swp]
             #We are going to iterate through each sweep and truncate it
             if truncate_based_on == :stimulus_beginning
@@ -71,7 +71,11 @@ function truncate_data(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = 0.0, 
 end
 =#
 
-function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = nothing, t_end = nothing, truncate_based_on=:stimulus_beginning)
+function truncate_data!(trace::Experiment; 
+    t_pre=1.0, t_post=4.0, 
+    t_begin = nothing, t_end = nothing, 
+    truncate_based_on=:stimulus_beginning
+)
     dt = trace.dt
     size_of_array = 0
     overrun_time = 0 #This is for if t_pre is set too far before the stimulus
@@ -92,7 +96,7 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
         trace.data_array = trace.data_array[:, 1:size_of_array, :] #remake the array with only the truncated data
         trace.t = range(0.0, t_post, length=size_of_array)
     else
-        for swp = 1:size(trace, 1)
+        for swp = axes(trace, 1)
             stim_protocol = trace.stim_protocol[swp]
             #We are going to iterate through each sweep and truncate it
             #println(trace.stim_protocol[swp].index_range)
@@ -108,17 +112,17 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
                 t_end_adjust = 0.0
             end
             trace.stim_protocol[swp].timestamps = (t_begin_adjust, t_end_adjust)
-
+            
             #First lets calculate how many indexes we need before the stimulus
             needed_before = round(Int, t_pre / dt)
             needed_after = round(Int, t_post / dt)
+            
             #println("We need $needed_before and $needed_after indexes before and after")
             have_before = truncate_loc
             have_after = size(trace, 2) - truncate_loc
             #println("We have $have_before and $have_after indexes before and after")
-
             if needed_before > have_before
-                #println("Not enough indexes preceed the stimulus point")
+                println("Not enough indexes preceed the stimulus point")
                 extra_indexes = needed_before - have_before
                 overrun_time = extra_indexes * dt
                 #println("t_pre goes $extra_indexes indexes too far")
@@ -126,8 +130,9 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
                 stim_begin_adjust = stim_protocol.index_range[1]
             else
                 #println("Enough indexes preceed the stimulus point")
-                idxs_begin = truncate_loc - round(Int, t_pre / dt)
-                stim_begin_adjust = round(Int, t_pre / dt) + 1
+                idxs_begin = truncate_loc - round(Int, t_pre / dt) +1
+                #println(idxs_begin)
+                stim_begin_adjust = round(Int, t_pre / dt) 
             end
 
             if needed_after > have_after
@@ -135,7 +140,7 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
                 idxs_end = size(trace, 2)
             else
                 #println("Enough indexes proceed the stimulus point")
-                idxs_end = truncate_loc + round(Int, t_post / dt) + 1
+                idxs_end = truncate_loc + round(Int, t_post / dt)+1
             end
 
             stim_end_adjust = stim_begin_adjust + (stim_protocol.index_range[2] - stim_protocol.index_range[1])
@@ -144,9 +149,9 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
             #println(trace.stim_protocol[swp])
 
             if size_of_array == 0
-                size_of_array = idxs_end - idxs_begin
+                size_of_array = (idxs_end - idxs_begin)+1
             end
-            trace.data_array[swp, 1:idxs_end-idxs_begin+1, :] .= trace.data_array[swp, idxs_begin:idxs_end, :]
+            trace.data_array[swp, 1:size_of_array, :] .= trace.data_array[swp, idxs_begin:idxs_end, :]
 
             #println(size_of_array)
         end
@@ -155,6 +160,7 @@ function truncate_data!(trace::Experiment; t_pre=1.0, t_post=4.0, t_begin = noth
         trace.data_array = trace.data_array[:, 1:size_of_array, :] #remake the array with only the truncated data
         trace.t = range(-t_pre + overrun_time, t_post, length=size_of_array)
     end
+    return trace
 end
 
 function truncate_data(trace::Experiment; kwargs...) 
@@ -182,7 +188,7 @@ split_by::Symbol
 function split_data(exp::Experiment; split_by::Symbol=:channel)
     if split_by == :channel
         split_exp = Array{Experiment}([])
-        for ch = 1:size(exp, 3)
+        for ch = axes(exp, 3)
             new_data = deepcopy(exp)
             split_trace = reshape(exp[:, :, ch], (size(exp, 1), size(exp, 2), 1))
             println(size(split_trace))
@@ -194,7 +200,7 @@ function split_data(exp::Experiment; split_by::Symbol=:channel)
         split_exp
     elseif split_by == :sweep
         split_exp = Array{Experiment}([])
-        for ch = 1:size(exp, 1)
+        for ch = axes(exp, 1)
             new_data = deepcopy(exp)
             split_trace = reshape(exp[:, :, ch], (size(exp, 1), size(exp, 2), 1))
             println(size(split_trace))
@@ -241,55 +247,10 @@ reion::
     - (start, end) -> a custom region
 
 """
-function baseline_adjust(trace::Experiment{T};
-    mode::Symbol=:slope, polyN::Int64=1, region::Symbol=:prestim
-) where {T<:Real}
+function baseline_adjust(trace::Experiment{T}; kwargs...) where {T<:Real}
     data = deepcopy(trace)
-    if isempty(trace.stim_protocol)
-        #println("No Stim protocol exists")
-        return data
-    else
-        for swp in 1:size(trace, 1)
-            if isa(region, Tuple{Float64,Float64})
-                rng_begin = round(Int, region[1] / trace.dt) + 1
-                if region[2] > trace.t[end]
-                    rng_end = length(trace.t)
-                else
-                    rng_end = round(Int, region[2] / trace.dt) + 1
-                end
-            elseif isa(region, Tuple{Int64,Int64})
-                rng_begin, rng_end = region
-            elseif region == :whole
-                rng_begin = 1
-                rng_end = length(trace)
-            elseif region == :prestim
-                rng_begin = 1
-                rng_end = trace.stim_protocol[swp].index_range[1] #Get the first stimulus index
-            end
-            for ch in 1:size(trace, 3)
-                if mode == :mean
-                    if (rng_end - rng_begin) != 0
-                        baseline_adjust = sum(trace.data_array[swp, rng_begin:rng_end, ch]) / (rng_end - rng_begin)
-                        #Now subtract the baseline scaling value
-                        data.data_array[swp, :, ch] .= trace.data_array[swp, :, ch] .- baseline_adjust
-                    else
-                        if verbose
-                            #println("no pre-stimulus range exists")
-                        end
-                    end
-                elseif mode == :slope
-                    if (rng_end - rng_begin) != 0
-                        pfit = Polynomials.fit(trace.t[rng_begin:rng_end], trace[swp, rng_begin:rng_end, ch], polyN)
-                        #Now offset the array by the linear range
-                        data.data_array[swp, :, ch] .= trace[swp, :, ch] - pfit.(trace.t)
-                    else
-                        #println("no pre-stimulus range exists")
-                    end
-                end
-            end
-        end
-        return data
-    end
+    baseline_adjust!(data; kwargs...)
+    return data
 end
 
 function baseline_adjust!(trace::Experiment{T};
@@ -298,7 +259,7 @@ function baseline_adjust!(trace::Experiment{T};
     if isempty(trace.stim_protocol)
         #println("No stim protocol exists")
     else
-        for swp in 1:size(trace, 1)
+        for swp in axes(trace, 1)
             if isa(region, Tuple{Float64,Float64})
                 rng_begin = round(Int, region[1] / trace.dt) + 1
                 if region[2] > trace.t[end]
@@ -315,7 +276,7 @@ function baseline_adjust!(trace::Experiment{T};
                 rng_begin = 1
                 rng_end = trace.stim_protocol[swp].index_range[1] #Get the first stimulus index
             end
-            for ch in 1:size(trace, 3)
+            for ch in axes(trace, 3)
                 if mode == :mean
                     if (rng_end - rng_begin) != 0
                         baseline_adjust = sum(trace.data_array[swp, rng_begin:rng_end, ch]) / (rng_end - rng_begin)
@@ -385,13 +346,11 @@ ARGS:
 
 """
 function downsample!(trace::Experiment{T}, sample_rate::T) where {T<:Real}
-    #round the sample rate to a number
+    old_sample_rate = 1/trace.dt
     new_dt = 1 / sample_rate
-    new_sample_points = round(Int64, length(trace.t)*(trace.dt/new_dt))
-    sample_idxs = round.(Int64, LinRange(1, length(trace.t), new_sample_points))
-    #println(sample_idxs)
-    trace.dt = new_dt
-    trace.t = trace.t[1]:new_dt:trace.t[end]
+    trace.dt = new_dt #set the new dt
+    trace.t = trace.t[1]:new_dt:trace.t[end] #Set the new time array
+    sample_idxs = 1:round(Int64, old_sample_rate/sample_rate):size(trace, 2)
     trace.data_array = trace.data_array[:, sample_idxs, :]
 end
 

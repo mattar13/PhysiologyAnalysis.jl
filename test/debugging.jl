@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 using Revise
 using ePhys
 using PyPlot
@@ -38,3 +39,5 @@ file = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\MAT files\2022
 data = matopen(file)
 vars = matread(file)
 
+=======
+>>>>>>> origin/main

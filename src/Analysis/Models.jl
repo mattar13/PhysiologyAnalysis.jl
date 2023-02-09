@@ -60,8 +60,8 @@ if Response values are normalized to 1, then \$R_{max}\$ = 1 and can be cancelle
 
 [OUT 1]: Response
 """
-IR(I, k, n) = I^n / (k^n + I^n)
-
+HILL(x, rmax, k, n) = rmax * (x^n / (k^n + x^n)) #This is the basic form of the model
+HILL_MODEL(X, p) = map(x -> HILL(x, p[1], p[2], p[3]), X) #This is used for fitting a larger dataset
 """
 # Developmental Intensity response (>P14)
 
@@ -84,12 +84,12 @@ if Response values are normalized to 1, then \$R_{max}\$ = 1 and can be cancelle
 - (\$\\alpha\$): The temperature-dependent weighting coefficient:  
 - S: he fractional sensitivity
 ### Function usage
-[IN 1]:  IR_dev(I, Ih, n, α, S)
+[IN 1]:  IR_dev(I, rmax, k, n, α, S)
 
 [OUT 1]: Response_dev
 """
-IR_dev(I, Ih, n, α, S) = α*(1-exp(S*I)) + (1-α)*(I^n / (Ih^n + S))
-
+modHILL(x, rmax, k, n, α, S) = rmax * (α*(1-exp(S*x)) + (1-α)*(x^n / (k^n + S)))
+modHILL_MODEL(X, p) = map(x -> modHILL(x, p[1], p[2], p[3], p[4], p[5]), X) #This is used for fitting a larger dataset
 """
 # Amplification 
 
@@ -154,7 +154,119 @@ The image has i and j features (equal to 1->M-1 and 1->N-1)
 """
 RMS_Contrast(I::Array{T, 2}; normalized = true) where T <: Real = (1/(size(I,1)*size(I,2))) .* sum((I.-sum(I)/length(I))^2)
 
+#%% Lets write some fitting equations into the 
+#=========================== The below functions are created by fitting a model ===========================#
+function IRfit(intensity::AbstractArray{T}, response::AbstractArray{T};
+    lb::AbstractArray{T} = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
+    p0::AbstractArray{T} = [500.0, 1000.0, 2.0], #Default r = 500.0, k = 200.0, n = 2.0
+    ub::AbstractArray{T} = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
+) where {T<:Real}
+    fit = curve_fit(HILL_MODEL, intensity, response, p0, lower=lb, upper=ub)
+    #Calculate the R-squared
+    ss_resid = sum(fit.resid.^2)
+    ss_total = sum((response .- mean(response)).^2)
+    RSQ = 1 - ss_resid/ss_total
+    return fit, RSQ
+end
+
+function STFfit(a_wave::AbstractArray{T}, b_wave::AbstractArray{T};
+    lb::AbstractArray{T} = [0.001, 0.001, 0.1],
+    p0::AbstractArray{T} = [1.0, 10.0, 2.0],
+    ub::AbstractArray{T} = [Inf, Inf, 10.0],
+) where {T <: Real}
+    fit = curve_fit(HILL_MODEL, a_wave, b_wave, p0, lower=lb, upper=ub) #for some reason this works the best when b is in log units
+    #Calculate the r squared
+    ss_resid = sum(fit.resid.^2)
+    ss_total = sum((b_wave .- mean(b_wave)).^2)
+    RSQ = 1 - ss_resid/ss_total
+    return fit, RSQ
+end
 
 """
-Maybe we can add a differential equation for the ERG
+The recovery time constant is calculated by fitting the normalized Rdim with the response recovery equation
 """
+function TAUfit(data::Experiment{T};
+    τRec::T=1.0
+) where {T<:Real}
+    #Make sure the sizes are the same
+    #@assert size(resp) == (size(data, 1), size(data,3))
+
+    trec = zeros(T, size(data, 1), size(data, 3))
+    gofs = zeros(T, size(data, 1), size(data, 3))
+    #This function uses the recovery model and takes t as a independent variable
+    model(x, p) = map(t -> REC(t, -1.0, p[2]), x)
+    for swp in axes(data, 1), ch in axes(data, 3)
+        # println(dim_idx[ch])
+        xdata = data.t
+        ydata = data[swp, :, ch]
+        #Test both scenarios to ensure that
+        ydata ./= minimum(ydata) #Normalize the Rdim to the minimum value
+        #ydata ./= resp #Normalize the Rdim to the saturated response
+
+        #cutoff all points below -0.5 and above -1.0
+        over_1 = findall(ydata .>= 1.0)
+        if !isempty(over_1)
+            begin_rng = over_1[end]
+        
+            xdata = xdata[begin_rng:end]
+            ydata = ydata[begin_rng:end]
+
+            cutoff = findall(ydata .< 0.5)
+            if isempty(cutoff)
+                #println("Exception")
+                end_rng = length(ydata)
+            else
+                end_rng = cutoff[1]
+            end
+
+            xdata = xdata[1:end_rng] .- xdata[1]
+            ydata = -ydata[1:end_rng]
+            p0 = [ydata[1], τRec]
+            fit = curve_fit(model, xdata, ydata, p0)
+            #report the goodness of fit
+            SSE = sum(fit.resid .^ 2)
+            ȳ = sum(model(xdata, fit.param)) / length(xdata)
+            SST = sum((ydata .- ȳ) .^ 2)
+            GOF = 1 - SSE / SST
+            trec[swp, ch] = fit.param[2]
+            gofs[swp, ch] = GOF
+        end
+    end
+    return trec, gofs
+end
+
+function AMPfit(data::Experiment{T}, resp::Union{T,Matrix{T}}; #This argument should be offloaded to a single value 
+    time_cutoff=0.1,
+    lb::Vector{T}=(0.0, 0.001),
+    p0::Vector{T}=(200.0, 0.002),
+    ub::Vector{T}=(Inf, 0.040)
+) where {T<:Real}
+
+    #@assert size(resp) == (size(data, 1), size(data,3))
+
+    amp = zeros(2, size(data, 1), size(data, 3))
+    gofs = zeros(T, size(data, 1), size(data, 3))
+
+    for swp = axes(data, 1), ch = axes(data, 3)
+        if isa(resp, Matrix{T})
+            resp_0 = resp[swp, ch]
+        else
+            resp_0 = resp
+        end
+        model(x, p) = map(t -> AMP(t, p[1], p[2], resp_0), x)
+        idx_end = findall(data.t .>= time_cutoff)[1]
+        xdata = data.t[1:idx_end]
+        ydata = data[swp, 1:idx_end, ch]
+
+        fit = curve_fit(model, xdata, ydata, p0, lower=lb, upper=ub)
+        #Check Goodness of fit
+        SSE = sum(fit.resid .^ 2)
+        ȳ = sum(model(xdata, fit.param)) / length(xdata)
+        SST = sum((ydata .- ȳ) .^ 2)
+        GOF = 1 - SSE / SST
+        amp[1, swp, ch] = fit.param[1] #Alpha amp value
+        amp[2, swp, ch] = fit.param[2] #Effective time value
+        gofs[swp, ch] = GOF
+    end
+    return amp, gofs
+end
