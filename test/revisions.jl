@@ -1,8 +1,8 @@
 #%% Using the Julia interface
 using Revise, ePhys 
 using Pluto
-run_experiment_analysis()
-#run_filter_determination()
+#run_experiment_analysis()
+run_filter_determination()
 
 #%% Try to save ABF
 using Revise

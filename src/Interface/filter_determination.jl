@@ -167,7 +167,8 @@ begin #Plot individual traces
 		if swp != size(dataSWEEP,1)
 			#remove the ylabel
 			axSWEEP[swp, ch].spines["bottom"].set_visible(false) #We want the spine to fully
-        	axSWEEP[swp, ch].xaxis.set_visible(false)
+			axSWEEP[swp, ch].xaxis.set_visible(false)
+
 		end
 		plot_experiment(axSWEEP[swp, ch], dataSWEEP, channels = ch, 
 			alpha=0.5, sweeps = swp
@@ -175,6 +176,8 @@ begin #Plot individual traces
 		plot_experiment(axSWEEP[swp, ch], filtered_dataSWEEP, 
 			color = :red, channels = ch, sweeps = swp
 		)
+				   	axSWEEP[swp, ch].set_xlim(xlim1, xlim2)
+		   	axSWEEP[swp, ch].set_ylim(ylim1, ylim2)
 	   axSWEEP[swp, ch].set_xlim(xlim1, xlim2)
 	   #axSWEEP[swp, ch].set_ylim(ylim1, ylim2)
 	end
@@ -317,7 +320,7 @@ end
 # ╟─76025c46-2977-4300-8597-de04f313c667
 # ╟─2084267b-64a8-4d5b-8ce1-dd41f7feaa3a
 # ╟─4daf9c1a-8b73-4049-8a13-b080e43f87cd
-# ╟─669c877b-efcf-4c6b-a70f-e14164abdbff
+# ╠═669c877b-efcf-4c6b-a70f-e14164abdbff
 # ╟─9d5c1286-1a13-428a-b772-67887ae1f7c8
 # ╟─4b3cabb0-8de6-4364-b6dc-b23a1ff1af48
 # ╟─dd65fd7a-b1c9-401d-8c37-149e2eaa3e5d
