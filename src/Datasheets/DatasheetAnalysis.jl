@@ -9,8 +9,6 @@ function extract_categories(cond_df::DataFrame)
      categories
 end
 
-
-
 function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwargs...)
 
      allIR = trace_datafile |> 
@@ -43,6 +41,41 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
      return allIR, fit
 end
 
+function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
+     qConditions = qExperiment |>
+          @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
+          @map({
+               Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
+               N = length(_),
+               Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
+               Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
+               Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
+               Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
+               Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
+               K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit),
+               RMAX_COLL = 0.0, K_COLL = 0.0, N_COLL = 0.0, RSQ_COLL = 0.0 
+               #Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
+          }) |>
+          DataFrame
+     #iterate through each conditon and generate a collated IR curve
+     for (idx, cond) in enumerate(eachrow(qConditions))
+          qIND_COND = qTrace |> 
+               @filter(_.Age == cond.Age) |> 
+               @filter(_.Genotype == cond.Genotype) |> 
+               @filter(_.Photoreceptor == cond.Photoreceptor) |> 
+               @filter(_.Wavelength == cond.Wavelength) |> 
+          DataFrame 
+          if size(qIND_COND, 1) > 2
+               fit, rsq = ePhys.IRfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
+               qConditions[idx, :RMAX_COLL] = fit.param[1]
+               qConditions[idx, :K_COLL] = fit.param[2]
+               qConditions[idx, :N_COLL] = fit.param[3]
+               qConditions[idx, :RSQ_COLL] = rsq
+          end
+     end
+     return qConditions
+end
+
 """
 
 """
@@ -50,9 +83,9 @@ function run_A_wave_analysis(all_files::DataFrame;
           measure_minima = false, a_cond = "BaCl_LAP4", 
           t_pre = 1.0, t_post = 2.0, #Extend these to see the end of the a-wave
           peak_method = false, 
-          lb = (1.0, 1.0, 0.1), #Default rmin = 100, kmin = 0.1, nmin = 0.1 
-          p0 = (500.0, 1000.0, 2.0), #Default r = 500.0, k = 200.0, n = 2.0
-          ub = (Inf, Inf, 10.0), #Default rmax = 2400, kmax = 800
+          lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
+          p0 = [500.0, 1000.0, 2.0], #Default r = 500.0, k = 200.0, n = 2.0
+          ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
           verbose=false, 
      )
      a_files = all_files |> @filter(_.Condition == a_cond) |> DataFrame #Extract all A-wave responses
@@ -159,7 +192,6 @@ function run_A_wave_analysis(all_files::DataFrame;
                          rdim_min = argmin(Resps[rdim_idxs])
                          rdim_idx = rdim_idxs[rdim_min]
                     end
-                    println(qData[:, :Photons])
                     if size(Resps,1) > 1
                          #if Resps |> vec
                          fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
@@ -197,21 +229,8 @@ function run_A_wave_analysis(all_files::DataFrame;
                     end
                end
           end
-
-          qConditions = qExperiment |>
-                    @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
-                    @map({
-                         Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
-                         N = length(_),
-                         Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
-                         Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
-                         Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
-                         Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
-                         Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
-                         K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit)
-                         #Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
-                    }) |>
-                    DataFrame
+          
+          qConditions = summarize_data(qTrace, qExperiment; lb = lb, p0 = p0, ub = ub)
           return qTrace, qExperiment, qConditions
      end
 end
@@ -347,20 +366,7 @@ function run_B_wave_analysis(all_files::DataFrame;
                ))
           end
      end
-     qConditions = qExperiment |>
-          @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
-          @map({
-               Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
-               N = length(_),
-               Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
-               Unsubtracted_Rmax = mean(_.unsubtracted_rmax), Unsubtracted_Rmax_sem = sem(_.unsubtracted_rmax),
-               Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
-               Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
-               Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
-               Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
-               K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit)
-          }) |> DataFrame
-
+     qConditions = summarize_data(qTrace, qExperiment)
      return qTrace, qExperiment, qConditions
 end
 
@@ -470,20 +476,7 @@ function run_G_wave_analysis(all_files::DataFrame;
                     ))
                end
           end
-          qConditions = qExperiment |>
-                    @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
-                    @map({
-                         Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
-                         N = length(_),
-                         Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
-                         Unsubtracted_Rmax = mean(_.unsubtracted_rmax), Unsubtracted_Rmax_sem = sem(_.unsubtracted_rmax),
-                         Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
-                         Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
-                         Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
-                         Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
-                         K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit)
-                    }) |> DataFrame
-
+          qConditions = summarize_data(qTrace, qExperiment)
           return qTrace, qExperiment, qConditions
      end
 end
