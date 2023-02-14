@@ -171,7 +171,7 @@ function run_A_wave_analysis(all_files::DataFrame;
                                    Path=qData[swp, :Path],
                                    Year=qData[swp, :Year], Month=qData[swp, :Month], Date=qData[swp, :Date],
                                    Age=qData[swp, :Age], Number=qData[swp, :Number], Genotype=qData[swp, :Genotype],
-                                   Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
+                                   Condition = qData[swp, :Condition], Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
                                    Photons=qData[swp, :Photons],
                                    Channel=ch, Gain=gain,
                                    Response=Resps[swp], Minima=minimas[swp], Maxima=maximas[swp],
@@ -327,7 +327,7 @@ function run_B_wave_analysis(all_files::DataFrame;
                               Path=qData[swp, :Path], A_Path=qData[swp, :A_Path],
                               Year=qData[swp, :Year], Month=qData[swp, :Month], Date=qData[swp, :Date],
                               Age=qData[swp, :Age], Number=qData[swp, :Number], Genotype=qData[swp, :Genotype],
-                              Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
+                              Condition = qData[swp, :Condition], Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
                               Photons=qData[swp, :Photons],
                               Channel=ch, Gain=gain,
                               Response=Resps[swp], Unsubtracted_Response=Unsubtracted_Resp[swp],
@@ -439,7 +439,7 @@ function run_G_wave_analysis(all_files::DataFrame;
                               Path=qData[swp, :Path], AB_Path=qData[swp, :AB_Path],
                               Year=qData[swp, :Year], Month=qData[swp, :Month], Date=qData[swp, :Date],
                               Age=qData[swp, :Age], Number=qData[swp, :Number], Genotype=qData[swp, :Genotype],
-                              Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
+                              Condition = qData[swp, :Condition], Photoreceptor=qData[swp, :Photoreceptor], Wavelength=qData[swp, :Wavelength],
                               Photons=qData[swp, :Photons],
                               Channel=ch, Gain=gain,
                               Response=Resps[swp], Unsubtracted_Response=Unsubtracted_Resp[swp],
@@ -509,24 +509,30 @@ function add_analysis_sheets(results, save_file::String; append="A")
      end
 end
 
-function runAnalysis(datafile::String; measure_minima = false, verbose = false)
+
+function runAnalysis(datasheet::DataFrame; measure_minima = false, verbose = false)
+     resA = ePhys.run_A_wave_analysis(datasheet; measure_minima = measure_minima, verbose = verbose)
+     resB = ePhys.run_B_wave_analysis(datasheet, verbose = verbose)
+     resG = ePhys.run_G_wave_analysis(datasheet, verbose = verbose)
+     return (datasheet, resA, resB, resG)
+end
+
+function runAnalysis(datafile::String; kwargs...)
      print("Opening datafile $(datafile)... ")
-     df = openDatasheet(datafile)
+     datasheet = openDatasheet(datafile, sheetName = "All_Files")
      println("complete")
-     #%% Test the a, b, and g wave analysis
-     resA = ePhys.run_A_wave_analysis(df["All_Files"]; measure_minima = measure_minima, verbose = verbose)
+     datasheet, resA, resB, resG = runAnalysis(datasheet; kwargs...)
      if !isnothing(resA)
           add_analysis_sheets(resA, datafile; append="A")
      end
-     resB = ePhys.run_B_wave_analysis(df["All_Files"], verbose = verbose)
+
      if !isnothing(resB)
           add_analysis_sheets(resB, datafile; append="B")
      end
-     resG = ePhys.run_G_wave_analysis(df["All_Files"], verbose = verbose)
+
      if !isnothing(resG)
           add_analysis_sheets(resG, datafile; append="G")
      end
-     return (df, resA, resB, resG)
 end
 
 #This can be used for IR and STF, but not for Tau or LP model
