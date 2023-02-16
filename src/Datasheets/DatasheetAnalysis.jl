@@ -192,9 +192,12 @@ function run_A_wave_analysis(all_files::DataFrame;
                          rdim_min = argmin(Resps[rdim_idxs])
                          rdim_idx = rdim_idxs[rdim_min]
                     end
-                    if size(Resps,1) > 1
+                    if size(Resps,1) > 2
                          #if Resps |> vec
-                         fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
+                         p0 = [maximum(Resps), median(qData[:, :Photons]), 2.0]
+                         fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec, 
+                              p0 = p0
+                         )
                          #Fitting each data trace to a IR curve
                          push!(qExperiment, (
                               Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
@@ -347,23 +350,44 @@ function run_B_wave_analysis(all_files::DataFrame;
                     rdim_min = argmin(Resps[rdim_idxs])
                     rdim_idx = rdim_idxs[rdim_min]
                end
-               fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
-               #println(fit, rsq)
-               push!(qExperiment, (
-                    Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
-                    Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                    Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                    Channel = ch,
-                    Photons=qData[1, :Photons],
-                    rmax=maximum(Resps),
-                    RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
-                    RSQ_fit = rsq, #, MSE_fit = mse_FIT,
-                    unsubtracted_rmax=maximum(Unsubtracted_Resp),
-                    rdim=Resps[rdim_idx],
-                    integration_time=Integrated_Times[rdim_idx],
-                    time_to_peak=Peak_Times[rdim_idx],
-                    percent_recovery=maximum(Percent_Recoveries) #sum(Percent_Recoveries) / length(Percent_Recoveries) #really strange these usually are averaged
-               ))
+               if size(Resps,1) > 2
+                    p0 = [maximum(Resps), median(qData[:, :Photons]), 2.0]
+                    fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec, 
+                         p0 = p0
+                    )
+                    #println(fit, rsq)
+                    push!(qExperiment, (
+                         Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
+                         Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                         Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                         Channel = ch,
+                         Photons=qData[1, :Photons],
+                         rmax=maximum(Resps),
+                         RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
+                         RSQ_fit = rsq, #, MSE_fit = mse_FIT,
+                         unsubtracted_rmax=maximum(Unsubtracted_Resp),
+                         rdim=Resps[rdim_idx],
+                         integration_time=Integrated_Times[rdim_idx],
+                         time_to_peak=Peak_Times[rdim_idx],
+                         percent_recovery=maximum(Percent_Recoveries) #sum(Percent_Recoveries) / length(Percent_Recoveries) #really strange these usually are averaged
+                    ))
+               else
+                    push!(qExperiment, (
+                         Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
+                         Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                         Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                         Channel = ch,
+                         Photons=qData[1, :Photons],
+                         rmax=maximum(Resps),
+                         RMAX_fit = 0.0, K_fit = 0.0, N_fit = 0.0,
+                         RSQ_fit = 0.0, #, MSE_fit = mse_FIT,
+                         unsubtracted_rmax=maximum(Unsubtracted_Resp),
+                         rdim=Resps[rdim_idx],
+                         integration_time=Integrated_Times[rdim_idx],
+                         time_to_peak=Peak_Times[rdim_idx],
+                         percent_recovery=maximum(Percent_Recoveries) #sum(Percent_Recoveries) / length(Percent_Recoveries) #really strange these usually are averaged
+                    ))
+               end
           end
      end
      qConditions = summarize_data(qTrace, qExperiment)
@@ -458,22 +482,45 @@ function run_G_wave_analysis(all_files::DataFrame;
                          rdim_min = argmin(Resps[rdim_idxs])
                          rdim_idx = rdim_idxs[rdim_min]
                     end
-                    fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec)
-                    push!(qExperiment, (
-                         Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
-                         Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                         Channel = ch,
-                         Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                         Photons=qData[1, :Photons],
-                         rmax=maximum(Resps),
-                         RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
-                         RSQ_fit = rsq, #, MSE_fit = mse_FIT,
-                         unsubtracted_rmax=maximum(Unsubtracted_Resp),
-                         rdim=Resps[rdim_idx],
-                         integration_time=Integrated_Times[rdim_idx],
-                         time_to_peak=Peak_Times[rdim_idx],
-                         percent_recovery=maximum(Percent_Recoveries) #This is maximum vs average
-                    ))
+                    if size(Resps,1) > 2
+                         #println(size(Resps))
+                         #if Resps |> vec
+                         p0 = [maximum(Resps), median(qData[:, :Photons]), 2.0]
+                         fit, rsq = ePhys.IRfit(qData[:, :Photons], Resps |> vec, 
+                              p0 = p0
+                         )
+                         push!(qExperiment, (
+                              Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
+                              Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                              Channel = ch,
+                              Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                              Photons=qData[1, :Photons],
+                              rmax=maximum(Resps),
+                              RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
+                              RSQ_fit = rsq, #, MSE_fit = mse_FIT,
+                              unsubtracted_rmax=maximum(Unsubtracted_Resp),
+                              rdim=Resps[rdim_idx],
+                              integration_time=Integrated_Times[rdim_idx],
+                              time_to_peak=Peak_Times[rdim_idx],
+                              percent_recovery=maximum(Percent_Recoveries) #This is maximum vs average
+                         ))
+                    else
+                         push!(qExperiment, (
+                              Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
+                              Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                              Channel = ch,
+                              Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                              Photons=qData[1, :Photons],
+                              rmax=maximum(Resps),
+                              RMAX_fit = 0.0, K_fit = 0.0, N_fit = 0.0,
+                              RSQ_fit = 0.0, #, MSE_fit = mse_FIT,
+                              unsubtracted_rmax=maximum(Unsubtracted_Resp),
+                              rdim=Resps[rdim_idx],
+                              integration_time=Integrated_Times[rdim_idx],
+                              time_to_peak=Peak_Times[rdim_idx],
+                              percent_recovery=maximum(Percent_Recoveries) #This is maximum vs average
+                         ))
+                    end
                end
           end
           qConditions = summarize_data(qTrace, qExperiment)
