@@ -56,6 +56,8 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
         ch_idxs = channels
     elseif channels == -1 #if chs is -1 extract all channels
         ch_idxs = HeaderDict["channelList"]
+    else
+        ch_idxs = channels
     end
     #Extract info for the adc names and units
     ch_names = Vector{String}(HeaderDict["adcNames"][ch_idxs])
