@@ -1,12 +1,8 @@
-function plot_ir_curves(axis, qData::DataFrame; 
-     x_row = :Photons, y_row = :Response,
+function plot_ir_scatter(axis::PyObject, qData::DataFrame;
+     x_row = :Photons, y_row = :Response, 
+     color = :black, ms = 10.0, 
      xscale = "log", xbase = 10,
-     yscale = "linear", ybase = 10,
-     color_by_error = true, cmap = :RdYlGn, color = :black,
-     plot_fits = true, model = HILL_MODEL,
-     fit_rng = 10 .^ range(-1, stop = 6, length = 1000),
-     lw = 2.0, ms = 10.0,
-     fitting_kwargs...
+     yscale = "linear", ybase = 10,    
 )
      X_VALS = qData[:, x_row]
      Y_VALS = qData[:, y_row]
@@ -18,23 +14,67 @@ function plot_ir_curves(axis, qData::DataFrame;
      if yscale != "linear"
           axis.set_yscale(yscale, base = ybase)
      end
+end
 
-     #now fit the data
+function plot_ir_fit(axis::PyObject, fit_param, rsq::Real;
+     xscale = "log", xbase = 10,
+     yscale = "linear", ybase = 10,
+     color_by_error = true, cmap = :RdYlGn, color = :black,
+     fit_rng = 10 .^ range(-1, stop = 6, length = 1000),
+     model = HILL_MODEL,
+     lw = 2.0  
+)
      xmin, xmax, ymin, ymax = plt.axis() #We should plot everything based on the 
+     BEST_FIT = model(fit_rng, fit_param)
+
+     if color_by_error
+          colormap =  plt.get_cmap(cmap)
+          axis.plot(fit_rng, BEST_FIT, color = colormap(rsq), linewidth = lw*2, alpha = 0.5) #This is the error bar on the outside
+     end
+
+     axis.plot(fit_rng, BEST_FIT, color = color, lw = lw)
+     axis.vlines(fit_param[2], ymin=ymin, ymax = fit_param[1]/2, linestyle=(0, (5, 3)), color = color, lw = lw)#10 ^ (p14RodsNR_STF.param[1] / 2), color = color, )
+     axis.hlines(fit_param[1]/2, xmin=xmin, xmax = fit_param[2], linestyle=(0, (5, 3)), color = color, lw = lw)
+     axis.set_xlim((xmin, xmax))
+     axis.set_ylim((ymin, ymax))
+     
+     if xscale != "linear"
+          axis.set_xscale(xscale, base = xbase)
+     end
+
+     if yscale != "linear"
+          axis.set_yscale(yscale, base = ybase)
+     end
+end
+
+function plot_IR(axis::PyObject, qData::DataFrame;
+     x_row = :Photons, y_row = :Response, 
+     xscale = "log", xbase = 10,
+     yscale = "linear", ybase = 10,
+     color_by_error = true, cmap = :RdYlGn, color = :black,
+     fit_rng = 10 .^ range(-1, stop = 6, length = 1000),
+     lw = 2.0, ms = 10.0, plot_fits = true,   
+     fitting_kwargs...
+)
+
+     plot_ir_scatter(axis, qData;
+          x_row = x_row, y_row = y_row, 
+          color = color, ms = ms, 
+          xscale = xscale, xbase = xbase,
+          yscale = yscale, ybase = ybase, 
+     )
      if plot_fits
+          X_VALS = qData[:, x_row]
+          Y_VALS = qData[:, y_row]
           fit, rsq = IRfit(X_VALS, Y_VALS; fitting_kwargs...)
-          BEST_FIT = model(fit_rng, fit.param)
-
-          if color_by_error
-               colormap =  plt.get_cmap(cmap)
-               axis.plot(fit_rng, BEST_FIT, color = colormap(rsq), linewidth = lw*2, alpha = 0.5) #This is the error bar on the outside
-          end
-
-          axis.plot(fit_rng, BEST_FIT, color = color, lw = lw)
-          axis.vlines(fit.param[2], ymin=ymin, ymax = fit.param[1]/2, linestyle=(0, (5, 3)), color = color, lw = lw)#10 ^ (p14RodsNR_STF.param[1] / 2), color = color, )
-          axis.hlines(fit.param[1]/2, xmin=xmin, xmax = fit.param[2], linestyle=(0, (5, 3)), color = color, lw = lw)
-          axis.set_xlim((xmin, xmax))
-          axis.set_ylim((ymin, ymax))
+          plot_ir_fit(axis, fit.param, rsq;
+               xscale = xscale, xbase = xbase,
+               yscale = yscale, ybase = ybase,
+               color_by_error = color_by_error, cmap = cmap, color = color,
+               fit_rng = fit_rng,
+               model = HILL_MODEL,
+               lw = lw
+          )
      end
 end
 
