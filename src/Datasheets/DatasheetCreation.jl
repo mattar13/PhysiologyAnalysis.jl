@@ -36,7 +36,7 @@ end
 """
 This function creates a new datasheet
 """
-function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx", verbose = false)
+function createDatasheet(all_files::Vector{String}; filename="temp.xlsx", verbose = false)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
@@ -87,7 +87,7 @@ function openDatasheet(data_file::String; sheetName::String="all", typeConvert=t
      xf = readxlsx(data_file)
      if sheetName == "all"
           sheetnames = XLSX.sheetnames(xf)
-          df_set = Dict()
+          df_set = Dict{String, DataFrame}()
           for sn in sheetnames
                #println(sn) #Use this to debug 
                df_set[sn] = openDatasheet(data_file; sheetName=sn, typeConvert = typeConvert)
@@ -167,4 +167,56 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
 
           return df
      end
+end
+
+function copyDataset(datafile::String, sheetname = "all", backup = true)
+     root = joinpath(splitpath(datafile)[1:end-1])
+     if isfile(datafile) #we should only do these things if the datafile exists
+          new_fn = "$root\\temp.xlsx"
+          XLSX.openxlsx(new_fn, mode = "w") do xf
+               sheet1 = xf[1] #Sheet 1 should be renamed
+               XLSX.rename!(sheet1, "ALL_FILES")
+               XLSX.addsheet!(xf, "TRACES")
+               XLSX.addsheet!(xf, "EXPERIMENTS")
+               XLSX.addsheet!(xf, "CONDITIONS")
+               #XLSX.addsheet!(xf, "STATISTICS")
+               #XLSX.addsheet!(xf, "FITTING")
+               #XLSX.addsheet!(xf, "SYNAPTIC TRANSFER FUNCTION")
+          end
+     end
+end
+
+"""
+This function quicksaves the datafile you are working with
+"""
+function backupDataset(datafile::String)
+     date = now()
+     root = joinpath(splitpath(datafile)[1:end-1])
+     filename = splitpath(datafile)[end][1:end-5]
+     backup_file = "$(root)\\$(year(date))_$(month(date))_$(day(date))_$(filename)_BACKUP_$(hour(date))_$(minute(date))_$(second(date)).xlsx"
+     cp(datafile, backup_file)
+end
+
+function saveDataset(dataset::Dict{String, DataFrame}, filename::String)
+     XLSX.openxlsx(filename, mode = "w") do xf
+          sheet1 = xf[1] #Sheet 1 should be renamed
+          XLSX.rename!(sheet1, "ALL_FILES")
+          XLSX.addsheet!(xf, "TRACES")
+          XLSX.addsheet!(xf, "EXPERIMENTS")
+          XLSX.addsheet!(xf, "CONDITIONS")
+     end
+end
+
+"""
+This is for if the dataset has traces A, B and G seperate. We will combine them together
+"""
+function convert_OLD_Dataset(dataset::Dict{String, DataFrame})
+     #Fix TRACES
+     new_dataset = Dict{String, DataFrame}("ALL_FILES" => dataset["All_Files"])
+     rename!(dataset["trace_B"], :A_Path => :SubPath) #rename the Path to A_path
+     rename!(dataset["trace_G"], :AB_Path => :SubPath) #rename the Path to A_path
+     new_dataset["TRACES"] = vcat(dataset["trace_B"], dataset["trace_A"], dataset["trace_G"], cols = :union)
+
+     #EXPERIMENTS = 
+     #CONDITIONS = 
 end
