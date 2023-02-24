@@ -151,7 +151,7 @@ function __init__()
           include("Datasheets/DatasheetFunctions.jl")
           include("Datasheets/DatasheetCreation.jl")
           include("Datasheets/DatasheetAnalysis.jl")
-          export openDatasheet, createDatasheet, updateDatasheet
+          export openDataset, createDataset, updateDataset
           export runAnalysis
           export runTraceAnalysis
           export matchExperiment

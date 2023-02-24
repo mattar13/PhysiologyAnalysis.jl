@@ -226,6 +226,7 @@ function runTraceAnalysis(all_files::DataFrame;
                     push!(qExperiment, (
                          Year=qTRIAL[1, :Year], Month=qTRIAL[1, :Month], Date=qTRIAL[1, :Date],
                          Age=qTRIAL[1, :Age], Number=qTRIAL[1, :Number], Genotype=qTRIAL[1, :Genotype],
+                         Condition = qTRIAL[1, :Condition],
                          Channel = data_ch.chNames[1],
                          Photoreceptor=qTRIAL[1, :Photoreceptor], Wavelength=qTRIAL[1, :Wavelength],
                          rmax = maximum(responses),

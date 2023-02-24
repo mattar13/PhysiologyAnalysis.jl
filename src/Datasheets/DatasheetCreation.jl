@@ -36,7 +36,7 @@ end
 """
 This function creates a new datasheet
 """
-function createDatasheet(all_files::Vector{String}; filename="temp.xlsx", verbose = false)
+function createDataset(all_files::Vector{String}; verbose = false)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
@@ -59,23 +59,6 @@ function createDatasheet(all_files::Vector{String}; filename="temp.xlsx", verbos
                println(error)
           end
      end
-     if !isnothing(filename)
-          XLSX.openxlsx(filename, mode="w") do xf
-               XLSX.rename!(xf[1], "All_Files") #Rename sheet 1
-               try
-                    sheet = xf["All_Files"] #Try opening the All_Files
-               catch
-                    println("Adding sheets")
-                    XLSX.addsheet!(xf, "All_Files")
-               end
-               XLSX.writetable!(xf["All_Files"],
-                    collect(DataFrames.eachcol(dataframe)),
-                    DataFrames.names(dataframe))
-          end
-          if verbose
-               println("Save file success")
-          end
-     end
      dataframe
 end
 
@@ -83,7 +66,7 @@ end
 This function opens an old datasheet
 """
 
-function openDatasheet(data_file::String; sheetName::String="all", typeConvert=true)
+function openDataset(data_file::String; sheetName::String="all", typeConvert=true)
      xf = readxlsx(data_file)
      if sheetName == "all"
           sheetnames = XLSX.sheetnames(xf)
@@ -107,11 +90,11 @@ end
 """
 This function will read and update the datasheet with the new files
 """
-function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bool=false, savefile::Bool=true)
+function updateDataset(data_file::String, all_files::Vector{String}; reset::Bool=false, savefile::Bool=true)
      if reset
           #If this is selected, completely reset the analysis
      else
-          df = openDatasheet(data_file; sheetName = "All_Files") #First, open the old datasheet
+          df = openDatasheet(data_file; sheetName = "ALL_FILES") #First, open the old datasheet
           nrows, ncols = size(df)
 
           println("Searching for files that need to be added and removed")
@@ -199,24 +182,20 @@ end
 
 function saveDataset(dataset::Dict{String, DataFrame}, filename::String)
      XLSX.openxlsx(filename, mode = "w") do xf
-          sheet1 = xf[1] #Sheet 1 should be renamed
-          XLSX.rename!(sheet1, "ALL_FILES")
+          sheet_ALL = xf[1] #Sheet 1 should be renamed
+          XLSX.rename!(sheet_ALL, "ALL_FILES")
+          XLSX.writetable!(sheet_ALL, dataset["ALL_FILES"])
+
           XLSX.addsheet!(xf, "TRACES")
+          sheet_TRACES = xf[2]
+          XLSX.writetable!(sheet_TRACES, dataset["TRACES"])
+
           XLSX.addsheet!(xf, "EXPERIMENTS")
+          sheet_EXPERIMENTS = xf[3]
+          XLSX.writetable!(sheet_EXPERIMENTS , dataset["EXPERIMENTS"])
+
           XLSX.addsheet!(xf, "CONDITIONS")
+          sheet_CONDITIONS = xf[4]
+          XLSX.writetable!(sheet_CONDITIONS , dataset["CONDITIONS"])
      end
-end
-
-"""
-This is for if the dataset has traces A, B and G seperate. We will combine them together
-"""
-function convert_OLD_Dataset(dataset::Dict{String, DataFrame})
-     #Fix TRACES
-     new_dataset = Dict{String, DataFrame}("ALL_FILES" => dataset["All_Files"])
-     rename!(dataset["trace_B"], :A_Path => :SubPath) #rename the Path to A_path
-     rename!(dataset["trace_G"], :AB_Path => :SubPath) #rename the Path to A_path
-     new_dataset["TRACES"] = vcat(dataset["trace_B"], dataset["trace_A"], dataset["trace_G"], cols = :union)
-
-     #EXPERIMENTS = 
-     #CONDITIONS = 
 end
