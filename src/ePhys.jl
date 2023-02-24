@@ -153,9 +153,11 @@ function __init__()
           include("Datasheets/DatasheetAnalysis.jl")
           export openDatasheet, createDatasheet, updateDatasheet
           export runAnalysis
+          export runTraceAnalysis
           export matchExperiment
           export parseColumn!
           export GenerateFitFrame
+          export saveDataset, backupDataset
           #This inner loop will allow you to revise the files listed in include if revise is available
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                println("Revise and Dataframes loaded")
