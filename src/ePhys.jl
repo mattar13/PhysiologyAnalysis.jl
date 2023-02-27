@@ -159,6 +159,7 @@ function __init__()
           export GenerateFitFrame
           export saveDataset, backupDataset
           #This inner loop will allow you to revise the files listed in include if revise is available
+          #=
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                println("Revise and Dataframes loaded")
                #import .Revise
@@ -166,6 +167,7 @@ function __init__()
                Revise.track(ePhys, "Datasheets/DatasheetFunctions.jl")
                Revise.track(ePhys, "Datasheets/DatasheetAnalysis.jl")
           end
+          =#
           #Load the plotting utilities if and only if both Dataframes and PyPlot are loaded
           @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
                println("Dataframes and Pyplot loaded")
@@ -188,6 +190,7 @@ function __init__()
           include("Plotting/PlottingUtilities.jl")
           include("Plotting/PhysPyPlot.jl")
           export plot_experiment, plot_experiment_fit
+          #=
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                #import .Revise
                println("Revise and Pyplot loaded")
@@ -200,6 +203,7 @@ function __init__()
                #Revise.track(ePhys, "src/Datasheets/DatasheetFunctions.jl")
                #Revise.track(ePhys, "src/Datasheets/DatasheetAnalysis.jl")
           end
+          =#
      end
 
      @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
