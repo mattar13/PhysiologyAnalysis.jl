@@ -42,7 +42,6 @@ export downsample, downsample!
 export eachchannel
 #=Add filtering capability=#
 using DSP #Used for lowpass, highpass, EI, and notch filtering
-using FFTW
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 import Polynomials as PN #Import this (there are a few functions that get in the way)
 
@@ -116,34 +115,43 @@ using DelimitedFiles
 include("Readers/CSVReader/CSVReader.jl")
 export readCSV
 #using DataFrames
-fTEST() = println("Revise works with init")
+package_msg = ["ePhys"]
+
+function check_loaded_packages() 
+     for package in package_msg
+          println("$(package) is loaded")
+     end
+end
+export check_loaded_packages
+
 function __init__()
      @require RCall = "6f49c342-dc21-5d91-9882-a32aef131414" begin
           println("Loading R")
           export RCall
+          push!(package_msg, "RCall")
      end
 
      @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
           include("Filtering/make_spectrum.jl")
+          push!(package_msg, "FFTW")
      end
 
      #This is a good section to try using @Requires
      @require DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa" begin
-          println("Differential equation utilities are loaded")
           #using DifferentialEquations #For require, do we actually need to import this? 
           using DiffEqParamEstim, Optim
           include("Filtering/artifactRemoval.jl")
           export RCArtifact
+          push!(package_msg, "DifferentialEquations")
      end
      #===============================Import all Datasheet tools==============================#
      #Only import if DataFrames has been loaded
 
      @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
-          println("Dataframe utilities are loaded")
           using DataFrames, Query, XLSX #Load these extra utilites immediately
           import XLSX: readtable, readxlsx #Import XLSX commands
           export readtable, readxlsx, XLSX
-
+          
           import Query: @filter #Import query commands
           export @filter, Query
           include("Datasheets/RegexFunctions.jl")
@@ -158,6 +166,7 @@ function __init__()
           export parseColumn!
           export GenerateFitFrame
           export saveDataset, backupDataset
+          push!(package_msg, "DataFrames")
           #This inner loop will allow you to revise the files listed in include if revise is available
           #=
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
@@ -170,7 +179,7 @@ function __init__()
           =#
           #Load the plotting utilities if and only if both Dataframes and PyPlot are loaded
           @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
-               println("Dataframes and Pyplot loaded")
+               push!(package_msg, "DataFrames+Pyplot")
                include("Plotting/DatasheetPlotting.jl")
                export plot_IR, plot_ir_fit, plot_ir_scatter
           end
@@ -178,7 +187,7 @@ function __init__()
      end
 
      @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
-          println("PyPlot utilities loaded")
+          push!(package_msg, "PyPlot")
           import PyPlot.plt #All the base utilities for plotting
           import PyPlot.matplotlib
           #import PyCall as py #This allows us to use Python to call somethings 
@@ -209,11 +218,11 @@ function __init__()
      @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
           using RecipesBase
           include("Plotting/PhysRecipes.jl")
+          push!(package_msg, "Plots(GR)")
      end
 
      @require Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin #This also requires PyPlot
           using PyPlot #This will cause all pyplot to load as well
-          println("Loading pluto notebooks")
           include("Interface/opening_interface.jl")
           export run_experiment_analysis
           export run_datasheet_analysis
@@ -223,7 +232,11 @@ function __init__()
           #include("Interface/filter_determination.jl")
           include("Interface/pluto_plotting_helpers.jl")
           export plot_data_summary
+          push!(package_msg, "Pluto")
      end
 end
+
+
+
 
 end
