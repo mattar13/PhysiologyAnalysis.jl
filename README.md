@@ -21,4 +21,3 @@ Completed Tasks:
 - [x] (< v1.0.0)Experiments can be plotted
 - [x] (< v1.0.0) Experiment struct can be added, subtracted, multiplied, and divided
 - [x] (< v1.0.0) Open .abf files (ABFReader.jl)
-
