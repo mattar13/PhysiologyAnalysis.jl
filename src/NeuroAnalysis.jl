@@ -14,7 +14,6 @@ c) Do more complicated machine learning and cancellation
 
 ==============================================================================#
 
-
 #=================== Here are the imports from other files ===================#
 using Requires #This will help us load only the things we need
 using Dates
