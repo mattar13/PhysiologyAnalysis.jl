@@ -66,7 +66,7 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
                @filter(_.Wavelength == cond.Wavelength) |> 
           DataFrame 
           if size(qIND_COND, 1) > 2
-               fit, rsq = ePhys.IRfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
+               fit, rsq = IRfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
                qConditions[idx, :RMAX_COLL] = fit.param[1]
                qConditions[idx, :K_COLL] = fit.param[2]
                qConditions[idx, :N_COLL] = fit.param[3]
@@ -220,7 +220,7 @@ function runTraceAnalysis(all_files::DataFrame;
                          println("Fitting IR curves")
                     end
                     p0 = [maximum(responses), median(qData[:, :Photons]), 2.0]
-                    fit, rsq = ePhys.IRfit(qTRIAL[:, :Photons], responses |> vec, 
+                    fit, rsq = IRfit(qTRIAL[:, :Photons], responses |> vec, 
                          p0 = p0
                     )
                     if verbose
