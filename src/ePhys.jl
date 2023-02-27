@@ -212,6 +212,7 @@ function __init__()
           println("Loading pluto notebooks")
           include("Interface/opening_interface.jl")
           export run_experiment_analysis
+          export run_datasheet_analysis
           export run_trace_analysis
           export run_filter_determination
           export run_subtraction_analysis
