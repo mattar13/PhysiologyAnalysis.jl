@@ -16,12 +16,12 @@ c) Do more complicated machine learning and cancellation
 
 #=================== Here are the imports from other files ===================#
 using Requires #This will help us load only the things we need
-using Dates
 using Base: String, println
 import PyCall as py
 #using PyCall
 #export R, py
 import PyCall: @pyimport, PyObject
+using Crayons #Really cool package for coloring text for debugging
 
 #=======================Import all experiment objects=======================#
 include("Experiment/StimulusProtocol.jl")
@@ -43,7 +43,6 @@ export eachchannel
 using DSP #Used for lowpass, highpass, EI, and notch filtering
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 import Polynomials as PN #Import this (there are a few functions that get in the way)
-using ContinuousWavelets, Wavelets #Eventually add these to 
 include("Filtering/filtering.jl")
 #include("Filtering/filteringPipelines.jl") #Not ready to uncomment this one yet
 #export filter_data #Don't export this one explicitly
@@ -87,28 +86,28 @@ export curve_fit #curve fitting from LsqFit
 export IR_curve
 export calculate_threshold
 
-using JLD2
-include("Analysis/TimescaleAnalysis.jl")
-export get_timestamps, extract_interval
-export max_interval_algorithim, timeseries_analysis
+#using JLD2 #Maybe this should be added to Requires.jl
+#include("Analysis/TimescaleAnalysis.jl")
+#export get_timestamps, extract_interval
+#export max_interval_algorithim, timeseries_analysis
 
-#========================================Plotting utilities========================================#
-#This is not working with Requires.jl
-#=
-import PyPlot as plt #All the base utilities for plotting
-import PyPlot.matplotlib
-import PyCall as py #This allows us to use Python to call somethings 
-import PyCall: @pyimport, PyObject
-include("Plotting/DefaultSettings.jl") #This requires PyPlot
-include("Plotting/PlottingUtilities.jl")
-include("Plotting/PhysPyPlot.jl")
-#export plt #Export plotting utilities
-export plot_experiment
-=#
-using Crayons #Really cool package for coloring text for debugging
-#Once this is all ready, move this into the __init__ function
+#Dataframe utilities are baked in automatically
+using DataFrames, Query, XLSX #Load these extra utilites immediately
+import XLSX: readtable, readxlsx #Import XLSX commands
+export readtable, readxlsx, XLSX
+include("Datasheets/RegexFunctions.jl")
+include("Datasheets/FilePathExtraction.jl")
+include("Datasheets/DatasheetFunctions.jl")
+include("Datasheets/DatasheetCreation.jl")
+include("Datasheets/DatasheetAnalysis.jl")
+export openDataset, createDataset, updateDataset
+export runAnalysis
+export runTraceAnalysis
+export matchExperiment
+export parseColumn!
+export GenerateFitFrame
+export saveDataset, backupDataset
 
-#Test this here before adding it to the Requires section
 
 #using DataFrames
 package_msg = ["NeuroAnalysis"]
@@ -149,36 +148,6 @@ function __init__()
      #===============================Import all Datasheet tools==============================#
      #Only import if DataFrames has been loaded
 
-     @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
-          @require XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0" begin
-               @require Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1" begin
-                    include("Datasheets/RegexFunctions.jl")
-                    include("Datasheets/FilePathExtraction.jl")
-                    include("Datasheets/DatasheetFunctions.jl")
-                    include("Datasheets/DatasheetCreation.jl")
-                    include("Datasheets/DatasheetAnalysis.jl")
-                    export openDataset, createDataset, updateDataset
-                    export runAnalysis
-                    export runTraceAnalysis
-                    export matchExperiment
-                    export parseColumn!
-                    export GenerateFitFrame
-                    export saveDataset, backupDataset
-                    push!(package_msg, "DataFrames + Query + XLSX")
-                    #This inner loop will allow you to revise the files listed in include if revise is available
-                    #=
-                    @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
-                         println("Revise and Dataframes loaded")
-                         #import .Revise
-                         Revise.track(NeuroAnalysis, "Datasheets/RegexFunctions.jl")
-                         Revise.track(NeuroAnalysis, "Datasheets/DatasheetFunctions.jl")
-                         Revise.track(NeuroAnalysis, "Datasheets/DatasheetAnalysis.jl")
-                    end
-                    =#
-               end
-          end
-     end
-
      @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
           push!(package_msg, "PyPlot")
           import PyPlot.plt #All the base utilities for plotting
@@ -215,7 +184,7 @@ function __init__()
      end
 
      @require Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin #This also requires PyPlot
-          using PyPlot #This will cause all pyplot to load as well
+          #using PyPlot #This will cause all pyplot to load as well
           include("Interface/opening_interface.jl")
           export run_experiment_analysis
           export run_datasheet_analysis
@@ -223,8 +192,8 @@ function __init__()
           export run_filter_determination
           export run_subtraction_analysis
           #include("Interface/filter_determination.jl")
-          include("Interface/pluto_plotting_helpers.jl")
-          export plot_data_summary
+          #include("Interface/pluto_plotting_helpers.jl")
+          #export plot_data_summary
           push!(package_msg, "Pluto")
      end
 
