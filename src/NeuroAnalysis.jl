@@ -1,4 +1,4 @@
-module ePhys
+module NeuroAnalysis
 
 #==============================================================================
 
@@ -114,7 +114,7 @@ using DelimitedFiles
 include("Readers/CSVReader/CSVReader.jl")
 export readCSV
 #using DataFrames
-package_msg = ["ePhys"]
+package_msg = ["NeuroAnalysis"]
 
 function check_loaded_packages() 
      for package in package_msg
@@ -171,9 +171,9 @@ function __init__()
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                println("Revise and Dataframes loaded")
                #import .Revise
-               Revise.track(ePhys, "Datasheets/RegexFunctions.jl")
-               Revise.track(ePhys, "Datasheets/DatasheetFunctions.jl")
-               Revise.track(ePhys, "Datasheets/DatasheetAnalysis.jl")
+               Revise.track(NeuroAnalysis, "Datasheets/RegexFunctions.jl")
+               Revise.track(NeuroAnalysis, "Datasheets/DatasheetFunctions.jl")
+               Revise.track(NeuroAnalysis, "Datasheets/DatasheetAnalysis.jl")
           end
           =#
           #Load the plotting utilities if and only if both Dataframes and PyPlot are loaded
@@ -202,14 +202,14 @@ function __init__()
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                #import .Revise
                println("Revise and Pyplot loaded")
-               Revise.track(ePhys, "Plotting/DefaultSettings.jl")
-               Revise.track(ePhys, "Plotting/PlottingUtilities.jl")
-               Revise.track(ePhys, "Plotting/PhysPyPlot.jl")
+               Revise.track(NeuroAnalysis, "Plotting/DefaultSettings.jl")
+               Revise.track(NeuroAnalysis, "Plotting/PlottingUtilities.jl")
+               Revise.track(NeuroAnalysis, "Plotting/PhysPyPlot.jl")
 
                #This files don't really track
-               #Revise.track(ePhys, "src/Readers/ABFReader/ABFReader.jl")
-               #Revise.track(ePhys, "src/Datasheets/DatasheetFunctions.jl")
-               #Revise.track(ePhys, "src/Datasheets/DatasheetAnalysis.jl")
+               #Revise.track(NeuroAnalysis, "src/Readers/ABFReader/ABFReader.jl")
+               #Revise.track(NeuroAnalysis, "src/Datasheets/DatasheetFunctions.jl")
+               #Revise.track(NeuroAnalysis, "src/Datasheets/DatasheetAnalysis.jl")
           end
           =#
      end

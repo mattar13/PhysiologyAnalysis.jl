@@ -77,7 +77,6 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
 end
 
 function runTraceAnalysis(all_files::DataFrame;
-     savefile = nothing,
      t_pre = 1.0, t_post = 2.0, #Extend these to see the end of the a-wave
      measure_minima = false,
      a_cond = "BaCl_LAP4", b_cond = "BaCl", g_cond = "NoDrugs", 
