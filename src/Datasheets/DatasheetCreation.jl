@@ -65,20 +65,19 @@ end
 """
 This function opens an old datasheet
 """
-
-function openDataset(data_file::String; sheetName::String="all", typeConvert=true)
-     xf = readxlsx(data_file)
+function openDataset(datafile::String; sheetName::String="all", typeConvert=true)
      if sheetName == "all"
-          sheetnames = XLSX.sheetnames(xf)
+          sheetnames = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS"]
           df_set = Dict{String, DataFrame}()
           for sn in sheetnames
                #println(sn) #Use this to debug 
-               df_set[sn] = openDatasheet(data_file; sheetName=sn, typeConvert = typeConvert)
+               df_set[sn] = openDataset(datafile; sheetName=sn, typeConvert = typeConvert)
           end
           return df_set
      else
-          s = xf[sheetName]
-          df = XLSX.eachtablerow(s) |> DataFrame
+          #s = xf[sheetName]
+          #df = XLSX.eachtablerow(s) |> DataFrame
+          df = DataFrame(XLSX.readtable(datafile, sheetName))
           #We can walk through and try to convert each row to either an integer, Float, or String
           if typeConvert
                df = safe_convert(df) #This converts the categories to a type in the first position
