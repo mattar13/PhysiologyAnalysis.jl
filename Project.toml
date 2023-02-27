@@ -1,5 +1,5 @@
 name = "NeuroAnalysis"
-uuid = "69cbc4a0-077e-48a7-9b45-fa8b7014b5ca"
+uuid = "4815d258-c7e3-42af-9006-ea61ba798684"
 license = "MIT"
 authors = ["Matthew Tarchick <mtarchick13@gmail.com>"]
 repo = "https://github.com/mattar13/NeuroAnalysis.jl.git"
