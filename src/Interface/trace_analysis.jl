@@ -20,16 +20,16 @@ begin
 	using Pkg
 	Pkg.activate("../../")
 	using Dates, PlutoUI
-	using ePhys
+	using NeuroAnalysis
 	using DataFrames, Query
-	import ePhys: baseline_adjust!, truncate_data! , average_sweeps!
-	import ePhys: filter_data!, filter_data
-	import ePhys: EI_filter!
-	import ePhys: dwt_filter!, cwt_filter!
+	import NeuroAnalysis: baseline_adjust!, truncate_data! , average_sweeps!
+	import NeuroAnalysis: filter_data!, filter_data
+	import NeuroAnalysis: EI_filter!
+	import NeuroAnalysis: dwt_filter!, cwt_filter!
 	#Use pyplot? for plotting
 	using PyPlot
 	#import PyPlot: plt
-	import ePhys.rcParams
+	import NeuroAnalysis.rcParams
 	pygui(true)
 end
 
@@ -148,7 +148,7 @@ begin
 		df = DataFrame()
 		dfSUMMARY = DataFrame()
 		
-		info = ePhys.createDatasheet(experiment_paths, filename = nothing);
+		info = NeuroAnalysis.createDatasheet(experiment_paths, filename = nothing);
 		df.SweepN = 1:size(data,1)
 		df.channel .= data.chNames[i]
 		df.Photons = info[:, :Photons]
@@ -156,7 +156,7 @@ begin
 		df.Intensity = info[:,:Percent]
 		df.StimTiem = info[:, :Stim_Time]
 		df.Minima = vec(-minimum(data, dims = 2)[:,:,i])
-		df.SaturatedResponse = vec(-ePhys.saturated_response(data)[:,i])
+		df.SaturatedResponse = vec(-NeuroAnalysis.saturated_response(data)[:,i])
 
 		df.isSaturated = df.Minima .> df.SaturatedResponse
 		#Calculate the dim responses
@@ -183,7 +183,7 @@ begin
 		dfSUMMARY.TIME_TO_PEAK = [maximum(df.TPeak)]
 
 		#Lets fit the intensity response data
-		fit = ePhys.IRfit(
+		fit = NeuroAnalysis.IRfit(
 			df.Photons, df.SaturatedResponse,
 			rmin = RMIN, r = R0, rmax = RMAX,
 			kmin = kMIN, k = k0, kmax = kMAX, 
@@ -307,7 +307,7 @@ begin
 end
 
 # ╔═╡ 505ce94d-6a62-44cc-94ef-7a519425a250
-rec_tau, gof = ePhys.recovery_time_constant(data, saturated_response)
+rec_tau, gof = NeuroAnalysis.recovery_time_constant(data, saturated_response)
 
 # ╔═╡ 8e7c7ea8-4ea0-4102-8a2f-37db0ecefd25
 

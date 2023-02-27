@@ -19,15 +19,15 @@ begin
 	using Pkg
 	Pkg.activate("../../")
 	using Dates, PlutoUI
-	using ePhys
+	using NeuroAnalysis
 	using DataFrames, XLSX, Query
-	import ePhys: baseline_adjust!, truncate_data! , average_sweeps!
-	import ePhys: filter_data!, filter_data
-	import ePhys: HILL_MODEL
+	import NeuroAnalysis: baseline_adjust!, truncate_data! , average_sweeps!
+	import NeuroAnalysis: filter_data!, filter_data
+	import NeuroAnalysis: HILL_MODEL
 	#Use pyplot? for plotting
 	using PyPlot
 	#import PyPlot: plt
-	import ePhys.rcParams
+	import NeuroAnalysis.rcParams
 	pygui(true)
 	using StatsBase, Statistics
 end
