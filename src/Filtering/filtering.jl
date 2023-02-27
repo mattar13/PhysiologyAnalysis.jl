@@ -273,7 +273,7 @@ function normalize(exp::Experiment; rng=(-1, 0), dims=2)
     return data
 end
 
-function normalize_channel!(exp::ePhys.Experiment; rng=(-1, 0))
+function normalize_channel!(exp::Experiment; rng=(-1, 0))
     if rng[1] < 0.0
         mins = minimum(minimum(data, dims=2), dims=1)
         exp.data_array ./= -mins
@@ -283,7 +283,7 @@ function normalize_channel!(exp::ePhys.Experiment; rng=(-1, 0))
     end
 end
 
-function normalize_channel(exp::ePhys.Experiment; rng=(-1, 0))
+function normalize_channel(exp::Experiment; rng=(-1, 0))
     data = deepcopy(exp)
     normalize_channel!(data)
     return data
