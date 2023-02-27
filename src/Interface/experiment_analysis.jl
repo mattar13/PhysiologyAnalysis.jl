@@ -60,7 +60,10 @@ photoreceptors = "Rods";
 all_files = createDataset(exp_root |> parseABF; verbose = false)
 
 # ╔═╡ 667d11dd-a394-4cfe-bb92-0ee5065f3b3d
-runTraceAnalysis()
+dataset = runTraceAnalysis(all_files)
+
+# ╔═╡ bb339c6a-1209-4f17-909c-100aeff73670
+dataset["TRACE"]
 
 # ╔═╡ 88ef46c3-7575-4a18-a8b5-15a0c2152c6a
 md"""
@@ -70,7 +73,9 @@ Analysis Window end = $(@bind t_post_a NumberField(-1.0:0.01:10.000; default = 2
 
 # ╔═╡ 734c8f3e-7092-48fd-9784-391bde74fc08
 begin	
-	trace_A, exp_A, cond_A = run_A_wave_analysis(all_files, t_post = t_post_a)
+	trace_A = 
+	exp_A, 
+	cond_A = run_A_wave_analysis(all_files, t_post = t_post_a)
 	#only include used channels
 	trace_A = trace_A |> @filter(_.Channel ∈ channels) |> 
 		@filter(_.Photoreceptor == photoreceptors) |> 
@@ -569,7 +574,8 @@ md"""
 # ╠═23be0000-67de-4f22-98e7-cd89287a2a6f
 # ╟─01fab469-e7c3-4573-9e75-d2d13c7ff3de
 # ╠═667d11dd-a394-4cfe-bb92-0ee5065f3b3d
-# ╠═88ef46c3-7575-4a18-a8b5-15a0c2152c6a
+# ╠═bb339c6a-1209-4f17-909c-100aeff73670
+# ╟─88ef46c3-7575-4a18-a8b5-15a0c2152c6a
 # ╟─734c8f3e-7092-48fd-9784-391bde74fc08
 # ╟─7ebbf522-125f-49da-b658-40e648e33d95
 # ╟─3a7ca4cb-8df2-4869-b3ef-f39774c00b58

@@ -1,4 +1,4 @@
-# ePhys
+# NeuroAnalysis
 
 ## STABLE BRANCH
 
