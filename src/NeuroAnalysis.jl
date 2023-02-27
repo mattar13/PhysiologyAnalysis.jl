@@ -109,9 +109,7 @@ using Crayons #Really cool package for coloring text for debugging
 #Once this is all ready, move this into the __init__ function
 
 #Test this here before adding it to the Requires section
-using DelimitedFiles
-include("Readers/CSVReader/CSVReader.jl")
-export readCSV
+
 #using DataFrames
 package_msg = ["NeuroAnalysis"]
 
@@ -123,6 +121,12 @@ end
 export check_loaded_packages
 
 function __init__()
+     @require DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab" begin
+          push!(package_msg, "DelimtedFiles")
+          include("Readers/CSVReader/CSVReader.jl")
+          export readCSV
+     end
+
      @require RCall = "6f49c342-dc21-5d91-9882-a32aef131414" begin
           println("Loading R")
           export RCall
@@ -160,7 +164,7 @@ function __init__()
                     export parseColumn!
                     export GenerateFitFrame
                     export saveDataset, backupDataset
-                    push!(package_msg, "DataFrames")
+                    push!(package_msg, "DataFrames + Query + XLSX")
                     #This inner loop will allow you to revise the files listed in include if revise is available
                     #=
                     @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
@@ -228,7 +232,7 @@ function __init__()
           @require Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a" begin
                include("Filtering/wavelet_filtering.jl")
                export cwt_filter!, cwt_filter
-               export 
+               export dwt_filter!, dwt_filter
           end
      end
 end
