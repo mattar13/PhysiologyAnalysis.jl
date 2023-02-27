@@ -1,4 +1,4 @@
-#%% Some common packages to use
+#%% Section 1. Revision of interface
 using Revise, ePhys
 using Pluto
 ePhys.__init__()
@@ -6,7 +6,7 @@ run_experiment_analysis()
 run_datasheet_analysis()
 #Pluto.run()
 
-#%% How can we make something that will remove lines in the 
+#%% Section 2, Revisions of matching experiments
 #Open the dataframe
 using Revise, ePhys
 using DataFrames, Query, XLSX
@@ -16,7 +16,7 @@ ePhys.__init__()
 test = dataset["EXPERIMENTS"] |> @orderby(_.RSQ_fit) |> DataFrame
 res = matchExperiment(dataset["TRACES"], test[1:10,:]) 
 
-#%% Open Pauls files
+#%% Section 3, Opening Matlab IRIS files
 ePhys.__init__()
 using DataFrames, Query, XLSX
 using MAT
@@ -24,7 +24,7 @@ file = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\MAT files\2022
 data = matopen(file)
 vars = matread(file)
 
-#%% Try to save ABF
+#%% Section 4, Saving ABF files
 using Revise
 using ePhys
 import ePhys.saveABF
