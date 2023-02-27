@@ -151,18 +151,26 @@ function __init__()
           include("Datasheets/DatasheetFunctions.jl")
           include("Datasheets/DatasheetCreation.jl")
           include("Datasheets/DatasheetAnalysis.jl")
-          export openDatasheet, createDatasheet, updateDatasheet
+          export openDataset, createDataset, updateDataset
           export runAnalysis
+          export runTraceAnalysis
           export matchExperiment
           export parseColumn!
           export GenerateFitFrame
+          export saveDataset, backupDataset
           #This inner loop will allow you to revise the files listed in include if revise is available
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                println("Revise and Dataframes loaded")
                #import .Revise
-               Revise.track(ePhys, "src/Datasheets/RegexFunctions.jl")
-               Revise.track(ePhys, "src/Datasheets/DatasheetFunctions.jl")
-               Revise.track(ePhys, "src/Datasheets/DatasheetAnalysis.jl")
+               Revise.track(ePhys, "Datasheets/RegexFunctions.jl")
+               Revise.track(ePhys, "Datasheets/DatasheetFunctions.jl")
+               Revise.track(ePhys, "Datasheets/DatasheetAnalysis.jl")
+          end
+          #Load the plotting utilities if and only if both Dataframes and PyPlot are loaded
+          @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
+               println("Dataframes and Pyplot loaded")
+               include("Plotting/DatasheetPlotting.jl")
+               export plot_IR, plot_ir_fit, plot_ir_scatter
           end
           # This function will load all of the functions that need a require
      end
@@ -183,9 +191,9 @@ function __init__()
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                #import .Revise
                println("Revise and Pyplot loaded")
-               Revise.track(ePhys, "src/Plotting/DefaultSettings.jl")
-               Revise.track(ePhys, "src/Plotting/PlottingUtilities.jl")
-               Revise.track(ePhys, "src/Plotting/PhysPyPlot.jl")
+               Revise.track(ePhys, "Plotting/DefaultSettings.jl")
+               Revise.track(ePhys, "Plotting/PlottingUtilities.jl")
+               Revise.track(ePhys, "Plotting/PhysPyPlot.jl")
 
                #This files don't really track
                #Revise.track(ePhys, "src/Readers/ABFReader/ABFReader.jl")
@@ -199,15 +207,18 @@ function __init__()
           include("Plotting/PhysRecipes.jl")
      end
 
-     @require Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin
+     @require Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin #This also requires PyPlot
+          using PyPlot #This will cause all pyplot to load as well
           println("Loading pluto notebooks")
           include("Interface/opening_interface.jl")
           export run_experiment_analysis
+          export run_datasheet_analysis
           export run_trace_analysis
           export run_filter_determination
           export run_subtraction_analysis
           #include("Interface/filter_determination.jl")
-
+          include("Interface/pluto_plotting_helpers.jl")
+          export plot_data_summary
      end
 end
 

@@ -36,7 +36,7 @@ end
 """
 This function creates a new datasheet
 """
-function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx", verbose = false)
+function createDataset(all_files::Vector{String}; verbose = false)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
@@ -59,43 +59,25 @@ function createDatasheet(all_files::Vector{String}; filename="data_analysis.xlsx
                println(error)
           end
      end
-     if !isnothing(filename)
-          XLSX.openxlsx(filename, mode="w") do xf
-               XLSX.rename!(xf[1], "All_Files") #Rename sheet 1
-               try
-                    sheet = xf["All_Files"] #Try opening the All_Files
-               catch
-                    println("Adding sheets")
-                    XLSX.addsheet!(xf, "All_Files")
-               end
-               XLSX.writetable!(xf["All_Files"],
-                    collect(DataFrames.eachcol(dataframe)),
-                    DataFrames.names(dataframe))
-          end
-          if verbose
-               println("Save file success")
-          end
-     end
      dataframe
 end
 
 """
 This function opens an old datasheet
 """
-
-function openDatasheet(data_file::String; sheetName::String="all", typeConvert=true)
-     xf = readxlsx(data_file)
+function openDataset(datafile::String; sheetName::String="all", typeConvert=true)
      if sheetName == "all"
-          sheetnames = XLSX.sheetnames(xf)
-          df_set = Dict()
+          sheetnames = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS"]
+          df_set = Dict{String, DataFrame}()
           for sn in sheetnames
                #println(sn) #Use this to debug 
-               df_set[sn] = openDatasheet(data_file; sheetName=sn, typeConvert = typeConvert)
+               df_set[sn] = openDataset(datafile; sheetName=sn, typeConvert = typeConvert)
           end
           return df_set
      else
-          s = xf[sheetName]
-          df = XLSX.eachtablerow(s) |> DataFrame
+          #s = xf[sheetName]
+          #df = XLSX.eachtablerow(s) |> DataFrame
+          df = DataFrame(XLSX.readtable(datafile, sheetName))
           #We can walk through and try to convert each row to either an integer, Float, or String
           if typeConvert
                df = safe_convert(df) #This converts the categories to a type in the first position
@@ -107,11 +89,11 @@ end
 """
 This function will read and update the datasheet with the new files
 """
-function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bool=false, savefile::Bool=true)
+function updateDataset(data_file::String, all_files::Vector{String}; reset::Bool=false, savefile::Bool=true)
      if reset
           #If this is selected, completely reset the analysis
      else
-          df = openDatasheet(data_file; sheetName = "All_Files") #First, open the old datasheet
+          df = openDatasheet(data_file; sheetName = "ALL_FILES") #First, open the old datasheet
           nrows, ncols = size(df)
 
           println("Searching for files that need to be added and removed")
@@ -166,5 +148,53 @@ function updateDatasheet(data_file::String, all_files::Vector{String}; reset::Bo
           end
 
           return df
+     end
+end
+
+function copyDataset(datafile::String, sheetname = "all", backup = true)
+     root = joinpath(splitpath(datafile)[1:end-1])
+     if isfile(datafile) #we should only do these things if the datafile exists
+          new_fn = "$root\\temp.xlsx"
+          XLSX.openxlsx(new_fn, mode = "w") do xf
+               sheet1 = xf[1] #Sheet 1 should be renamed
+               XLSX.rename!(sheet1, "ALL_FILES")
+               XLSX.addsheet!(xf, "TRACES")
+               XLSX.addsheet!(xf, "EXPERIMENTS")
+               XLSX.addsheet!(xf, "CONDITIONS")
+               #XLSX.addsheet!(xf, "STATISTICS")
+               #XLSX.addsheet!(xf, "FITTING")
+               #XLSX.addsheet!(xf, "SYNAPTIC TRANSFER FUNCTION")
+          end
+     end
+end
+
+"""
+This function quicksaves the datafile you are working with
+"""
+function backupDataset(datafile::String)
+     date = now()
+     root = joinpath(splitpath(datafile)[1:end-1])
+     filename = splitpath(datafile)[end][1:end-5]
+     backup_file = "$(root)\\$(year(date))_$(month(date))_$(day(date))_$(filename)_BACKUP_$(hour(date))_$(minute(date))_$(second(date)).xlsx"
+     cp(datafile, backup_file)
+end
+
+function saveDataset(dataset::Dict{String, DataFrame}, filename::String)
+     XLSX.openxlsx(filename, mode = "w") do xf
+          sheet_ALL = xf[1] #Sheet 1 should be renamed
+          XLSX.rename!(sheet_ALL, "ALL_FILES")
+          XLSX.writetable!(sheet_ALL, dataset["ALL_FILES"])
+
+          XLSX.addsheet!(xf, "TRACES")
+          sheet_TRACES = xf[2]
+          XLSX.writetable!(sheet_TRACES, dataset["TRACES"])
+
+          XLSX.addsheet!(xf, "EXPERIMENTS")
+          sheet_EXPERIMENTS = xf[3]
+          XLSX.writetable!(sheet_EXPERIMENTS , dataset["EXPERIMENTS"])
+
+          XLSX.addsheet!(xf, "CONDITIONS")
+          sheet_CONDITIONS = xf[4]
+          XLSX.writetable!(sheet_CONDITIONS , dataset["CONDITIONS"])
      end
 end

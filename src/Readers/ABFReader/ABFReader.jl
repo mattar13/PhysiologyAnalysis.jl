@@ -56,6 +56,8 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
         ch_idxs = channels
     elseif channels == -1 #if chs is -1 extract all channels
         ch_idxs = HeaderDict["channelList"]
+    else
+        ch_idxs = channels
     end
     #Extract info for the adc names and units
     ch_names = Vector{String}(HeaderDict["adcNames"][ch_idxs])
@@ -72,6 +74,7 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
         data = getWaveform(HeaderDict, ch_names; warn_bad_channel=warn_bad_channel)
         data = data[sweeps, :, :]
     end
+    #println(size(data))
     #We need to throw an error if a dimension is empty
     if any(size(data) .== 0)
         @warn begin
@@ -90,10 +93,11 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
         reshape_data = reshape(reshape_data, 1, n_size[3], :)
         data = permutedims(reshape_data, (1, 3, 2))
     end
-
-
+    #println(size(data,2))
     dt = HeaderDict["dataSecPerPoint"]
-    t = collect(0:size(data, 2)) .* dt #Time is usually in seconds, but works better in ms
+    #There seems to be a bug
+    idxs = collect(0:size(data,2)-1)
+    t = idxs.*dt #Time is usually in seconds, but works better in ms
     if time_unit == :ms
         dt *= 1000
         t .*= 1000
@@ -107,7 +111,7 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
     end
     #This section we will rework to include getting analog and digital inputs
 
-    if average_sweeps == true
+    if average_sweeps
         data = sum(data, dims=1) / size(data, 1)
         stim_protocol_by_sweep = Vector{StimulusProtocol{Float64}}([stim_protocol_by_sweep[1]])
     end

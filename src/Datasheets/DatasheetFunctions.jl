@@ -75,50 +75,50 @@ parseColumn!(dataframe::DataFrame, col::Symbol) = parseColumn!(Int64, dataframe,
 #=============================================================================================
 These fuctions help extract experiments
 =============================================================================================#
-function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64}; pc="Rods", color=520)
-     result = trace |>
-              @filter((_.Year, _.Month, _.Date, _.Number) == date) |>
-              DataFrame
-
-     if !isnothing(pc)
-          result = result |> @filter(_.Photoreceptor == pc) |> DataFrame
+"""
+If you pass either a named tuple or a dataframe row, this will pull out all the related 
+"""
+function matchExperiment(trace::DataFrame, info::NamedTuple)
+     return_traces = copy(trace)
+     if haskey(info, :Year)
+          return_traces = return_traces |> @filter(_.Year == info.Year) |> DataFrame
      end
-     result = result |>
-              @filter(_.Wavelength == color) |>
-              @orderby(_.Photons) |>
-              DataFrame
 
-     return result
-end
-
-function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64,String}; pc="Rods", color=520)
-
-     result = trace |>
-              @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == date) |>
-              DataFrame
-     if !isnothing(pc)
-          result = result |> @filter(_.Photoreceptor == pc) |> DataFrame
+     if haskey(info, :Month)
+          return_traces = return_traces |> @filter(_.Month == info.Month) |> DataFrame
      end
-     result = result |>
-              @filter(_.Wavelength == color) |>
-              @orderby(_.Photons) |>
-              DataFrame
-     return result
+
+     if haskey(info, :Date)
+          return_traces = return_traces |> @filter(_.Date == info.Date) |> DataFrame
+     end
+
+     if haskey(info, :Number)
+          return_traces = return_traces |> @filter(_.Number == info.Number) |> DataFrame
+     end
+     if haskey(info,:Photoreceptor)
+          return_traces = return_traces |> @filter(_.Photoreceptor == info.Photoreceptor) |> DataFrame
+     end
+     if haskey(info, :Condition)
+          return_traces = return_traces |> @filter(_.Condition == info.Condition) |> DataFrame
+     end
+
+     if haskey(info, :Channel)
+          return_traces = return_traces |> @filter(_.Channel == info.Channel) |> DataFrame
+     end
+
+     return return_traces
 end
 
-function matchExperiment(trace::DataFrame, date::Tuple{Int64,Int64,Int64,Int64,String,Int64}; pc="Rods")
+matchExperiment(trace::DataFrame, row::DataFrameRow) = matchExperiment(trace, NamedTuple(row))
 
-     result = trace |>
-              @filter((_.Year, _.Month, _.Date, _.Number, _.Channel, _.Wavelength) == date) |>
-              DataFrame
-     result = result |>
-              #@filter(_.Wavelength == color) |>
-              @orderby(_.Photons) |>
-              DataFrame
-     return result
+function matchExperiment(trace::DataFrame, rows::DataFrame)
+     return_dataset = DataFrame()
+     for row in eachrow(rows)
+          dataset_i = matchExperiment(trace, row)
+          return_dataset = vcat(return_dataset, dataset_i)
+     end
+     return return_dataset
 end
-
-
 #==========================================================================================
 These functions can open data from the dataframes
 ==========================================================================================#
