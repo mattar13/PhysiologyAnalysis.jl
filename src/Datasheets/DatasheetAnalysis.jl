@@ -105,7 +105,6 @@ function runTraceAnalysis(all_files::DataFrame;
                (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
           ) |> DataFrame #Pull out the data 
           #Determine whether or not a subtraction should be done
-
           if i.Condition == a_cond
                qTRIALa = qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
                qTRIAL[!, :SubPath] .= nothing #There is no subtraction
@@ -123,6 +122,10 @@ function runTraceAnalysis(all_files::DataFrame;
                     {__...,
                          SubPath = _.Path,
                }) |> DataFrame
+               if isempty(qTRIAL)
+                    println("\t Experiment $(i.Path) was incomplete")
+                    continue
+               end
                data = readABF(SubFiles.Path) #Read the AB data
                filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
                dataSUB = readABF(SubFiles.SubPath)
@@ -141,6 +144,11 @@ function runTraceAnalysis(all_files::DataFrame;
                     {__...,
                          SubPath = _.Path,
                }) |> DataFrame
+               if isempty(qTRIAL)
+                    println("\t Experiment $(i.Path) was incomplete")
+                    continue
+               end
+               #println(qTRIAL |> size)
                data = readABF(SubFiles.Path) #Read the AB data
                filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
                dataSUB = readABF(SubFiles.SubPath)
@@ -150,8 +158,6 @@ function runTraceAnalysis(all_files::DataFrame;
                dataABF = filt_data - filt_dataSUB
                #println(size(dataABF))
           end
-
-          #println(qTRIAL |> size)
           #Conduct the analysis for each channel
           for (ch_idx, data_ch) in enumerate(eachchannel(dataABF)) #walk through each row of the data iterator
                gain = data.chTelegraph[ch_idx]
@@ -179,7 +185,7 @@ function runTraceAnalysis(all_files::DataFrame;
                Integrated_Times = integral(data_ch)
                Percent_Recoveries = percent_recovery_interval(data_ch, rmax)
                
-               for swp in axes(qTRIAL, 1) #Walk through all sweep info, since sweeps will represent individual datafiles most of the time
+               for swp in axes(data_ch, 1) #Walk through all sweep info, since sweeps will represent individual datafiles most of the time
                     #println(swp)
                     #inside_row = qData[idx, :Path] #We can break down each individual subsection by the inside row
                     push!(qTrace,
@@ -240,15 +246,17 @@ function runTraceAnalysis(all_files::DataFrame;
                     ))
                else
                     #Fitting each data trace to a IR curve
+                    println("\t ONly $(length(responses)) responses. IR curve couldn't be fit")
                     push!(qExperiment, (
                          Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
                          Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                         Channel = ch,
+                         Condition = qTRIAL[1, :Condition],
+                         Channel = data_ch.chNames[1],
                          Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                         rmax = maximum(Resps),
+                         rmax = maximum(responses),
                          RMAX_fit = 0.0, K_fit = 0.0, N_fit = 0.0,
                          RSQ_fit = 0.0, #, MSE_fit = mse_FIT,
-                         rdim=Resps[rdim_idx],
+                         rdim=responses[rdim_idx],
                          integration_time=Integrated_Times[rdim_idx],
                          time_to_peak=Peak_Times[rdim_idx],
                          percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
