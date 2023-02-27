@@ -146,42 +146,33 @@ function __init__()
      #Only import if DataFrames has been loaded
 
      @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
-          using DataFrames, Query, XLSX #Load these extra utilites immediately
-          import XLSX: readtable, readxlsx #Import XLSX commands
-          export readtable, readxlsx, XLSX
-          
-          import Query: @filter #Import query commands
-          export @filter, Query
-          include("Datasheets/RegexFunctions.jl")
-          include("Datasheets/FilePathExtraction.jl")
-          include("Datasheets/DatasheetFunctions.jl")
-          include("Datasheets/DatasheetCreation.jl")
-          include("Datasheets/DatasheetAnalysis.jl")
-          export openDataset, createDataset, updateDataset
-          export runAnalysis
-          export runTraceAnalysis
-          export matchExperiment
-          export parseColumn!
-          export GenerateFitFrame
-          export saveDataset, backupDataset
-          push!(package_msg, "DataFrames")
-          #This inner loop will allow you to revise the files listed in include if revise is available
-          #=
-          @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
-               println("Revise and Dataframes loaded")
-               #import .Revise
-               Revise.track(NeuroAnalysis, "Datasheets/RegexFunctions.jl")
-               Revise.track(NeuroAnalysis, "Datasheets/DatasheetFunctions.jl")
-               Revise.track(NeuroAnalysis, "Datasheets/DatasheetAnalysis.jl")
+          @require XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0" begin
+               @require Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1" begin
+                    include("Datasheets/RegexFunctions.jl")
+                    include("Datasheets/FilePathExtraction.jl")
+                    include("Datasheets/DatasheetFunctions.jl")
+                    include("Datasheets/DatasheetCreation.jl")
+                    include("Datasheets/DatasheetAnalysis.jl")
+                    export openDataset, createDataset, updateDataset
+                    export runAnalysis
+                    export runTraceAnalysis
+                    export matchExperiment
+                    export parseColumn!
+                    export GenerateFitFrame
+                    export saveDataset, backupDataset
+                    push!(package_msg, "DataFrames")
+                    #This inner loop will allow you to revise the files listed in include if revise is available
+                    #=
+                    @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
+                         println("Revise and Dataframes loaded")
+                         #import .Revise
+                         Revise.track(NeuroAnalysis, "Datasheets/RegexFunctions.jl")
+                         Revise.track(NeuroAnalysis, "Datasheets/DatasheetFunctions.jl")
+                         Revise.track(NeuroAnalysis, "Datasheets/DatasheetAnalysis.jl")
+                    end
+                    =#
+               end
           end
-          =#
-          #Load the plotting utilities if and only if both Dataframes and PyPlot are loaded
-          @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
-               push!(package_msg, "DataFrames+Pyplot")
-               include("Plotting/DatasheetPlotting.jl")
-               export plot_IR, plot_ir_fit, plot_ir_scatter
-          end
-          # This function will load all of the functions that need a require
      end
 
      @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
@@ -231,6 +222,14 @@ function __init__()
           include("Interface/pluto_plotting_helpers.jl")
           export plot_data_summary
           push!(package_msg, "Pluto")
+     end
+
+     @require ContinuousWavelets = "96eb917e-2868-4417-9cb6-27e7ff17528f" begin
+          @require Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a" begin
+               include("Filtering/wavelet_filtering.jl")
+               export cwt_filter!, cwt_filter
+               export 
+          end
      end
 end
 
