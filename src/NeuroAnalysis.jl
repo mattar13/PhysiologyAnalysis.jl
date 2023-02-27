@@ -150,8 +150,8 @@ function __init__()
 
      @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
           push!(package_msg, "PyPlot")
-          #import PyPlot.plt #All the base utilities for plotting
-          #import PyPlot.matplotlib
+          import PyPlot.plt #All the base utilities for plotting
+          import PyPlot.matplotlib
           #import PyCall as py #This allows us to use Python to call somethings 
           #@pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
           #@pyimport matplotlib.ticker as TICK #add the ticker interface
