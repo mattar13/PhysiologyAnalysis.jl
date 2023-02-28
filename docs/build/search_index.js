@@ -1,3 +1,3 @@
 var documenterSearchIndex = {"docs":
-[]
+[{"location":"#PhysiologyAnalysis.jl","page":"Home","title":"PhysiologyAnalysis.jl","text":"","category":"section"},{"location":"#Introduction","page":"Home","title":"Introduction","text":"","category":"section"},{"location":"","page":"Home","title":"Home","text":"CurrentModule = PhysiologyAnalysis","category":"page"},{"location":"","page":"Home","title":"Home","text":"readABF(T, filename)","category":"page"},{"location":"","page":"Home","title":"Home","text":"link to PhysiologyAnalysis.jl\nlink to readABF(T, filename)","category":"page"},{"location":"tutorial/#Tutorial","page":"Tutorial","title":"Tutorial","text":"","category":"section"},{"location":"tutorial/#Setup","page":"Tutorial","title":"Setup","text":"","category":"section"},{"location":"tutorial/","page":"Tutorial","title":"Tutorial","text":"julia> using Pkg\r\n\r\njulia> Pkg.add(\"PhysiologicalAnalysis\")","category":"page"}]
 }
