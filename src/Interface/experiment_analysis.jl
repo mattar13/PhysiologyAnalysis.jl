@@ -25,6 +25,7 @@ begin
 	import PhysiologyAnalysis: filter_data!, filter_data
 	import PhysiologyAnalysis: HILL_MODEL
 	#Use pyplot? for plotting
+	Pkg.activate("../../test/")
 	using PyPlot
 	#import PyPlot: plt
 	import PhysiologyAnalysis.rcParams
