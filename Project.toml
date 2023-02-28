@@ -6,7 +6,6 @@ repo = "https://github.com/mattar13/NeuroAnalysis.jl.git"
 version = "0.1.0"
 
 [deps]
-Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -21,9 +20,9 @@ StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 
 [compat]
-Requires = "1"
-XLSX = "0.8"
 Distributions = "0.25"
 Polynomials = "3"
 Query = "1"
+Requires = "1"
+XLSX = "0.8"
 julia = "1"
