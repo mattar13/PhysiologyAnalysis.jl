@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.19
+# v0.19.22
 
 using Markdown
 using InteractiveUtils
@@ -19,15 +19,15 @@ begin
 	using Pkg
 	Pkg.activate("../../")
 	using Dates, PlutoUI
-	using NeuroAnalysis
+	using PhysiologyAnalysis
 	using DataFrames, XLSX, Query
-	import NeuroAnalysis: baseline_adjust!, truncate_data! , average_sweeps!
-	import NeuroAnalysis: filter_data!, filter_data
-	import NeuroAnalysis: HILL_MODEL
+	import PhysiologyAnalysis: baseline_adjust!, truncate_data! , average_sweeps!
+	import PhysiologyAnalysis: filter_data!, filter_data
+	import PhysiologyAnalysis: HILL_MODEL
 	#Use pyplot? for plotting
 	using PyPlot
 	#import PyPlot: plt
-	import NeuroAnalysis.rcParams
+	import PhysiologyAnalysis.rcParams
 	pygui(true)
 	using StatsBase, Statistics
 end
