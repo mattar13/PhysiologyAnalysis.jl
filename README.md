@@ -1,5 +1,6 @@
-# PhysiologyAnalysis
+# PhysiologyAnalysis.jl
 
+[![License][license-img]](LICENSE)
 
 This is a project for opening electrophysiology/engineering data in Julia. 
 
