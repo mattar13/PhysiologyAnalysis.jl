@@ -1,4 +1,4 @@
-# NeuroAnalysis
+# PhysiologyAnalysis
 
 
 This is a project for opening electrophysiology/engineering data in Julia. 
