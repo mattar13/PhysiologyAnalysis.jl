@@ -1,22 +1,14 @@
 #%% Section 1. Revision of interface
-using Revise, PhysiologyAnalysis
+using Revise
+using PhysiologyAnalysis
 using Pkg; Pkg.activate("./test/")
 
+check_loaded_packages()
 #%%
 using Pluto
 run_experiment_analysis()
 run_datasheet_analysis()
 #Pluto.run()
-
-#%% Section 2, Revisions of matching experiments
-#Open the dataframe
-using Revise, PhysiologyAnalysis
-using DataFrames, Query, XLSX
-datafile = "C:\\Users\\mtarc\\OneDrive - The University of Akron\\Projects\\Retinoschisis\\data_analysis.xlsx"
-dataset = openDataset(datafile)
-PhysiologyAnalysis.__init__()
-test = dataset["EXPERIMENTS"] |> @orderby(_.RSQ_fit) |> DataFrame
-res = matchExperiment(dataset["TRACES"], test[1:10,:]) 
 
 #%% Section 3, Opening Matlab IRIS files
 PhysiologyAnalysis.__init__()
