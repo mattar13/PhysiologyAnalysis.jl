@@ -1,4 +1,4 @@
-# NeuroAnalysis
+# PhysiologyAnalysis.jl
 
 ## STABLE BRANCH
 

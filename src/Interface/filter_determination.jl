@@ -20,17 +20,17 @@ begin
 	using Pkg
 	Pkg.activate("../../")
 	using Dates, PlutoUI
-	using ePhys
-	import ePhys: baseline_adjust!, truncate_data!, average_sweeps!
-	import ePhys: filter_data!, filter_data
-	import ePhys: dwt_filter!, cwt_filter!
-	import ePhys: fft_spectrum
+	using PhysiologyAnalysis
+	import PhysiologyAnalysis: baseline_adjust!, truncate_data!, average_sweeps!
+	import PhysiologyAnalysis: filter_data!, filter_data
+	import PhysiologyAnalysis: dwt_filter!, cwt_filter!
+	import PhysiologyAnalysis: fft_spectrum
 	#Use pyplot? for plotting
 	using PyPlot
-	import ePhys.plot_experiment
+	import PhysiologyAnalysis.plot_experiment
 	#import PyPlot: plt
-	import ePhys.rcParams
-	import ePhys: wavelet, cDb2
+	import PhysiologyAnalysis.rcParams
+	import PhysiologyAnalysis: wavelet, cDb2
 	using ContinuousWavelets
 	using Statistics
 	pygui(true)
@@ -265,7 +265,7 @@ $(@bind POW_hi NumberField(0.0:1.0; default = 1.0))
 # ╔═╡ dd65fd7a-b1c9-401d-8c37-149e2eaa3e5d
 begin
 	#settings
-	wave = ePhys.Morlet(0.50π)
+	wave = PhysiologyAnalysis.Morlet(0.50π)
 	period_window = (PER_lo, PER_hi)
 	power_window = (POW_lo, POW_hi)
 
@@ -277,7 +277,7 @@ begin
      #Plot the CWT info
     fig3, ax3 = plt.subplots(2, size(data, 3))
     for ch in 1:size(data, 3)
-		CWT_PROC = ePhys.CWTprocess(CWTi[1, :, :, ch])
+		CWT_PROC = PhysiologyAnalysis.CWTprocess(CWTi[1, :, :, ch])
 		mu = mean(CWT_PROC[.!isinf.(CWT_PROC)])
 		sig = std(CWT_PROC[.!isinf.(CWT_PROC)])
 		levels = LinRange(mu-2 * sig, mu + 2 * sig, 10)

@@ -20,16 +20,16 @@ begin
 	using Pkg
 	Pkg.activate("../../")
 	using Dates, PlutoUI
-	using ePhys
+	using PhysiologyAnalysis
 
-	import ePhys: baseline_adjust!, truncate_data! , average_sweeps!
-	import ePhys: filter_data!, filter_data
-	import ePhys: EI_filter!
-	import ePhys: dwt_filter!, cwt_filter!
+	import PhysiologyAnalysis: baseline_adjust!, truncate_data! , average_sweeps!
+	import PhysiologyAnalysis: filter_data!, filter_data
+	import PhysiologyAnalysis: EI_filter!
+	import PhysiologyAnalysis: dwt_filter!, cwt_filter!
 	#Use pyplot? for plotting
 	using PyPlot
 	#import PyPlot: plt
-	import ePhys.rcParams
+	import PhysiologyAnalysis.rcParams
 	pygui(true)
 end
 
@@ -135,7 +135,7 @@ If it is an a-wave, then the values are also negative
 responses = -minimum(data, dims = 2)[:,1,:]
 
 # ╔═╡ b6365068-c86e-4dad-a2a3-e5f89ceb4baa
-saturated_response = -minimum(ePhys.saturated_response(data), dims = 1)
+saturated_response = -minimum(PhysiologyAnalysis.saturated_response(data), dims = 1)
 
 # ╔═╡ 0c548bc7-a362-49c7-9ea1-c88f1af52f4b
 begin
@@ -195,7 +195,7 @@ begin
 end
 
 # ╔═╡ 505ce94d-6a62-44cc-94ef-7a519425a250
-rec_tau, gof = ePhys.recovery_time_constant(data, saturated_response)
+rec_tau, gof = PhysiologyAnalysis.recovery_time_constant(data, saturated_response)
 
 # ╔═╡ 8e7c7ea8-4ea0-4102-8a2f-37db0ecefd25
 

@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.19
+# v0.19.22
 
 using Markdown
 using InteractiveUtils
@@ -19,15 +19,16 @@ begin
 	using Pkg
 	Pkg.activate("../../")
 	using Dates, PlutoUI
-	using ePhys
+	using PhysiologyAnalysis
 	using DataFrames, XLSX, Query
-	import ePhys: baseline_adjust!, truncate_data! , average_sweeps!
-	import ePhys: filter_data!, filter_data
-	import ePhys: HILL_MODEL
+	import PhysiologyAnalysis: baseline_adjust!, truncate_data! , average_sweeps!
+	import PhysiologyAnalysis: filter_data!, filter_data
+	import PhysiologyAnalysis: HILL_MODEL
 	#Use pyplot? for plotting
+	Pkg.activate("../../test/")
 	using PyPlot
 	#import PyPlot: plt
-	import ePhys.rcParams
+	import PhysiologyAnalysis.rcParams
 	pygui(true)
 	using StatsBase, Statistics
 end

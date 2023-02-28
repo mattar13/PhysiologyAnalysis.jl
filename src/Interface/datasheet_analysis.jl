@@ -19,7 +19,7 @@ begin
 	using Pkg
 	Pkg.activate("../../")
 	using Dates, PlutoUI
-	using ePhys
+	using PhysiologyAnalysis
 	using DataFrames, XLSX, Query
 end
 

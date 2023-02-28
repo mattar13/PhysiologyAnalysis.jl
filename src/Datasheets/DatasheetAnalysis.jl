@@ -46,7 +46,8 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
           @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
           @map({
                Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
-               N = length(_),
+               Condition = _.Condition[1],
+               N = length(_), 
                Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
                Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
                Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
@@ -66,7 +67,7 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
                @filter(_.Wavelength == cond.Wavelength) |> 
           DataFrame 
           if size(qIND_COND, 1) > 2
-               fit, rsq = ePhys.IRfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
+               fit, rsq = IRfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
                qConditions[idx, :RMAX_COLL] = fit.param[1]
                qConditions[idx, :K_COLL] = fit.param[2]
                qConditions[idx, :N_COLL] = fit.param[3]
@@ -220,7 +221,7 @@ function runTraceAnalysis(all_files::DataFrame;
                          println("Fitting IR curves")
                     end
                     p0 = [maximum(responses), median(qData[:, :Photons]), 2.0]
-                    fit, rsq = ePhys.IRfit(qTRIAL[:, :Photons], responses |> vec, 
+                    fit, rsq = IRfit(qTRIAL[:, :Photons], responses |> vec, 
                          p0 = p0
                     )
                     if verbose

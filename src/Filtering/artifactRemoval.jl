@@ -45,7 +45,7 @@ end
 function removeArtifact(exp::Experiment)
      data = deepcopy(exp)
      for swp in 1:size(data, 1), ch in 1:size(data,3)
-          pOPT = ePhys.fitArtifact(data)
+          pOPT = fitArtifact(data)
           artifact = RCArtifact(data_unfilt, pOPT)
           artifact_removed = artifact .- data_unfilt.data_array[swp, :, ch]
      end
