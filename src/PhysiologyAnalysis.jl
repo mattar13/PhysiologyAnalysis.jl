@@ -50,7 +50,6 @@ export data_filter!, data_filter
 include("Fitting/fitting.jl")
 export MeanSquaredError
 
-
 #====================Import all the tools needed to analyze the data====================#
 #First import models necessary for the analysis
 using Statistics, StatsBase #These functions use R functions as well as StatsBase
