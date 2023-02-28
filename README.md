@@ -2,6 +2,8 @@
 
 [![License][license-img]](LICENSE)
 
+[license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
+
 This is a project for opening electrophysiology/engineering data in Julia. 
 
 This package will utilize many different sources for it's data. Each file format will gets its own package. 
