@@ -1,7 +1,7 @@
 #using Revise
-using NeuroAnalysis
+using PhysiologyAnalysis
 using DataFrames, Query, XLSX
-import NeuroAnalysis.restructure_filesystem
+import PhysiologyAnalysis.restructure_filesystem
 #%% New file location
 #prev_paths = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\Paul\Rods" |> parseABF
 #prev_paths = raw"C:\Users\mtarc\The University of Akron\Renna Lab - General\Data\ERG\Paul\NotDetermined" |> parseABF

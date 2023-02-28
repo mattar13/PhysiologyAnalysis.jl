@@ -1,4 +1,4 @@
-module NeuroAnalysis
+module PhysiologyAnalysis
 
 #==============================================================================
 
@@ -110,7 +110,7 @@ export saveDataset, backupDataset
 
 
 #using DataFrames
-package_msg = ["NeuroAnalysis"]
+package_msg = ["PhysiologyAnalysis"]
 
 function check_loaded_packages() 
      for package in package_msg
@@ -165,14 +165,14 @@ function __init__()
           @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
                #import .Revise
                println("Revise and Pyplot loaded")
-               Revise.track(NeuroAnalysis, "Plotting/DefaultSettings.jl")
-               Revise.track(NeuroAnalysis, "Plotting/PlottingUtilities.jl")
-               Revise.track(NeuroAnalysis, "Plotting/PhysPyPlot.jl")
+               Revise.track(PhysiologyAnalysis, "Plotting/DefaultSettings.jl")
+               Revise.track(PhysiologyAnalysis, "Plotting/PlottingUtilities.jl")
+               Revise.track(PhysiologyAnalysis, "Plotting/PhysPyPlot.jl")
 
                #This files don't really track
-               #Revise.track(NeuroAnalysis, "src/Readers/ABFReader/ABFReader.jl")
-               #Revise.track(NeuroAnalysis, "src/Datasheets/DatasheetFunctions.jl")
-               #Revise.track(NeuroAnalysis, "src/Datasheets/DatasheetAnalysis.jl")
+               #Revise.track(PhysiologyAnalysis, "src/Readers/ABFReader/ABFReader.jl")
+               #Revise.track(PhysiologyAnalysis, "src/Datasheets/DatasheetFunctions.jl")
+               #Revise.track(PhysiologyAnalysis, "src/Datasheets/DatasheetAnalysis.jl")
           end
           =#
      end
