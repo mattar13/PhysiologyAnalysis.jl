@@ -17,10 +17,11 @@ c) Do more complicated machine learning and cancellation
 #=================== Here are the imports from other files ===================#
 using Requires #This will help us load only the things we need
 using Base: String, println
+using Dates
 #import PyCall as py
 #using PyCall
 #export R, py
-#import PyCall: @pyimport, PyObject
+
 using Crayons #Really cool package for coloring text for debugging
 
 #=======================Import all experiment objects=======================#
@@ -108,6 +109,18 @@ export parseColumn!
 export GenerateFitFrame
 export saveDataset, backupDataset
 
+#Plotting utilities will be loaded in automatically
+import PyPlot
+import PyPlot.plt #All the base utilities for plotting
+import PyPlot.matplotlib
+import PyCall as py #This allows us to use Python to call somethings 
+import PyCall: @pyimport, PyObject
+
+include("Plotting/DefaultSettings.jl") #This requires PyPlot
+include("Plotting/PlottingUtilities.jl")
+include("Plotting/PhysPyPlot.jl")
+export plot_experiment, plot_experiment_fit
+
 
 #using DataFrames
 package_msg = ["PhysiologyAnalysis"]
@@ -147,35 +160,6 @@ function __init__()
      end
      #===============================Import all Datasheet tools==============================#
      #Only import if DataFrames has been loaded
-
-     @require PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee" begin
-          push!(package_msg, "PyPlot")
-          #import PyPlot.plt #All the base utilities for plotting
-          #import PyPlot.matplotlib
-          #import PyCall as py #This allows us to use Python to call somethings 
-          #@pyimport matplotlib.gridspec as GSPEC #add the gridspec interface
-          #@pyimport matplotlib.ticker as TICK #add the ticker interface
-          #MultipleLocator = TICK.MultipleLocator #This is for formatting normal axis
-          #LogLocator = TICK.LogLocator #This is for formatting the log axis
-          #include("Plotting/DefaultSettings.jl") #This requires PyPlot
-          include("Plotting/PlottingUtilities.jl")
-          include("Plotting/PhysPyPlot.jl")
-          export plot_experiment, plot_experiment_fit
-          #=
-          @require Revise = "295af30f-e4ad-537b-8983-00126c2a3abe" begin
-               #import .Revise
-               println("Revise and Pyplot loaded")
-               Revise.track(PhysiologyAnalysis, "Plotting/DefaultSettings.jl")
-               Revise.track(PhysiologyAnalysis, "Plotting/PlottingUtilities.jl")
-               Revise.track(PhysiologyAnalysis, "Plotting/PhysPyPlot.jl")
-
-               #This files don't really track
-               #Revise.track(PhysiologyAnalysis, "src/Readers/ABFReader/ABFReader.jl")
-               #Revise.track(PhysiologyAnalysis, "src/Datasheets/DatasheetFunctions.jl")
-               #Revise.track(PhysiologyAnalysis, "src/Datasheets/DatasheetAnalysis.jl")
-          end
-          =#
-     end
 
      @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
           using RecipesBase
