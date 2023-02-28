@@ -6,39 +6,11 @@ include("ReadHeaders.jl")
 #println("ABF utilites imported")
 
 """
-==================================================================
-Reading Function
+    readABF(::Type, filename::String)
 
-This is the baseline function for reading ABF files. 
-==================================================================
-    experiment = readABF(type, filename; KWARGS)
-    experiment = readABF(filename; KWARGS)
-
-ARGS:
-type::Type = The type in which all data will be converted to. Defaults to Float64. 
-filename::String = The filename that will be read
-
-KWARGS:
-sweeps::Union{Int64,Vector{Int64}}
-    [DEFAULT, -1]
-    The sweeps that will be saved. By default -1 allows all sweeps to be read. However specific sweeps can be chosen
-
-channels::Vector{String}
-    [DEFAULT, ["Vm_prime", "Vm_prime4"]] 
-    The channels that will be recorded. These can be specified as a string
-    By default, these are set to Vm_prime and Vm_prime4 which are voltage channels 0 and 4. 
-
-average_sweeps::Bool 
-    [DEFAULT, false]
-    Specifies whether or not the function will automatically average the sweeps. This can be useful in cases where multiple files are averaged
-
-stimulus_name::Union{String, Vector{String}}
-        [DEFAULT, "IN 7"]
-        This channel stores information about the stimulus. Note that this is different from the digital channel
-
-
+This function reads the data from the file into a Experiment struct
 """
-function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
+function readABF(::Type{T}, filename::Union{String,Vector{UInt8}};
     sweeps::Union{Int64,Vector{Int64}}=-1,
     channels::Union{Int64, Vector{String}}=["Vm_prime", "Vm_prime4"],
     average_sweeps::Bool=false,
@@ -48,7 +20,7 @@ function readABF(::Type{T}, abf_data::Union{String,Vector{UInt8}};
     flatten_episodic::Bool=false, #If the stimulation is episodic and you want it to be continuous
     time_unit=:s, #The time unit is s, change to ms
 ) where {T<:Real}
-    HeaderDict = readABFInfo(abf_data)
+    HeaderDict = readABFInfo(filename)
     #Pull out the requested channels
     if isa(channels, Vector{String}) #If chs is a vector of channel names extract it as such
         ch_idxs = findall(ch -> ch ∈ channels, HeaderDict["adcNames"])
