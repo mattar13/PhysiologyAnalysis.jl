@@ -1,18 +1,4 @@
 module PhysiologyAnalysis
-println("Ready")
-#==============================================================================
-
-This packages base functionality is to do these things: 
-1) Open neurophysiological data
-2) Filter that data
-3) Analyze the data
-
-Some other things this package can do:
-a) Process the data as an alternative to excel. 
-b) Plot the data into graphs
-c) Do more complicated machine learning and cancellation
-
-==============================================================================#
 
 #=================== Here are the imports from other files ===================#
 using Requires #This will help us load only the things we need
@@ -26,7 +12,7 @@ using Crayons #Really cool package for coloring text for debugging
 
 #=======================Import all experiment objects=======================#
 include("Experiment/StimulusProtocol.jl")
-include("Experiment/experiments.jl") #This file contains the Experiment structure. 
+include("Experiment/Experiments.jl") #This file contains the Experiment structure. 
 
 #======================Import all ABF extension imports======================#
 include("Readers/ABFReader/ABFReader.jl")
