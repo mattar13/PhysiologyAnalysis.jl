@@ -20,6 +20,7 @@ StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 
 [compat]
+DSP = "0.7"
 Crayons = "4"
 StatsBase = "0.33"
 DataFrames = "1"
