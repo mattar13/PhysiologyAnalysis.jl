@@ -46,7 +46,8 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
           @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
           @map({
                Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
-               N = length(_),
+               Condition = _.Condition[1],
+               N = length(_), 
                Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
                Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
                Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
