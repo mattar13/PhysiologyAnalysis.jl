@@ -1,6 +1,7 @@
 #%% Section 1. Revision of interface
 using Revise, PhysiologyAnalysis
 using Pkg; Pkg.activate("./test/")
+using PyPlot
 
 #%%
 using Pluto
