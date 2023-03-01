@@ -152,20 +152,6 @@ function __init__()
           push!(package_msg, "Plots(GR)")
      end
 
-     @require Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781" begin #This also requires PyPlot
-          #using PyPlot #This will cause all pyplot to load as well
-          include("Interface/opening_interface.jl")
-          export run_experiment_analysis
-          export run_datasheet_analysis
-          export run_trace_analysis
-          export run_filter_determination
-          export run_subtraction_analysis
-          #include("Interface/filter_determination.jl")
-          #include("Interface/pluto_plotting_helpers.jl")
-          #export plot_data_summary
-          push!(package_msg, "Pluto")
-     end
-
      @require ContinuousWavelets = "96eb917e-2868-4417-9cb6-27e7ff17528f" begin
           @require Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a" begin
                include("Filtering/wavelet_filtering.jl")
@@ -174,8 +160,5 @@ function __init__()
           end
      end
 end
-
-
-
 
 end

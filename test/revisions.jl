@@ -9,6 +9,14 @@ using Pluto
 run_experiment_analysis()
 run_datasheet_analysis()
 #Pluto.run()
+#%%
+
+#%% Add the ability to flag files and remove them from the analysis
+using PhysiologyAnalysis
+exp_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2021_09_12_RS1KO-13\Mouse1_P13_RS1KO"
+dataset = createDataset(exp_root; verbose = false)
+
+
 
 #%% Section 3, Opening Matlab IRIS files
 PhysiologyAnalysis.__init__()
