@@ -36,7 +36,7 @@ end
 """
 This function creates a new datasheet
 """
-function createDataset(all_files::Vector{String}; verbose = false)
+function createDataset(all_files::Vector{String}; verbose = false, run_analysis = true, kwargs...)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
@@ -59,14 +59,15 @@ function createDataset(all_files::Vector{String}; verbose = false)
                println(error)
           end
      end
-     dataframe
+     if run_analysis
+          return runTraceAnalysis(dataframe; kwargs...)
+     else
+          return dataframe
+     end
 end
 
-function createDataset(file_root::String; verbose = false, kwargs...)
-     all_files = file_root |> parseABF
-     ALL_FILES_dataset = createDataset(all_files; verbose = verbose)
-     return runTraceAnalysis(ALL_FILES_dataset; kwargs...)
-end
+createDataset(file_root::String; verbose = false, run_analysis = true, kwargs...) = createDataset(file_root |> parseABF; verbose = verbose, run_analysis = run_analysis, kwargs...)
+
 """
 This function opens an old datasheet
 """
