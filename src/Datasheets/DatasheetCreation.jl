@@ -62,6 +62,11 @@ function createDataset(all_files::Vector{String}; verbose = false)
      dataframe
 end
 
+function createDataset(file_root::String; verbose = false, kwargs...)
+     all_files = file_root |> parseABF
+     ALL_FILES_dataset = createDataset(all_files; verbose = verbose)
+     return runTraceAnalysis(ALL_FILES_dataset; kwargs...)
+end
 """
 This function opens an old datasheet
 """
