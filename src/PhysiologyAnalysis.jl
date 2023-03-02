@@ -74,8 +74,10 @@ import PyCall: @pyimport, PyObject
 include("Plotting/DefaultSettings.jl") #This requires PyPlot
 include("Plotting/PlottingUtilities.jl")
 include("Plotting/PhysPyPlot.jl")
-include("Plotting/DatasheetPlotting.jl")
 export plot_experiment, plot_experiment_fit
+
+include("Plotting/DatasheetPlotting.jl")
+export plot_ir_scatter, plot_ir_fit, plot_IR
 
 
 #include("Filtering/make_spectrum.jl")
