@@ -191,7 +191,7 @@ function runTraceAnalysis(all_files::DataFrame;
                     #inside_row = qData[idx, :Path] #We can break down each individual subsection by the inside row
                     push!(qTrace,
                          (
-                              Path=qTRIAL[swp, :Path], 
+                              Path=qTRIAL[swp, :Path], SubPath = qTRIAL[swp, :SubPath],
                               #SubPath= isnothing(SubFiles) ? SubFiles[swp, :SubPath] : nothing,
                               Year=qTRIAL[swp, :Year], Month=qTRIAL[swp, :Month], Date=qTRIAL[swp, :Date],
                               Age=qTRIAL[swp, :Age], Number=qTRIAL[swp, :Number], Genotype=qTRIAL[swp, :Genotype],
