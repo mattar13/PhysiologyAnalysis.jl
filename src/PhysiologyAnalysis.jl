@@ -3,8 +3,7 @@ module PhysiologyAnalysis
 # The top level is the ElectroPhysiology package
 using Requires #This will help us load only the things we need
 using ElectroPhysiology
-import ElectroPhysiology.Experiment
-
+import ElectroPhysiology: Experiment, readABF, parseABF
 #This package does 4 things: 
 
 #1)Filter ====================================================================================#
