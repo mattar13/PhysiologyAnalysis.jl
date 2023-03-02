@@ -1,5 +1,3 @@
-#import PyPlot.plt
-
 #We need an auxillary function 
 function is_cmap(color)
     try
