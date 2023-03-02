@@ -11,7 +11,7 @@ end
 
 @testset "Testing data filtering" begin
     data_filtered = filter_data(data)
-    @test 
+    @test !isnothing(data_filtered)
 
-
+    
 end
