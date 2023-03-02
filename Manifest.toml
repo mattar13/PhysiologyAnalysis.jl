@@ -249,6 +249,14 @@ git-tree-sha1 = "5837a837389fccf076445fce071c8ddaea35a566"
 uuid = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
 version = "0.6.8"
 
+[[deps.ElectroPhysiology]]
+deps = ["Dates", "Statistics"]
+git-tree-sha1 = "28b1aaa21b91022ec7d8b80e32e90dfe5931a07d"
+repo-rev = "master"
+repo-url = "https://github.com/mattar13/ElectroPhysiology.jl.git"
+uuid = "da7a9670-f599-43ac-b818-143f8bf87d45"
+version = "0.1.0"
+
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "bad72f730e9e91c08d9427d5e8db95478a3c323d"

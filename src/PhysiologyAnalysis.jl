@@ -1,31 +1,14 @@
 module PhysiologyAnalysis
 
+# The top level is the ElectroPhysiology package
+using ElectroPhysiology
+export readABF
+export Experiment
+
 #=================== Here are the imports from other files ===================#
 using Requires #This will help us load only the things we need
-using Base: String, println
-using Dates
-#import PyCall as py
-#using PyCall
-#export R, py
-
 using Crayons #Really cool package for coloring text for debugging
 
-#=======================Import all experiment objects=======================#
-include("Experiment/StimulusProtocol.jl")
-include("Experiment/Experiments.jl") #This file contains the Experiment structure. 
-
-#======================Import all ABF extension imports======================#
-include("Readers/ABFReader/ABFReader.jl")
-export readABF
-export parseABF
-
-#===============================ABF utilities===============================#
-include("Experiment/ExperimentUtilities.jl")
-include("Utilities/DataUtilities.jl")
-#export truncate_data, truncate_data!
-#export baseline_adjust
-export downsample, downsample!
-export eachchannel
 #=Add filtering capability=#
 using DSP #Used for lowpass, highpass, EI, and notch filtering
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
@@ -40,7 +23,7 @@ export notch_filter, notch_filter!
 export EI_filter, EI_filter!
 export cwt_filter, cwt_filter!
 export dwt_filter
-export average_sweeps, average_sweeps!
+
 #export rolling_mean
 #export normalize, normalize!
 
@@ -118,12 +101,6 @@ end
 export check_loaded_packages
 
 function __init__()
-     @require DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab" begin
-          push!(package_msg, "DelimtedFiles")
-          include("Readers/CSVReader/CSVReader.jl")
-          export readCSV
-     end
-
      @require RCall = "6f49c342-dc21-5d91-9882-a32aef131414" begin
           println("Loading R")
           export RCall
