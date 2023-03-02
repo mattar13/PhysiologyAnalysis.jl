@@ -9,7 +9,6 @@ import ElectroPhysiology.Experiment
 
 #1)Filter ====================================================================================#
 using DSP #Used for lowpass, highpass, EI, and notch filtering
-using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 import Polynomials as PN #
 include("Filtering/filtering.jl")
 export filter_data, filter_data!
@@ -20,18 +19,16 @@ include("Filtering/filteringPipelines.jl")
 export data_filter!, data_filter
 
 #2) Fitting ============================================================================#
-include("Fitting/fitting.jl")
-export MeanSquaredError
-
-#First import models necessary for the analysis
-using Statistics, StatsBase #These functions use R functions as well as StatsBase
-include("Analysis/Stats.jl")
-export RSQ
-
+using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 using Distributions
-include("Analysis/Models.jl")
+include("Fitting/Models.jl")
 export HILL_MODEL
+export amplification
+export curve_fit #curve fitting from LsqFit
+export IR_curve
 
+#3) Data anlysis ========================================================================#
+using Statistics, StatsBase #These functions use R functions as well as StatsBase
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -40,9 +37,6 @@ export percent_recovery_interval #This finds the dominant time constant
 export recovery_time_constant #This finds the recovery time constant
 export integral #This finds the integration time
 export get_response
-export amplification
-export curve_fit #curve fitting from LsqFit
-export IR_curve
 export calculate_threshold
 
 #using JLD2 #Maybe this should be added to Requires.jl
@@ -50,7 +44,7 @@ include("Analysis/TimescaleAnalysis.jl")
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
-#===============================Import all Datasheet tools==============================#
+#4) Import all Datasheet tools ===========================================================#
 #Only import if DataFrames has been loaded
 using DataFrames, Query, XLSX #Load these extra utilites immediately
 import XLSX: readtable, readxlsx #Import XLSX commands
@@ -68,7 +62,7 @@ export parseColumn!
 export GenerateFitFrame
 export saveDataset, backupDataset
 
-#Plotting utilities will be loaded in automatically
+#5) Plotting utilities will be loaded in automatically ==============================================#
 import PyPlot
 import PyPlot.plt #All the base utilities for plotting
 import PyPlot.matplotlib
