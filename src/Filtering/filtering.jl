@@ -88,40 +88,6 @@ function filter_data!(exp::Experiment{T};
     end
 end
 
-#=
-struct FilterCasette{T}
-    filterMode::Vector{Symbol}
-    filterMethods::Vector{Symbol}
-    filterRNG::Vector{Tuple{T,T}}
-end
-
-function filter_data!(exp::Experiment{T}, casette)
-
-end
-=#
-
-"""
-This is from the adaptive line interface filter in the Clampfit manual
-
-This takes notch filters at every harmonic
-
-#Stimulus artifacts have a very specific harmonic
-250, 500, 750, 1000 ... 250n
-"""
-function EI_filter(exp; reference_filter=60.0, bandpass=10.0, cycles=5)
-    data = deepcopy(exp)
-    for cycle in 1:cycles
-        band!(data, center=reference_filter * cycle, std=bandpass)
-    end
-    return data
-end
-
-function EI_filter!(exp; reference_filter=60.0, bandpass=10.0, cycles=5)
-    for cycle in 1:cycles
-        notch_filter!(exp, center=reference_filter * cycle, std=bandpass)
-    end
-end
-
 function normalize!(exp::Experiment; rng=(-1, 0), normalize_by=:channel)
     for swp in axes(exp, 1)
         for ch in axes(exp, 3)
