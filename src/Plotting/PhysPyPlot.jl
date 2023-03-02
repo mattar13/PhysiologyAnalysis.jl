@@ -48,7 +48,7 @@ function plot_experiment(axis::Vector{PyObject}, exp::Experiment; kwargs...)
     #This is for if there are multiple axes
     for (ch, axis) in enumerate(axis)
         if ch == 1
-            plot_experiment(axis::PyObject, exp::Experiment; channels=ch, include_ylabel = false, include_xlabel = false, kwargs...)
+            plot_experiment(axis::PyObject, exp::Experiment; channels=ch, include_xlabel = false, kwargs...)
         else
             plot_experiment(axis::PyObject, exp::Experiment; channels=ch, kwargs...)
         end
