@@ -170,11 +170,9 @@ function DataPathExtraction(path::String, calibration_file::String;
           #println("Recording")
           if extract_photons
                #extract the stimulus from the data
-               stim_timestamps = extract_stimulus(path)[1].timestamps
+               stim_timestamps = extractStimulus(path)[1]
                stim_time = round(Int64, (stim_timestamps[2] - stim_timestamps[1]) * 1000)
-               #println(stim_time)
                STIM_TIME=stim_time
-               #now lets extract photons
                if ND == "0.5"
                     PHOTONS = photon_lookup(
                          WAVE,
