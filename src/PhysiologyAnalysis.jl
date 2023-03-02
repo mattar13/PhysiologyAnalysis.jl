@@ -74,6 +74,7 @@ import PyCall: @pyimport, PyObject
 include("Plotting/DefaultSettings.jl") #This requires PyPlot
 include("Plotting/PlottingUtilities.jl")
 include("Plotting/PhysPyPlot.jl")
+include("Plotting/DatasheetPlotting.jl")
 export plot_experiment, plot_experiment_fit
 
 
