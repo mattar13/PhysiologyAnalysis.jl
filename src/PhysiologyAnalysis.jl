@@ -1,14 +1,16 @@
 module PhysiologyAnalysis
 
 # The top level is the ElectroPhysiology package
-using Requires #This will help us load only the things we need
 using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
+using DSP #Used for lowpass, highpass, EI, and notch filtering
+import Polynomials as PN #
+
+#export some basic functions from 
+
 #This package does 4 things: 
 
 #1)Filter ====================================================================================#
-using DSP #Used for lowpass, highpass, EI, and notch filtering
-import Polynomials as PN #
 include("Filtering/filtering.jl")
 export filter_data, filter_data!
 export rolling_mean
@@ -64,6 +66,7 @@ export saveDataset, backupDataset
 #5) Plotting utilities will be loaded in automatically ==============================================#
 import PyPlot
 import PyPlot.plt #All the base utilities for plotting
+export plt
 import PyPlot.matplotlib
 import PyCall as py #This allows us to use Python to call somethings 
 import PyCall: @pyimport, PyObject
