@@ -103,13 +103,6 @@ function __init__()
           push!(package_msg, "FFTW")
      end
 
-
-     @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-          using RecipesBase
-          include("Plotting/PhysRecipes.jl")
-          push!(package_msg, "Plots(GR)")
-     end
-
      @require ContinuousWavelets = "96eb917e-2868-4417-9cb6-27e7ff17528f" begin
           @require Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a" begin
                include("Filtering/wavelet_filtering.jl")
