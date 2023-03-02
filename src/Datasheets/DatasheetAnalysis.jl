@@ -107,7 +107,7 @@ function runTraceAnalysis(all_files::DataFrame;
           #Determine whether or not a subtraction should be done
           if i.Condition == a_cond
                qTRIALa = qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
-               qTRIAL[!, :SubPath] .= nothing #There is no subtraction
+               qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                #pull out only A-wave files
                data = readABF(qTRIALa.Path)
                dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post) #This function is found in the filter pipeline 
