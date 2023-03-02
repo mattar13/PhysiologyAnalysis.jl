@@ -75,35 +75,10 @@ include("Plotting/PhysPyPlot.jl")
 export plot_experiment, plot_experiment_fit
 
 
-#using DataFrames
-package_msg = ["PhysiologyAnalysis"]
-
-function check_loaded_packages() 
-     for package in package_msg
-          println("$(package) is loaded")
-     end
-end
-export check_loaded_packages
-
-function __init__()
-     @require RCall = "6f49c342-dc21-5d91-9882-a32aef131414" begin
-          println("Loading R")
-          export RCall
-          push!(package_msg, "RCall")
-     end
-
-     @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
-          include("Filtering/make_spectrum.jl")
-          push!(package_msg, "FFTW")
-     end
-
-     @require ContinuousWavelets = "96eb917e-2868-4417-9cb6-27e7ff17528f" begin
-          @require Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a" begin
-               include("Filtering/wavelet_filtering.jl")
-               export cwt_filter!, cwt_filter
-               export dwt_filter!, dwt_filter
-          end
-     end
-end
+#include("Filtering/make_spectrum.jl")
+#using ContinuousWavelets, Wavelets
+#include("Filtering/wavelet_filtering.jl")
+#export cwt_filter!, cwt_filter
+#export dwt_filter!, dwt_filter
 
 end
