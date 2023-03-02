@@ -13,5 +13,6 @@ end
     data_filtered = filter_data(data)
     @test !isnothing(data_filtered)
 
+    data_normalized = normalize(data)
     
 end

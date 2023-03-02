@@ -13,8 +13,8 @@ using LsqFit #Used for fitting amplification, Intensity Response, and Resistance
 import Polynomials as PN #
 include("Filtering/filtering.jl")
 export filter_data, filter_data!
-#export rolling_mean
-#export normalize, normalize!
+export rolling_mean
+export normalize, normalize!
 
 include("Filtering/filteringPipelines.jl")
 export data_filter!, data_filter
@@ -46,9 +46,9 @@ export IR_curve
 export calculate_threshold
 
 #using JLD2 #Maybe this should be added to Requires.jl
-#include("Analysis/TimescaleAnalysis.jl")
-#export get_timestamps, extract_interval
-#export max_interval_algorithim, timeseries_analysis
+include("Analysis/TimescaleAnalysis.jl")
+export get_timestamps, extract_interval
+export max_interval_algorithim, timeseries_analysis
 
 #===============================Import all Datasheet tools==============================#
 #Only import if DataFrames has been loaded
