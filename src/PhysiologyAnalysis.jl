@@ -7,7 +7,7 @@ using DSP #Used for lowpass, highpass, EI, and notch filtering
 import Polynomials as PN #
 
 #export some basic functions from 
-
+export readABF, parseABF
 #This package does 4 things: 
 
 #1)Filter ====================================================================================#
