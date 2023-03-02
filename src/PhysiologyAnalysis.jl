@@ -10,7 +10,7 @@ import ElectroPhysiology.Experiment
 #1)Filter ====================================================================================#
 using DSP #Used for lowpass, highpass, EI, and notch filtering
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
-import Polynomials as PN
+import Polynomials as PN #
 include("Filtering/filtering.jl")
 export filter_data, filter_data!
 #export rolling_mean
