@@ -14,5 +14,17 @@ end
     @test !isnothing(data_filtered)
 
     data_normalized = normalize(data)
+    @test !isnothing(data_normalized)
+end
+
+@testset "Testing fitting functions" begin
     
+
+end
+
+@testset "Testing ERG analysis" begin
+    data_filt = data_filter(data)
+    resps = saturated_response(data_filt)
+    @test maximum(resps) == -0.2988254587666856
+
 end
