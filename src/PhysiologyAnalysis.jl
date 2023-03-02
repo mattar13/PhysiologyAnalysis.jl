@@ -1,64 +1,35 @@
 module PhysiologyAnalysis
 
-#=================== Here are the imports from other files ===================#
-using Requires #This will help us load only the things we need
-using Base: String, println
-using Dates
-#import PyCall as py
-#using PyCall
-#export R, py
-
-using Crayons #Really cool package for coloring text for debugging
-
-#=======================Import all experiment objects=======================#
-include("Experiment/StimulusProtocol.jl")
-include("Experiment/Experiments.jl") #This file contains the Experiment structure. 
-
-#======================Import all ABF extension imports======================#
-include("Readers/ABFReader/ABFReader.jl")
-export readABF
-export parseABF
-
-#===============================ABF utilities===============================#
-include("Experiment/ExperimentUtilities.jl")
-include("Utilities/DataUtilities.jl")
-#export truncate_data, truncate_data!
-#export baseline_adjust
-export downsample, downsample!
-export eachchannel
-#=Add filtering capability=#
+# The top level is the ElectroPhysiology package
+using ElectroPhysiology
+import ElectroPhysiology: Experiment, readABF, parseABF
 using DSP #Used for lowpass, highpass, EI, and notch filtering
-using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
-import Polynomials as PN #Import this (there are a few functions that get in the way)
+import Polynomials as PN #
+
+#export some basic functions from 
+export readABF, parseABF
+#This package does 4 things: 
+
+#1)Filter ====================================================================================#
 include("Filtering/filtering.jl")
-#include("Filtering/filteringPipelines.jl") #Not ready to uncomment this one yet
-#export filter_data #Don't export this one explicitly
-export baseline_adjust, baseline_adjust!
-export lowpass_filter, lowpass_filter!
-export highpass_filter, highpass_filter!
-export notch_filter, notch_filter!
-export EI_filter, EI_filter!
-export cwt_filter, cwt_filter!
-export dwt_filter
-export average_sweeps, average_sweeps!
-#export rolling_mean
-#export normalize, normalize!
+export filter_data, filter_data!
+export rolling_mean
+export normalize, normalize!
 
 include("Filtering/filteringPipelines.jl")
 export data_filter!, data_filter
 
-include("Fitting/fitting.jl")
-export MeanSquaredError
-
-#====================Import all the tools needed to analyze the data====================#
-#First import models necessary for the analysis
-using Statistics, StatsBase #These functions use R functions as well as StatsBase
-include("Analysis/Stats.jl")
-export RSQ
-
+#2) Fitting ============================================================================#
+using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 using Distributions
-include("Analysis/Models.jl")
+include("Fitting/Models.jl")
 export HILL_MODEL
+export amplification
+export curve_fit #curve fitting from LsqFit
+export IR_curve
+
+#3) Data anlysis ========================================================================#
+using Statistics, StatsBase #These functions use R functions as well as StatsBase
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -67,17 +38,15 @@ export percent_recovery_interval #This finds the dominant time constant
 export recovery_time_constant #This finds the recovery time constant
 export integral #This finds the integration time
 export get_response
-export amplification
-export curve_fit #curve fitting from LsqFit
-export IR_curve
 export calculate_threshold
 
 #using JLD2 #Maybe this should be added to Requires.jl
-#include("Analysis/TimescaleAnalysis.jl")
-#export get_timestamps, extract_interval
-#export max_interval_algorithim, timeseries_analysis
+include("Analysis/TimescaleAnalysis.jl")
+export get_timestamps, extract_interval
+export max_interval_algorithim, timeseries_analysis
 
-#Dataframe utilities are baked in automatically
+#4) Import all Datasheet tools ===========================================================#
+#Only import if DataFrames has been loaded
 using DataFrames, Query, XLSX #Load these extra utilites immediately
 import XLSX: readtable, readxlsx #Import XLSX commands
 export readtable, readxlsx, XLSX
@@ -94,9 +63,10 @@ export parseColumn!
 export GenerateFitFrame
 export saveDataset, backupDataset
 
-#Plotting utilities will be loaded in automatically
+#5) Plotting utilities will be loaded in automatically ==============================================#
 import PyPlot
 import PyPlot.plt #All the base utilities for plotting
+export plt
 import PyPlot.matplotlib
 import PyCall as py #This allows us to use Python to call somethings 
 import PyCall: @pyimport, PyObject
@@ -107,58 +77,10 @@ include("Plotting/PhysPyPlot.jl")
 export plot_experiment, plot_experiment_fit
 
 
-#using DataFrames
-package_msg = ["PhysiologyAnalysis"]
-
-function check_loaded_packages() 
-     for package in package_msg
-          println("$(package) is loaded")
-     end
-end
-export check_loaded_packages
-
-function __init__()
-     @require DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab" begin
-          push!(package_msg, "DelimtedFiles")
-          include("Readers/CSVReader/CSVReader.jl")
-          export readCSV
-     end
-
-     @require RCall = "6f49c342-dc21-5d91-9882-a32aef131414" begin
-          println("Loading R")
-          export RCall
-          push!(package_msg, "RCall")
-     end
-
-     @require FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341" begin
-          include("Filtering/make_spectrum.jl")
-          push!(package_msg, "FFTW")
-     end
-
-     #This is a good section to try using @Requires
-     @require DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa" begin
-          #using DifferentialEquations #For require, do we actually need to import this? 
-          using DiffEqParamEstim, Optim
-          include("Filtering/artifactRemoval.jl")
-          export RCArtifact
-          push!(package_msg, "DifferentialEquations")
-     end
-     #===============================Import all Datasheet tools==============================#
-     #Only import if DataFrames has been loaded
-
-     @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-          using RecipesBase
-          include("Plotting/PhysRecipes.jl")
-          push!(package_msg, "Plots(GR)")
-     end
-
-     @require ContinuousWavelets = "96eb917e-2868-4417-9cb6-27e7ff17528f" begin
-          @require Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a" begin
-               include("Filtering/wavelet_filtering.jl")
-               export cwt_filter!, cwt_filter
-               export dwt_filter!, dwt_filter
-          end
-     end
-end
+#include("Filtering/make_spectrum.jl")
+#using ContinuousWavelets, Wavelets
+#include("Filtering/wavelet_filtering.jl")
+#export cwt_filter!, cwt_filter
+#export dwt_filter!, dwt_filter
 
 end

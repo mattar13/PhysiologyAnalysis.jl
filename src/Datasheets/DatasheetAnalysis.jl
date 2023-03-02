@@ -126,6 +126,7 @@ function runTraceAnalysis(all_files::DataFrame;
                     println("\t Experiment $(i.Path) was incomplete")
                     continue
                end
+               #println(SubFiles.Path)
                data = readABF(SubFiles.Path) #Read the AB data
                filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
                dataSUB = readABF(SubFiles.SubPath)
