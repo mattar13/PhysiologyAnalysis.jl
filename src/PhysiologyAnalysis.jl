@@ -1,39 +1,28 @@
 module PhysiologyAnalysis
 
 # The top level is the ElectroPhysiology package
-using ElectroPhysiology
-export readABF
-export Experiment
-
-#=================== Here are the imports from other files ===================#
 using Requires #This will help us load only the things we need
-using Crayons #Really cool package for coloring text for debugging
+using ElectroPhysiology
+import ElectroPhysiology.Experiment
 
-#=Add filtering capability=#
+#This package does 4 things: 
+
+#1)Filter ====================================================================================#
 using DSP #Used for lowpass, highpass, EI, and notch filtering
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
-import Polynomials as PN #Import this (there are a few functions that get in the way)
+import Polynomials as PN
 include("Filtering/filtering.jl")
-#include("Filtering/filteringPipelines.jl") #Not ready to uncomment this one yet
-#export filter_data #Don't export this one explicitly
-export baseline_adjust, baseline_adjust!
-export lowpass_filter, lowpass_filter!
-export highpass_filter, highpass_filter!
-export notch_filter, notch_filter!
-export EI_filter, EI_filter!
-export cwt_filter, cwt_filter!
-export dwt_filter
-
+export filter_data, filter_data!
 #export rolling_mean
 #export normalize, normalize!
 
 include("Filtering/filteringPipelines.jl")
 export data_filter!, data_filter
 
+#2) Fitting ============================================================================#
 include("Fitting/fitting.jl")
 export MeanSquaredError
 
-#====================Import all the tools needed to analyze the data====================#
 #First import models necessary for the analysis
 using Statistics, StatsBase #These functions use R functions as well as StatsBase
 include("Analysis/Stats.jl")
@@ -42,6 +31,7 @@ export RSQ
 using Distributions
 include("Analysis/Models.jl")
 export HILL_MODEL
+
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -60,7 +50,8 @@ export calculate_threshold
 #export get_timestamps, extract_interval
 #export max_interval_algorithim, timeseries_analysis
 
-#Dataframe utilities are baked in automatically
+#===============================Import all Datasheet tools==============================#
+#Only import if DataFrames has been loaded
 using DataFrames, Query, XLSX #Load these extra utilites immediately
 import XLSX: readtable, readxlsx #Import XLSX commands
 export readtable, readxlsx, XLSX
@@ -112,16 +103,6 @@ function __init__()
           push!(package_msg, "FFTW")
      end
 
-     #This is a good section to try using @Requires
-     @require DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa" begin
-          #using DifferentialEquations #For require, do we actually need to import this? 
-          using DiffEqParamEstim, Optim
-          include("Filtering/artifactRemoval.jl")
-          export RCArtifact
-          push!(package_msg, "DifferentialEquations")
-     end
-     #===============================Import all Datasheet tools==============================#
-     #Only import if DataFrames has been loaded
 
      @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
           using RecipesBase
