@@ -29,7 +29,9 @@ function sig_symbol(val)
 end
 
 function dataset_statistics(qEXP; control = "WT")
-     res_rmax = qEXP |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
+     unflagged_exps = qExperiment |> @filter(_.FLAG == true) |> DataFrame
+
+     res_rmax = unflagged_exps  |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],
                N = length(_),
                METRIC = "",
@@ -38,7 +40,7 @@ function dataset_statistics(qEXP; control = "WT")
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
 
-     res_rdim = qEXP |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
+     res_rdim = unflagged_exps  |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],
                N = length(_),
                METRIC = "",
@@ -47,7 +49,7 @@ function dataset_statistics(qEXP; control = "WT")
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
 
-     res_K_fit = qEXP |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
+     res_K_fit = unflagged_exps  |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],
                N = length(_),
                METRIC = "",
@@ -56,7 +58,7 @@ function dataset_statistics(qEXP; control = "WT")
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
 
-     res_tint = qEXP |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
+     res_tint = unflagged_exps  |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],
                N = length(_),
                METRIC = "",
@@ -64,7 +66,7 @@ function dataset_statistics(qEXP; control = "WT")
                LOWER = mean(_.integration_time) - 1.96*sem(_.integration_time), UPPER = mean(_.integration_time) + 1.96*sem(_.integration_time),
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
-     res_tpeak = qEXP |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
+     res_tpeak = unflagged_exps  |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],
                N = length(_),
                METRIC = "",
@@ -72,7 +74,7 @@ function dataset_statistics(qEXP; control = "WT")
                LOWER = mean(_.time_to_peak) - 1.96*sem(_.time_to_peak), UPPER = mean(_.time_to_peak) + 1.96*sem(_.time_to_peak),
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
-     res_rec = qEXP |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
+     res_rec = unflagged_exps  |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],
                N = length(_),
                METRIC = "",

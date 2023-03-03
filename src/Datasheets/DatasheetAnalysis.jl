@@ -42,7 +42,10 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
 end
 
 function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
-     qConditions = qExperiment |>
+     #filter out all flags
+     unflagged_exps = qExperiment |> @filter(_.FLAG == true) |> DataFrame
+
+     qConditions = unflagged_exps |>
           @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength, _.Condition}) |>
           @map({
                Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
