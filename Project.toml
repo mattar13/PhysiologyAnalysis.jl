@@ -3,7 +3,7 @@ uuid = "69cbc4a0-077e-48a7-9b45-fa8b7014b5ca"
 license = "MIT"
 authors = ["Matthew Tarchick <mtarchick13@gmail.com>"]
 repo = "https://github.com/mattar13/PhysiologyAnalysis.jl.git"
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
