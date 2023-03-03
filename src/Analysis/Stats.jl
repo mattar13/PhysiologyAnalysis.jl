@@ -151,4 +151,4 @@ function dataset_statistics(qEXP; control = "WT")
      return stats
 end
 
-dataset_statistics(dataset::Dict{String, DataFrame}; kwargs...) = dataset_statistics(dataset["EXPERIMENT"]; kwargs...)
+dataset_statistics(dataset::Dict{String, DataFrame}; kwargs...) = dataset_statistics(dataset["EXPERIMENTS"]; kwargs...)
