@@ -43,7 +43,7 @@ end
 
 function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
      qConditions = qExperiment |>
-          @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
+          @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength, _.Condition}) |>
           @map({
                Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
                Condition = _.Condition[1],
