@@ -269,6 +269,7 @@ function runTraceAnalysis(all_files::DataFrame;
      dataset["TRACES"] = qTrace
      dataset["EXPERIMENTS"] = qExperiment
      dataset["CONDITIONS"] = summarize_data(qTrace, qExperiment; lb = lb, p0 = p0, ub = ub)
+     dataset["STATS"] = DataFrame()
      return dataset
 end
 

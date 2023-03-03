@@ -29,8 +29,8 @@ function sig_symbol(val)
 end
 
 function dataset_statistics(qEXP; control = "WT")
-     res_rmax = qEXP |> @groupby({_.Genotype, _.Age}) |> 
-          @map({Genotype = key(_)[1], Age = key(_)[2],
+     res_rmax = qEXP |> @groupby({_.Genotype, _.Age, _.Condition}) |> 
+          @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3],
                N = length(_),
                METRIC = "",
                AVG = mean(_.rmax), STD = std(_.rmax), SEM = sem(_.rmax), CI = 1.96*sem(_.rmax), 
@@ -38,8 +38,8 @@ function dataset_statistics(qEXP; control = "WT")
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
 
-     res_rdim = qEXP |> @groupby({_.Genotype, _.Age}) |> 
-          @map({Genotype = key(_)[1], Age = key(_)[2],
+     res_rdim = qEXP |> @groupby({_.Genotype, _.Age, _.Condition}) |> 
+          @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3],
                N = length(_),
                METRIC = "",
                AVG = mean(_.rdim), STD = std(_.rdim), SEM = sem(_.rdim), CI = 1.96*sem(_.rdim), 
@@ -47,8 +47,8 @@ function dataset_statistics(qEXP; control = "WT")
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
 
-     res_K_fit = qEXP |> @groupby({_.Genotype, _.Age}) |> 
-          @map({Genotype = key(_)[1], Age = key(_)[2],
+     res_K_fit = qEXP |> @groupby({_.Genotype, _.Age, _.Condition}) |> 
+          @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3],
                N = length(_),
                METRIC = "",
                AVG = mean(_.K_fit), STD = std(_.K_fit), SEM = sem(_.K_fit), CI = 1.96*sem(_.K_fit), 
@@ -56,24 +56,24 @@ function dataset_statistics(qEXP; control = "WT")
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
 
-     res_tint = qEXP |> @groupby({_.Genotype, _.Age}) |> 
-          @map({Genotype = key(_)[1], Age = key(_)[2],
+     res_tint = qEXP |> @groupby({_.Genotype, _.Age, _.Condition}) |> 
+          @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3],
                N = length(_),
                METRIC = "",
                AVG = mean(_.integration_time), STD = std(_.integration_time), SEM = sem(_.integration_time), CI = 1.96*sem(_.integration_time), 
                LOWER = mean(_.integration_time) - 1.96*sem(_.integration_time), UPPER = mean(_.integration_time) + 1.96*sem(_.integration_time),
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
-     res_tpeak = qEXP |> @groupby({_.Genotype, _.Age}) |> 
-          @map({Genotype = key(_)[1], Age = key(_)[2],
+     res_tpeak = qEXP |> @groupby({_.Genotype, _.Age, _.Condition}) |> 
+          @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3],
                N = length(_),
                METRIC = "",
                AVG = mean(_.time_to_peak), STD = std(_.time_to_peak), SEM = sem(_.time_to_peak), CI = 1.96*sem(_.time_to_peak), 
                LOWER = mean(_.time_to_peak) - 1.96*sem(_.time_to_peak), UPPER = mean(_.time_to_peak) + 1.96*sem(_.time_to_peak),
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
-     res_rec = qEXP |> @groupby({_.Genotype, _.Age}) |> 
-          @map({Genotype = key(_)[1], Age = key(_)[2],
+     res_rec = qEXP |> @groupby({_.Genotype, _.Age, _.Condition}) |> 
+          @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3],
                N = length(_),
                METRIC = "",
                AVG = mean(_.percent_recovery), STD = std(_.percent_recovery), SEM = sem(_.percent_recovery), CI = 1.96*sem(_.percent_recovery), 
