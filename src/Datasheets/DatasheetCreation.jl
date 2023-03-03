@@ -187,6 +187,7 @@ function backupDataset(datafile::String)
 end
 
 function saveDataset(dataset::Dict{String, DataFrame}, filename::String)
+     println(keys(dataset))
      XLSX.openxlsx(filename, mode = "w") do xf
           sheet_ALL = xf[1] #Sheet 1 should be renamed
           XLSX.rename!(sheet_ALL, "ALL_FILES")
