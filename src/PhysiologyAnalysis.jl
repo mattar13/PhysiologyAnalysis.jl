@@ -22,7 +22,6 @@ import PyCall: @pyimport, PyObject
 export readABF, parseABF
 export plt
 
-
 #This package does 4 things: 
 #1)Filter ====================================================================================#
 include("Filtering/filtering.jl")
@@ -60,7 +59,6 @@ include("Analysis/Stats.jl")
 export dataset_statistics
 
 #4) Import all Datasheet tools ===========================================================#
-#Only import if DataFrames has been loaded
 export readtable, readxlsx, XLSX
 include("Datasheets/RegexFunctions.jl")
 include("Datasheets/FilePathExtraction.jl")

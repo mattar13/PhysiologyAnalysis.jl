@@ -53,21 +53,21 @@ function dataset_statistics(qEXP; control = "WT")
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
 
-     res_integration_time = qEXP |> @groupby({_.Genotype, _.Age}) |> 
+     res_tint = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
                AVG = mean(_.integration_time), STD = std(_.integration_time), SEM = sem(_.integration_time), CI = 1.96*sem(_.integration_time), 
                LOWER = mean(_.integration_time) - 1.96*sem(_.integration_time), UPPER = mean(_.integration_time) + 1.96*sem(_.integration_time),
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
-     res_time_to_peak = qEXP |> @groupby({_.Genotype, _.Age}) |> 
+     res_tpeak = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
                AVG = mean(_.time_to_peak), STD = std(_.time_to_peak), SEM = sem(_.time_to_peak), CI = 1.96*sem(_.time_to_peak), 
                LOWER = mean(_.time_to_peak) - 1.96*sem(_.time_to_peak), UPPER = mean(_.time_to_peak) + 1.96*sem(_.time_to_peak),
                P = 0.0, SIGN = "-"
           })|> @orderby(_.Age) |> @thenby(_.Genotype) |> DataFrame
-     res_percent_recovery = qEXP |> @groupby({_.Genotype, _.Age}) |> 
+     res_rec = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
                AVG = mean(_.percent_recovery), STD = std(_.percent_recovery), SEM = sem(_.percent_recovery), CI = 1.96*sem(_.percent_recovery), 
@@ -100,30 +100,30 @@ function dataset_statistics(qEXP; control = "WT")
                res_rmax[idx, :P] = pvalue_rmax
                res_rdim[idx, :P] = pvalue_rdim
                res_K_fit[idx, :P] = pvalue_K_fit
-               res_integration_time[idx, :P] = pvalue_integration_time
-               res_time_to_peak[idx, :P] = pvalue_time_to_peak
-               res_percent_recovery[idx, :P] = pvalue_percent_recovery
+               res_tint[idx, :P] = pvalue_integration_time
+               res_tpeak[idx, :P] = pvalue_time_to_peak
+               res_rec[idx, :P] = pvalue_percent_recovery
 
                res_rmax[idx, :SIGN] = sig_rmax
                res_rdim[idx, :SIGN] = sig_rdim
                res_K_fit[idx, :SIGN] = sig_K_fit
-               res_integration_time[idx, :SIGN] = sig_integration_time
-               res_time_to_peak[idx, :SIGN] = sig_time_to_peak
-               res_percent_recovery[idx, :SIGN] = sig_percent_recovery
+               res_tint[idx, :SIGN] = sig_integration_time
+               res_tpeak[idx, :SIGN] = sig_time_to_peak
+               res_rec[idx, :SIGN] = sig_percent_recovery
           else
                res_rmax[idx, :P] = 1.0
                res_rdim[idx, :P] = 1.0
                res_K_fit[idx, :P] = 1.0
-               res_integration_time[idx, :P] = 1.0
-               res_time_to_peak[idx, :P] = 1.0
-               res_percent_recovery[idx, :P] = 1.0
+               res_tint[idx, :P] = 1.0
+               res_tpeak[idx, :P] = 1.0
+               res_rec[idx, :P] = 1.0
 
                res_rmax[idx, :SIGN] = "-"
                res_rdim[idx, :SIGN] = "-"
                res_K_fit[idx, :SIGN] = "-"
-               res_integration_time[idx, :SIGN] = "-"
-               res_time_to_peak[idx, :SIGN] = "-"
-               res_percent_recovery[idx, :SIGN] = "-"
+               res_tint[idx, :SIGN] = "-"
+               res_tpeak[idx, :SIGN] = "-"
+               res_rec[idx, :SIGN] = "-"
           end
      end
      return res_rmax, res_rdim, res_K_fit, res_integration_time, res_time_to_peak, res_percent_recovery
