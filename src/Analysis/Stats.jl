@@ -32,6 +32,7 @@ function dataset_statistics(qEXP; control = "WT")
      res_rmax = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
+               METRIC = "",
                AVG = mean(_.rmax), STD = std(_.rmax), SEM = sem(_.rmax), CI = 1.96*sem(_.rmax), 
                LOWER = mean(_.rmax) - 1.96*sem(_.rmax), UPPER = mean(_.rmax) + 1.96*sem(_.rmax),
                P = 0.0, SIGN = "-"
@@ -40,6 +41,7 @@ function dataset_statistics(qEXP; control = "WT")
      res_rdim = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
+               METRIC = "",
                AVG = mean(_.rdim), STD = std(_.rdim), SEM = sem(_.rdim), CI = 1.96*sem(_.rdim), 
                LOWER = mean(_.rdim) - 1.96*sem(_.rdim), UPPER = mean(_.rdim) + 1.96*sem(_.rdim),
                P = 0.0, SIGN = "-"
@@ -48,6 +50,7 @@ function dataset_statistics(qEXP; control = "WT")
      res_K_fit = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
+               METRIC = "",
                AVG = mean(_.K_fit), STD = std(_.K_fit), SEM = sem(_.K_fit), CI = 1.96*sem(_.K_fit), 
                LOWER = mean(_.K_fit) - 1.96*sem(_.K_fit), UPPER = mean(_.K_fit) + 1.96*sem(_.K_fit),
                P = 0.0, SIGN = "-"
@@ -56,6 +59,7 @@ function dataset_statistics(qEXP; control = "WT")
      res_tint = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
+               METRIC = "",
                AVG = mean(_.integration_time), STD = std(_.integration_time), SEM = sem(_.integration_time), CI = 1.96*sem(_.integration_time), 
                LOWER = mean(_.integration_time) - 1.96*sem(_.integration_time), UPPER = mean(_.integration_time) + 1.96*sem(_.integration_time),
                P = 0.0, SIGN = "-"
@@ -63,6 +67,7 @@ function dataset_statistics(qEXP; control = "WT")
      res_tpeak = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
+               METRIC = "",
                AVG = mean(_.time_to_peak), STD = std(_.time_to_peak), SEM = sem(_.time_to_peak), CI = 1.96*sem(_.time_to_peak), 
                LOWER = mean(_.time_to_peak) - 1.96*sem(_.time_to_peak), UPPER = mean(_.time_to_peak) + 1.96*sem(_.time_to_peak),
                P = 0.0, SIGN = "-"
@@ -70,6 +75,7 @@ function dataset_statistics(qEXP; control = "WT")
      res_rec = qEXP |> @groupby({_.Genotype, _.Age}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2],
                N = length(_),
+               METRIC = "",
                AVG = mean(_.percent_recovery), STD = std(_.percent_recovery), SEM = sem(_.percent_recovery), CI = 1.96*sem(_.percent_recovery), 
                LOWER = mean(_.percent_recovery) - 1.96*sem(_.percent_recovery), UPPER = mean(_.percent_recovery) + 1.96*sem(_.percent_recovery),
                P = 0.0, SIGN = "-"
@@ -81,6 +87,12 @@ function dataset_statistics(qEXP; control = "WT")
           exp_data = qEXP |> @filter(_.Age == info.Age && _.Genotype == info.Genotype) |> DataFrame
           #println(size(ctrl_data))
           #println(size(exp_data))
+          res_rmax[idx, :METRIC] = "RMAX"
+          res_rdim[idx, :METRIC] = "RDIM"
+          res_K_fit[idx, :METRIC] = "K"
+          res_tint[idx, :METRIC] = "TINT"
+          res_tpeak[idx, :METRIC] = "TPEAK"
+          res_rec[idx, :METRIC] = "REC"
           if size(exp_data,1) > 1
                pvalue_rmax = UnequalVarianceTTest(ctrl_data.rmax, exp_data.rmax) |> pvalue
                pvalue_rdim = UnequalVarianceTTest(ctrl_data.rdim, exp_data.rdim) |> pvalue
@@ -126,5 +138,7 @@ function dataset_statistics(qEXP; control = "WT")
                res_rec[idx, :SIGN] = "-"
           end
      end
-     return res_rmax, res_rdim, res_K_fit, res_integration_time, res_time_to_peak, res_percent_recovery
+     stats = vcat(res_rmax, res_rdim, res_K_fit, res_tint, res_tpeak, res_rec)
+
+     return stats
 end
