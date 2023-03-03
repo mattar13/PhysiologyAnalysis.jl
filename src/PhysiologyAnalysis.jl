@@ -66,6 +66,7 @@ include("Datasheets/FilePathExtraction.jl")
 include("Datasheets/DatasheetFunctions.jl")
 include("Datasheets/DatasheetCreation.jl")
 include("Datasheets/DatasheetAnalysis.jl")
+export summarize_data
 export openDataset, createDataset, updateDataset
 export runAnalysis
 export runTraceAnalysis
