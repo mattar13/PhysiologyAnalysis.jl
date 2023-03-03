@@ -3,6 +3,7 @@ module PhysiologyAnalysis
 # The top level is the ElectroPhysiology package
 using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
+import ElectroPhysiology: now, year, month, day, hour, minute, second
 using DSP #Used for lowpass, highpass, EI, and notch filtering
 import Polynomials as PN #
 using HypothesisTests
