@@ -186,23 +186,18 @@ function backupDataset(datafile::String)
      cp(datafile, backup_file)
 end
 
-function saveDataset(dataset::Dict{String, DataFrame}, filename::String)
-     println(keys(dataset))
+function saveDataset(dataset::Dict{String, DataFrame}, filename::String;
+          categories = [ "ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS", "STATS"]
+     )
      XLSX.openxlsx(filename, mode = "w") do xf
           sheet_ALL = xf[1] #Sheet 1 should be renamed
-          XLSX.rename!(sheet_ALL, "ALL_FILES")
-          XLSX.writetable!(sheet_ALL, dataset["ALL_FILES"])
+          XLSX.rename!(sheet_ALL, categories[1])
+          XLSX.writetable!(sheet_ALL, dataset[categories[1]])
 
-          XLSX.addsheet!(xf, "TRACES")
-          sheet_TRACES = xf[2]
-          XLSX.writetable!(sheet_TRACES, dataset["TRACES"])
-
-          XLSX.addsheet!(xf, "EXPERIMENTS")
-          sheet_EXPERIMENTS = xf[3]
-          XLSX.writetable!(sheet_EXPERIMENTS , dataset["EXPERIMENTS"])
-
-          XLSX.addsheet!(xf, "CONDITIONS")
-          sheet_CONDITIONS = xf[4]
-          XLSX.writetable!(sheet_CONDITIONS , dataset["CONDITIONS"])
+          for i in eachindex(categories)[2:end]
+               XLSX.addsheet!(xf, categories[i])
+               sheet_TRACES = xf[i]
+               XLSX.writetable!(sheet_TRACES, dataset[categories[i]])
+          end
      end
 end
