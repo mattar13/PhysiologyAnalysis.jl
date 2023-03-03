@@ -11,4 +11,5 @@ datafile = "C:\\Users\\mtarc\\OneDrive - The University of Akron\\Projects\\Reti
 all_files = openDataset(datafile, sheetnames = "ALL_FILES")
 dataset = runTraceAnalysis(all_files)
 dataset["STATS"] = dataset_statistics(dataset)
-saveDataset(dataset, all_files)
+dataset
+saveDataset(dataset, datafile)
