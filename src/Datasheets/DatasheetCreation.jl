@@ -72,20 +72,21 @@ createDataset(file_root::String; verbose = false, run_analysis = true, kwargs...
 """
 This function opens an old datasheet
 """
-function openDataset(datafile::String; sheetName::String="all", typeConvert=true)
-     if sheetName == "all"
-          sheetnames = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS"]
+
+
+function openDataset(datafile::String; 
+          typeConvert=true,
+          sheetnames::Union{String, Vector{String}} = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS", "STATS"]
+     )
+     if isa(sheetnames, Vector{String})
           df_set = Dict{String, DataFrame}()
           for sn in sheetnames
                #println(sn) #Use this to debug 
-               df_set[sn] = openDataset(datafile; sheetName=sn, typeConvert = typeConvert)
+               df_set[sn] = openDataset(datafile; sheetnames=sn, typeConvert = typeConvert)
           end
           return df_set
-     else
-          #s = xf[sheetName]
-          #df = XLSX.eachtablerow(s) |> DataFrame
-          df = DataFrame(XLSX.readtable(datafile, sheetName))
-          #We can walk through and try to convert each row to either an integer, Float, or String
+     elseif isa(sheetnames, String)
+          df = DataFrame(XLSX.readtable(datafile, sheetnames))
           if typeConvert
                df = safe_convert(df) #This converts the categories to a type in the first position
           end
@@ -186,22 +187,18 @@ function backupDataset(datafile::String)
      cp(datafile, backup_file)
 end
 
-function saveDataset(dataset::Dict{String, DataFrame}, filename::String)
+function saveDataset(dataset::Dict{String, DataFrame}, filename::String;
+          categories = [ "ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS", "STATS"]
+     )
      XLSX.openxlsx(filename, mode = "w") do xf
           sheet_ALL = xf[1] #Sheet 1 should be renamed
-          XLSX.rename!(sheet_ALL, "ALL_FILES")
-          XLSX.writetable!(sheet_ALL, dataset["ALL_FILES"])
+          XLSX.rename!(sheet_ALL, categories[1])
+          XLSX.writetable!(sheet_ALL, dataset[categories[1]])
 
-          XLSX.addsheet!(xf, "TRACES")
-          sheet_TRACES = xf[2]
-          XLSX.writetable!(sheet_TRACES, dataset["TRACES"])
-
-          XLSX.addsheet!(xf, "EXPERIMENTS")
-          sheet_EXPERIMENTS = xf[3]
-          XLSX.writetable!(sheet_EXPERIMENTS , dataset["EXPERIMENTS"])
-
-          XLSX.addsheet!(xf, "CONDITIONS")
-          sheet_CONDITIONS = xf[4]
-          XLSX.writetable!(sheet_CONDITIONS , dataset["CONDITIONS"])
+          for i in eachindex(categories)[2:end]
+               XLSX.addsheet!(xf, categories[i])
+               sheet_TRACES = xf[i]
+               XLSX.writetable!(sheet_TRACES, dataset[categories[i]])
+          end
      end
 end

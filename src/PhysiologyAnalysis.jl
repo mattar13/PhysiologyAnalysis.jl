@@ -3,13 +3,27 @@ module PhysiologyAnalysis
 # The top level is the ElectroPhysiology package
 using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
+import ElectroPhysiology: now, year, month, day, hour, minute, second
 using DSP #Used for lowpass, highpass, EI, and notch filtering
 import Polynomials as PN #
+using HypothesisTests
+using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
+using Distributions
+using Statistics, StatsBase #These functions use R functions as well as StatsBase
+using DataFrames, Query, XLSX #Load these extra utilites immediately
+import XLSX: readtable, readxlsx #Import XLSX commands
+import PyPlot
+import PyPlot.plt #All the base utilities for plotting
+import PyPlot.matplotlib
+import PyCall as py #This allows us to use Python to call somethings 
+import PyCall: @pyimport, PyObject
+#using ContinuousWavelets, Wavelets
 
-#export some basic functions from 
+#export some basic functions from ============================================================#
 export readABF, parseABF
-#This package does 4 things: 
+export plt
 
+#This package does 4 things: 
 #1)Filter ====================================================================================#
 include("Filtering/filtering.jl")
 export filter_data, filter_data!
@@ -20,8 +34,6 @@ include("Filtering/filteringPipelines.jl")
 export data_filter!, data_filter
 
 #2) Fitting ============================================================================#
-using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
-using Distributions
 include("Fitting/Models.jl")
 export HILL_MODEL
 export amplification
@@ -29,7 +41,6 @@ export curve_fit #curve fitting from LsqFit
 export IR_curve
 
 #3) Data anlysis ========================================================================#
-using Statistics, StatsBase #These functions use R functions as well as StatsBase
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -45,16 +56,17 @@ include("Analysis/TimescaleAnalysis.jl")
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
+include("Analysis/Stats.jl")
+export dataset_statistics
+
 #4) Import all Datasheet tools ===========================================================#
-#Only import if DataFrames has been loaded
-using DataFrames, Query, XLSX #Load these extra utilites immediately
-import XLSX: readtable, readxlsx #Import XLSX commands
 export readtable, readxlsx, XLSX
 include("Datasheets/RegexFunctions.jl")
 include("Datasheets/FilePathExtraction.jl")
 include("Datasheets/DatasheetFunctions.jl")
 include("Datasheets/DatasheetCreation.jl")
 include("Datasheets/DatasheetAnalysis.jl")
+export summarize_data
 export openDataset, createDataset, updateDataset
 export runAnalysis
 export runTraceAnalysis
@@ -64,21 +76,15 @@ export GenerateFitFrame
 export saveDataset, backupDataset
 
 #5) Plotting utilities will be loaded in automatically ==============================================#
-import PyPlot
-import PyPlot.plt #All the base utilities for plotting
-export plt
-import PyPlot.matplotlib
-import PyCall as py #This allows us to use Python to call somethings 
-import PyCall: @pyimport, PyObject
-
 include("Plotting/DefaultSettings.jl") #This requires PyPlot
 include("Plotting/PlottingUtilities.jl")
 include("Plotting/PhysPyPlot.jl")
 export plot_experiment, plot_experiment_fit
 
+include("Plotting/DatasheetPlotting.jl")
+export plot_ir_scatter, plot_ir_fit, plot_IR
 
 #include("Filtering/make_spectrum.jl")
-#using ContinuousWavelets, Wavelets
 #include("Filtering/wavelet_filtering.jl")
 #export cwt_filter!, cwt_filter
 #export dwt_filter!, dwt_filter

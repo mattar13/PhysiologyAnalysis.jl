@@ -1,9 +1,14 @@
 #%% Section 1. Revision of interface
 using Revise
-using ElectroPhysiology
 using PhysiologyAnalysis
-
 import PhysiologyAnalysis: readABF, parseABF
+import PhysiologyAnalysis: DataFrame
+
 #%% Add the ability to flag files and remove them from the analysis
-exp_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2023_02_23_MattR141C\Mouse1_Adult_R141C\BaCl_LAP4\Rods"
-dataset = createDataset(exp_root)
+
+data_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis" #The data root |> parseABF
+datafile = "C:\\Users\\mtarc\\OneDrive - The University of Akron\\Projects\\Retinoschisis\\data_analysis.xlsx"
+all_files = openDataset(datafile, sheetnames = "ALL_FILES")
+dataset = runTraceAnalysis(all_files)
+dataset["STATS"] = dataset_statistics(dataset)
+saveDataset(dataset, all_files)

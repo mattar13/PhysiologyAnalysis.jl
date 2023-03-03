@@ -42,8 +42,11 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
 end
 
 function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
-     qConditions = qExperiment |>
-          @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength}) |>
+     #filter out all flags
+     unflagged_exps = qExperiment |> @filter(_.FLAG == true) |> DataFrame
+
+     qConditions = unflagged_exps |>
+          @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength, _.Condition}) |>
           @map({
                Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
                Condition = _.Condition[1],
@@ -107,7 +110,7 @@ function runTraceAnalysis(all_files::DataFrame;
           #Determine whether or not a subtraction should be done
           if i.Condition == a_cond
                qTRIALa = qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
-               qTRIAL[!, :SubPath] .= nothing #There is no subtraction
+               qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                #pull out only A-wave files
                data = readABF(qTRIALa.Path)
                dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post) #This function is found in the filter pipeline 
@@ -191,7 +194,7 @@ function runTraceAnalysis(all_files::DataFrame;
                     #inside_row = qData[idx, :Path] #We can break down each individual subsection by the inside row
                     push!(qTrace,
                          (
-                              Path=qTRIAL[swp, :Path], 
+                              Path=qTRIAL[swp, :Path], SubPath = qTRIAL[swp, :SubPath],
                               #SubPath= isnothing(SubFiles) ? SubFiles[swp, :SubPath] : nothing,
                               Year=qTRIAL[swp, :Year], Month=qTRIAL[swp, :Month], Date=qTRIAL[swp, :Date],
                               Age=qTRIAL[swp, :Age], Number=qTRIAL[swp, :Number], Genotype=qTRIAL[swp, :Genotype],
@@ -268,7 +271,9 @@ function runTraceAnalysis(all_files::DataFrame;
      end
      dataset["TRACES"] = qTrace
      dataset["EXPERIMENTS"] = qExperiment
+     dataset["EXPERIMENTS"][!, :FLAG] .= true
      dataset["CONDITIONS"] = summarize_data(qTrace, qExperiment; lb = lb, p0 = p0, ub = ub)
+     dataset["STATS"] = DataFrame()
      return dataset
 end
 
