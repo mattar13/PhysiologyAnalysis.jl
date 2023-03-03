@@ -139,6 +139,12 @@ function dataset_statistics(qEXP; control = "WT")
           end
      end
      stats = vcat(res_rmax, res_rdim, res_K_fit, res_tint, res_tpeak, res_rec)
-
+     stats = stats > 
+          @orderby(_.METRIC) |> 
+          @thenby(_.Age) |> 
+          @thenby(_.Condition) |> 
+          @thenby(_.Genotype) |> 
+     DataFrame
+     
      return stats
 end
