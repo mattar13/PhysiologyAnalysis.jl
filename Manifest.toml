@@ -261,7 +261,7 @@ version = "0.6.8"
 
 [[deps.ElectroPhysiology]]
 deps = ["Dates", "Polynomials", "Statistics"]
-git-tree-sha1 = "bdf6f67b88cda53df1fde0f61e3799ea2009ed3b"
+git-tree-sha1 = "54391785a0e7f5cac685df085c3e423e7c7315e8"
 repo-rev = "master"
 repo-url = "https://github.com/mattar13/ElectroPhysiology.jl.git"
 uuid = "da7a9670-f599-43ac-b818-143f8bf87d45"
