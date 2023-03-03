@@ -4,8 +4,8 @@ using PhysiologyAnalysis
 import PhysiologyAnalysis: readABF, parseABF
 import PhysiologyAnalysis: DataFrame
 #%% Add the ability to flag files and remove them from the analysis
-datafile = raw"C:\Users\mtarc\OneDrive - The University of Akron\Projects\Retinoschisis\data_analysis.xlsx" #The data root
-dataset = openDataset(datafile, sheetName="all", typeConvert = true)
-dataset["STATS"] = dataset_statistics(dataset["EXPERIMENTS"])
-saveDataset(dataset, datafile)
-backupDataset(datafile)
+
+testRoot = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2023_02_23_MattR141C\Mouse1_Adult_R141C"
+dataset = createDataset(testRoot)
+dataset["STATS"] = dataset_statistics(dataset)
+dataset["EXPERIMENTS"]
