@@ -72,19 +72,26 @@ createDataset(file_root::String; verbose = false, run_analysis = true, kwargs...
 """
 This function opens an old datasheet
 """
+
+
 function openDataset(datafile::String; 
-          typeConvert=true, 
-          sheetnames = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS", "STATS"]
+          typeConvert=true,
+          sheetnames::Union{String, Vector{String}} = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS", "STATS"]
      )
-     df_set = Dict{String, DataFrame}()
-     for sn in sheetnames
-          #println(sn) #Use this to debug 
-          df_set[sn] = openDataset(datafile; sheetnames=sn, typeConvert = typeConvert)
+     if isa(sheetnames, Vector{String})
+          df_set = Dict{String, DataFrame}()
+          for sn in sheetnames
+               #println(sn) #Use this to debug 
+               df_set[sn] = openDataset(datafile; sheetnames=sn, typeConvert = typeConvert)
+          end
+          return df_set
+     elseif isa(sheetnames, String)
+          df = DataFrame(XLSX.readtable(datafile, sheetnames))
+          if typeConvert
+               df = safe_convert(df) #This converts the categories to a type in the first position
+          end
+          return df
      end
-     if typeConvert
-          df = safe_convert(df) #This converts the categories to a type in the first position
-     end
-     return df
 end
 
 """
