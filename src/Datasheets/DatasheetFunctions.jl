@@ -120,3 +120,64 @@ function matchExperiment(trace::DataFrame, rows::DataFrame)
      return return_dataset
 end
 
+function excludeExperiment(trace::DataFrame, info::NamedTuple)
+     return_traces = copy(trace)
+     if haskey(info, :Year)
+          return_traces = return_traces |> @filter(_.Year != info.Year) |> DataFrame
+     end
+
+     if haskey(info, :Month)
+          return_traces = return_traces |> @filter(_.Month != info.Month) |> DataFrame
+     end
+
+     if haskey(info, :Date)
+          return_traces = return_traces |> @filter(_.Date != info.Date) |> DataFrame
+     end
+
+     if haskey(info, :Number)
+          return_traces = return_traces |> @filter(_.Number != info.Number) |> DataFrame
+     end
+     if haskey(info,:Photoreceptor)
+          return_traces = return_traces |> @filter(_.Photoreceptor != info.Photoreceptor) |> DataFrame
+     end
+     if haskey(info, :Condition)
+          return_traces = return_traces |> @filter(_.Condition != info.Condition) |> DataFrame
+     end
+
+     if haskey(info, :Channel)
+          return_traces = return_traces |> @filter(_.Channel != info.Channel) |> DataFrame
+     end
+
+     return return_traces
+end
+
+excludeExperiment(trace::DataFrame, row::DataFrameRow) = excludeExperiment(trace, NamedTuple(row))
+
+function excludeExperiment(trace::DataFrame, rows::DataFrame)
+     return_dataset = DataFrame()
+     for row in eachrow(rows)
+          dataset_i = excludeExperiment(trace, row)
+          return_dataset = vcat(return_dataset, dataset_i)
+     end
+     return return_dataset
+end
+
+function match_excludeExperiment(trace::DataFrame, match_rows, exclude_rows)
+     matched = matchExperiment(trace, match_rows)
+     excluded = excludeExperiment(matched, exclude_rows)
+     return excluded
+end
+
+function flagExperiment(trace::DataFrame, info)
+     return_traces = copy(trace)
+     matched = matchExperiment(trace, info)
+     matched_indexes = indexin(eachrow(matched), eachrow(trace))
+     return_traces[matched_indexes, :INCLUDE] .= false
+     return return_traces
+end
+
+function flagExperiment!(trace::DataFrame, info)
+     matched = matchExperiment(trace, info)
+     matched_indexes = indexin(eachrow(matched), eachrow(trace))
+     trace[matched_indexes, :INCLUDE] .= false
+end
