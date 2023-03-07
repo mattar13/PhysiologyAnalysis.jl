@@ -26,5 +26,4 @@ end
     data_filt = data_filter(data)
     resps = saturated_response(data_filt)
     @test maximum(resps) == -0.2988254587666856
-
 end

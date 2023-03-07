@@ -70,7 +70,8 @@ export summarize_data
 export openDataset, createDataset, updateDataset
 export runAnalysis
 export runTraceAnalysis
-export matchExperiment
+export matchExperiment, excludeExperiment
+export flagExperiment, flagExperiment!
 export parseColumn!
 export GenerateFitFrame
 export saveDataset, backupDataset
@@ -83,7 +84,7 @@ export plot_experiment, plot_experiment_fit
 
 include("Plotting/DatasheetPlotting.jl")
 export plot_ir_scatter, plot_ir_fit, plot_IR
-
+export plot_data_summary
 #include("Filtering/make_spectrum.jl")
 #include("Filtering/wavelet_filtering.jl")
 #export cwt_filter!, cwt_filter
