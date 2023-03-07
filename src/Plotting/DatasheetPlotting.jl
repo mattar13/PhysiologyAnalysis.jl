@@ -78,7 +78,7 @@ function plot_IR(axis::PyObject, qData::DataFrame;
      if plot_fits
           X_VALS = qData[:, x_row]
           Y_VALS = qData[:, y_row]
-          fit, rsq = IRfit(X_VALS, Y_VALS; fitting_kwargs...)
+          fit, rsq = HILLfit(X_VALS, Y_VALS; fitting_kwargs...)
           plot_ir_fit(axis, fit.param, rsq;
                xscale = xscale, xbase = xbase,
                yscale = yscale, ybase = ybase,
@@ -127,4 +127,126 @@ end
 function plot_exp_fits(df_EXPs::DataFrame, df_TRACEs::DataFrame; kwargs...)
      fig, axis = plt.subplots(1)
      plot_exp_fits(axis, df_EXPs, df_TRACEs; kwargs...)
+end
+
+function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame; xlims = (-0.25, 2.0))
+     channels = qEXP |> @unique(_.Channel) |> @map({_.Channel}) |> DataFrame
+     conditions = qEXP |> @unique(_.Condition) |> @map({_.Condition}) |> DataFrame
+     println(channels)
+     fig_summary, ax_summary = plt.subplots(size(channels, 1), 4)
+     ylims = (minimum(qTRACE.Response), maximum(qTRACE.Response))
+     photon_lims = (10^-1, 10^4)
+
+     if size(channels.Channel, 1) == 1
+          fig_summary.subplots_adjust(wspace = 0.25, bottom=0.18, top=0.85, left = 0.1, right = 0.95)
+          fig_summary.set_size_inches(10.0, 3.0)
+          ch = channels.Channel[1]
+          qTRACE_CH = qTRACE |> @filter(_.Channel == ch) |> DataFrame
+          data_unsub = readABF(qTRACE_CH.Path)
+          data_filter!(data_unsub)
+          plot_experiment(ax_summary[1], data_unsub)
+          ax_summary[1].set_xlim(xlims)
+          if any(qTRACE_CH.SubPath .!= "NONE")
+               data_sub = readABF(qTRACE_CH.SubPath)
+               data_filter!(data_sub)
+               plot_experiment(ax_summary[1], data_sub, color = :Red)
+
+               data_subtracted = data_unsub - data_sub
+               plot_experiment(ax_summary[2], data_subtracted, yaxes = false)
+               ax_summary[2].set_xlim(xlims)
+          else
+               plot_experiment(ax_summary[2], data_unsub, yaxes = false)
+               ax_summary[2].set_xlim(xlims)
+          end
+          fits = qEXP |> @filter(_.Channel == ch) |> DataFrame
+          plot_ir_scatter(ax_summary[3], qTRACE_CH)
+          plot_ir_fit(ax_summary[3], 
+               (fits.RMAX_fit[1], fits.K_fit[1], fits.N_fit[1]),
+               fits.RSQ_fit[1]
+          )
+          ax_summary[3].set_xlim(photon_lims)
+          ax_summary[3].set_ylim(-1.0, ylims[2]*1.08)
+          ax_summary[3].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
+
+          qTRACE_CH.Percent_Recovery *= 1000
+          rdim_traces_A = qTRACE_CH |> 
+               @filter(_.Response .> qEXP.rdim[1]) |> 
+          DataFrame			
+          plot_IR(ax_summary[4], rdim_traces_A, y_row = :Peak_Time, 
+               plot_fits = false, color = :red, label = "Peak Time"
+          )
+          
+          tDOM_traces_A = qTRACE_CH |> 
+               @filter(_.Percent_Recovery .> 0.0) |> 
+          DataFrame
+          plot_IR(ax_summary[4], tDOM_traces_A, y_row = :Percent_Recovery, 
+               plot_fits = false, label = "Recovery"
+          )
+          ax_summary[4].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
+     else
+          fig_summary.subplots_adjust(wspace = 0.25, hspace = 0.1, bottom=0.15, top=0.90, left = 0.1, right = 0.95)
+          fig_summary.set_size_inches(10.0, 5.0)
+          for (idx, ch) in enumerate(channels.Channel)
+               #println(ch)
+               qTRACE_CH = qTRACE |> @filter(_.Channel == ch) |> DataFrame
+               data_unsub = readABF(qTRACE_CH.Path)
+               data_filter!(data_unsub)
+               plot_experiment(ax_summary[idx, 1], data_unsub)
+               ax_summary[idx, 1].set_xlim(xlims)
+               if any(qTRACE_CH.SubPath .!= "NONE")
+                    data_sub = readABF(qTRACE_CH.SubPath)
+                    data_filter!(data_sub)
+                    if idx == 1
+                         plot_experiment(ax_summary[idx, 1], data_sub, color = :Red, xaxes = false)
+                    else
+                         plot_experiment(ax_summary[idx, 1], data_sub, color = :Red)
+                    end
+
+                    data_subtracted = data_unsub - data_sub
+                    if idx == 1
+                         plot_experiment(ax_summary[idx, 2], data_subtracted, axes = false)
+                    else
+                         plot_experiment(ax_summary[idx, 2], data_subtracted, yaxes = false)
+                    end
+                    ax_summary[idx, 2].set_xlim(xlims)
+               else
+                    if idx == 1
+                         plot_experiment(ax_summary[idx, 2], data_unsub, axes = false)
+                    else
+                         plot_experiment(ax_summary[idx, 2], data_unsub, yaxes = false)
+                    end
+                    ax_summary[idx, 2].set_xlim(xlims)
+               end
+               fits = qEXP |> @filter(_.Channel == ch) |> DataFrame
+               plot_ir_scatter(ax_summary[idx, 3], qTRACE_CH)
+               plot_ir_fit(ax_summary[idx, 3], 
+                    (fits.RMAX_fit[1], fits.K_fit[1], fits.N_fit[1]),
+                    fits.RSQ_fit[1]
+               )
+               ax_summary[idx, 3].set_xlim(photon_lims)
+               ax_summary[idx, 3].set_ylim(-1.0, ylims[2]*1.08)
+
+               qTRACE_CH.Percent_Recovery *= 1000
+               rdim_traces_A = qTRACE_CH |> 
+                    @filter(_.Response .> qEXP.rdim[idx]) |> 
+               DataFrame			
+               plot_IR(ax_summary[idx, 4], rdim_traces_A, y_row = :Peak_Time, 
+                    plot_fits = false, color = :red, label = "Peak Time"
+               )
+
+               tDOM_traces_A = qTRACE_CH |> 
+                    @filter(_.Percent_Recovery .> 0.0) |> 
+               DataFrame
+               
+               plot_IR(ax_summary[idx, 4], tDOM_traces_A, y_row = :Percent_Recovery, 
+                    plot_fits = false, label = "Recovery"
+               )
+          end
+          ax_summary[1, 3].xaxis.set_visible(false) #We want the spine to fully
+          ax_summary[1, 3].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
+          ax_summary[1, 4].xaxis.set_visible(false) #We want the spine to fully
+          ax_summary[1, 4].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
+     end
+     #println(qTRACE.SubPath)
+     return fig_summary
 end
