@@ -55,9 +55,11 @@ function createDataset(all_files::Vector{String}; verbose = false, run_analysis 
                     push!(dataframe, entry)
                end
           catch error
-               #throw(error)
-               println(file)
-               println(error)
+               if verbose
+                    #throw(error)
+                    println(file)
+                    println(error)
+               end
           end
      end
      if run_analysis
