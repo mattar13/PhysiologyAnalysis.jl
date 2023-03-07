@@ -10,7 +10,7 @@ end
 
 function plot_experiment(axis::PyObject, exp::Experiment;
     channels=1, sweeps = :all, 
-    axes_off=false, yaxes_off=false, xaxes_off=false, #Change this, this is confusing
+    axes=true, yaxes=true, xaxes=true, #Change this, this is confusing
     color = :black, clims = (0.0, 1.0), #still want to figure out how this wil work
     include_ylabel = true, include_xlabel = true,
     kwargs...
@@ -26,11 +26,11 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     end
     axis.spines["top"].set_visible(false)
     axis.spines["right"].set_visible(false)
-    if yaxes_off || axes_off
+    if !(yaxes) || !(axes)
         axis.spines["left"].set_visible(false)
         axis.yaxis.set_visible(false)
     end
-    if xaxes_off || axes_off
+    if !(xaxes) || !(axes)
         axis.spines["bottom"].set_visible(false) #We want the spine to fully
         axis.xaxis.set_visible(false)
     end
