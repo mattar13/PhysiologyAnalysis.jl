@@ -168,6 +168,9 @@ function match_excludeExperiment(trace::DataFrame, match_rows, exclude_rows)
      return excluded
 end
 
+"""
+This function matches the experiments in info and then switches the include flag to false
+"""
 function flagExperiment(trace::DataFrame, info)
      return_traces = copy(trace)
      matched = matchExperiment(trace, info)
