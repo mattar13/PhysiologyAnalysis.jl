@@ -23,7 +23,7 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
      #generate the fits for the equation
      r = measure == :Minima ? abs(minimum(response)) : maximum(response)
      #println(intensity)
-     fit = IRfit(intensity, response; r = r, rmax = (r + 1000), kwargs...)
+     fit = HILLfit(intensity, response; r = r, rmax = (r + 1000), kwargs...)
 
      model(I, p) = map(i -> p[1]*IR(i, p[2], p[3]), I)
      fitResponse = model(intensity, fit.param)
@@ -43,7 +43,7 @@ end
 
 function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
      #filter out all flags
-     unflagged_exps = qExperiment |> @filter(_.FLAG == true) |> DataFrame
+     unflagged_exps = qExperiment |> @filter(_.INCLUDE == true) |> DataFrame
 
      qConditions = unflagged_exps |>
           @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength, _.Condition}) |>
@@ -70,7 +70,7 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
                @filter(_.Wavelength == cond.Wavelength) |> 
           DataFrame 
           if size(qIND_COND, 1) > 2
-               fit, rsq = IRfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
+               fit, rsq = HILLfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
                qConditions[idx, :RMAX_COLL] = fit.param[1]
                qConditions[idx, :K_COLL] = fit.param[2]
                qConditions[idx, :N_COLL] = fit.param[3]
@@ -80,15 +80,19 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
      return qConditions
 end
 
+function summarize_data(dataset::Dict{String, DataFrame}; kwargs...)
+     return summarize_data(dataset["TRACES"], dataset["EXPERIMENTS"]; kwargs...)
+end
+
 function runTraceAnalysis(all_files::DataFrame;
      t_pre = 1.0, t_post = 2.0, #Extend these to see the end of the a-wave
      measure_minima = false,
      a_cond = "BaCl_LAP4", b_cond = "BaCl", g_cond = "NoDrugs", 
+     verbose = true, 
      lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
      p0 = [500.0, 1000.0, 2.0], #Default r = 500.0, k = 200.0, n = 2.0
      ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
-     verbose = true
-)
+) 
      dataset = Dict{String, DataFrame}(
           "ALL_FILES" => all_files
      )
@@ -221,57 +225,46 @@ function runTraceAnalysis(all_files::DataFrame;
                end
 
                if size(responses,1) > 2
-                    if verbose 
-                         println("Fitting IR curves")
-                    end
                     p0 = [maximum(responses), median(qData[:, :Photons]), 2.0]
-                    fit, rsq = IRfit(qTRIAL[:, :Photons], responses |> vec, 
-                         p0 = p0
-                    )
-                    if verbose
-                         println("Fit r-squared = $rsq")
-                    end
-                         
                     #Fitting each data trace to a IR curve
-                    push!(qExperiment, (
-                         Year=qTRIAL[1, :Year], Month=qTRIAL[1, :Month], Date=qTRIAL[1, :Date],
-                         Age=qTRIAL[1, :Age], Number=qTRIAL[1, :Number], Genotype=qTRIAL[1, :Genotype],
-                         Condition = qTRIAL[1, :Condition],
-                         Channel = data_ch.chNames[1],
-                         Photoreceptor=qTRIAL[1, :Photoreceptor], Wavelength=qTRIAL[1, :Wavelength],
-                         rmax = maximum(responses),
-                         RMAX_fit = fit.param[1], K_fit = fit.param[2], N_fit = fit.param[3],
-                         RSQ_fit = rsq, #, MSE_fit = mse_FIT,
-                         rdim=responses[rdim_idx],
-                         integration_time=Integrated_Times[rdim_idx],
-                         time_to_peak=Peak_Times[rdim_idx],
-                         percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
-                         #recovery_tau=Recovery_Taus[rdim_idx],
-                    ))
+                    fit, fit_RSQ = HILLfit(qTRIAL[:, :Photons], responses |> vec; p0 = p0, lb = lb, ub = ub)
+                    fit_RMAX = fit.param[1]
+                    fit_K = fit.param[2]
+                    fit_N = fit.param[3]
+                    if verbose
+                         println("Fit r-squared = $fit_RSQ")
+                    end
                else
                     #Fitting each data trace to a IR curve
+                    fit_RMAX = 0.0
+                    fit_K = 0.0
+                    fit_N = 0.0
+                    fit_RSQ = 0.0
                     println("\t ONly $(length(responses)) responses. IR curve couldn't be fit")
-                    push!(qExperiment, (
-                         Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
-                         Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                         Condition = qTRIAL[1, :Condition],
-                         Channel = data_ch.chNames[1],
-                         Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                         rmax = maximum(responses),
-                         RMAX_fit = 0.0, K_fit = 0.0, N_fit = 0.0,
-                         RSQ_fit = 0.0, #, MSE_fit = mse_FIT,
-                         rdim=responses[rdim_idx],
-                         integration_time=Integrated_Times[rdim_idx],
-                         time_to_peak=Peak_Times[rdim_idx],
-                         percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
-                         #recovery_tau=Recovery_Taus[rdim_idx],
-                    ))
                end
+               push!(qExperiment, (
+                    Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
+                    Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
+                    Condition = qTRIAL[1, :Condition],
+                    Channel = data_ch.chNames[1],
+                    Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
+                    rmax = maximum(responses),
+                    RMAX_fit = fit_RMAX, K_fit = fit_K, N_fit = fit_N,
+                    RSQ_fit = fit_RSQ, #, MSE_fit = mse_FIT,
+                    rdim=responses[rdim_idx],
+                    integration_time=Integrated_Times[rdim_idx],
+                    time_to_peak=Peak_Times[rdim_idx],
+                    percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
+                    #recovery_tau=Recovery_Taus[rdim_idx],
+               ))
           end
      end
      dataset["TRACES"] = qTrace
+     dataset["TRACES"][!, :INCLUDE] .= true
      dataset["EXPERIMENTS"] = qExperiment
-     dataset["EXPERIMENTS"][!, :FLAG] .= true
+     dataset["EXPERIMENTS"][!, :INCLUDE] .= true
+     #println(qTrace)
+     #if we are only summarizing one experiment, then theres no use to doing a summary
      dataset["CONDITIONS"] = summarize_data(qTrace, qExperiment; lb = lb, p0 = p0, ub = ub)
      dataset["STATS"] = DataFrame()
      return dataset
@@ -279,6 +272,13 @@ end
 
 function runTraceAnalysis(dataset_dict::Dict{String, DataFrame}; kwargs...)
      return runTraceAnalysis(dataset_dict["ALL_FILES"]; kwargs...)
+end
+
+"""
+This updates the datasheet to ignore all flags
+"""
+function updateDatasheet(datasheet::Dict{String, DataFrame})
+     
 end
 
 #This can be used for IR and STF, but not for Tau or LP model
