@@ -70,7 +70,8 @@ export summarize_data
 export openDataset, createDataset, updateDataset
 export runAnalysis
 export runTraceAnalysis
-export matchExperiment
+export matchExperiment, excludeExperiment
+export flagExperiment, flagExperiment!
 export parseColumn!
 export GenerateFitFrame
 export saveDataset, backupDataset
