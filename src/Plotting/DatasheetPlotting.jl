@@ -129,10 +129,12 @@ function plot_exp_fits(df_EXPs::DataFrame, df_TRACEs::DataFrame; kwargs...)
      plot_exp_fits(axis, df_EXPs, df_TRACEs; kwargs...)
 end
 
-function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame; xlims = (-0.25, 2.0))
+function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame; 
+     xlims = (-0.25, 2.0)
+)
      channels = qEXP |> @unique(_.Channel) |> @map({_.Channel}) |> DataFrame
      conditions = qEXP |> @unique(_.Condition) |> @map({_.Condition}) |> DataFrame
-     println(channels)
+     #println(channels)
      fig_summary, ax_summary = plt.subplots(size(channels, 1), 4)
      ylims = (minimum(qTRACE.Response), maximum(qTRACE.Response))
      photon_lims = (10^-1, 10^4)
@@ -191,7 +193,11 @@ function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame; xlims = (-0.25, 2
                qTRACE_CH = qTRACE |> @filter(_.Channel == ch) |> DataFrame
                data_unsub = readABF(qTRACE_CH.Path)
                data_filter!(data_unsub)
-               plot_experiment(ax_summary[idx, 1], data_unsub)
+               if idx == 1
+                    plot_experiment(ax_summary[idx, 1], data_unsub, xaxes = false)
+               else
+                    plot_experiment(ax_summary[idx, 1], data_unsub, xaxes = false)
+               end
                ax_summary[idx, 1].set_xlim(xlims)
                if any(qTRACE_CH.SubPath .!= "NONE")
                     data_sub = readABF(qTRACE_CH.SubPath)
@@ -241,11 +247,14 @@ function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame; xlims = (-0.25, 2
                plot_IR(ax_summary[idx, 4], tDOM_traces_A, y_row = :Percent_Recovery, 
                     plot_fits = false, label = "Recovery"
                )
+               ax_summary[idx, 4].set_xlim(photon_lims)
+               
+               ax_summary[idx, 3].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
+               ax_summary[idx, 4].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
           end
           ax_summary[1, 3].xaxis.set_visible(false) #We want the spine to fully
-          ax_summary[1, 3].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
           ax_summary[1, 4].xaxis.set_visible(false) #We want the spine to fully
-          ax_summary[1, 4].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
+
      end
      #println(qTRACE.SubPath)
      return fig_summary
