@@ -71,7 +71,7 @@ export openDataset, createDataset, updateDataset
 export runAnalysis
 export runTraceAnalysis
 export matchExperiment, excludeExperiment
-export flagExperiment, flagExperiment!
+export flagExperiment, flagExperiment!, unflagALL!
 export parseColumn!
 export GenerateFitFrame
 export saveDataset, backupDataset

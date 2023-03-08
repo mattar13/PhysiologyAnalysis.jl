@@ -184,3 +184,8 @@ function flagExperiment!(trace::DataFrame, info)
      matched_indexes = indexin(eachrow(matched), eachrow(trace))
      trace[matched_indexes, :INCLUDE] .= false
 end
+
+function unflagALL!(dataset)
+     dataset["TRACES"][:, :INCLUDE] .= true
+     dataset["EXPERIMENTS"][:, :INCLUDE] .= true
+end
