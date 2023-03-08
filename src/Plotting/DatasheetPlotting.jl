@@ -91,7 +91,7 @@ function plot_IR(axis::PyObject, qData::DataFrame;
 end
 
 function plot_IR(qData::DataFrame)
-     fig, ax = plt.subplot(qData)
+     fig, ax = plt.subplots(1)
      plot_IR(ax, qData)
      return fig
 end
@@ -111,7 +111,7 @@ function plot_dataset_fits(
      for (idxX, XCAT) in enumerate(xcats), (idxY, YCAT) in enumerate(ycats)
           #filter out experiments
           qEXP_category = qEXPS |> 
-               @filter(_[xcol] == XCAT && _[ycol] == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> 
+               @filter(_[xcol] == XCAT && _[ycol] == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor && _.INCLUDE) |> 
                @orderby(_.RSQ_fit) |> 
           DataFrame
           ylims = (-0.2, maximum(qEXP_category.rmax) * 1.1)
