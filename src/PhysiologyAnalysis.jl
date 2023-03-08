@@ -85,7 +85,7 @@ export plot_experiment
 include("Plotting/DatasheetPlotting.jl")
 export plot_ir_scatter, plot_ir_fit, plot_IR
 export plot_data_summary
-export plot_dataset_fits
+export plot_dataset_fits, plot_dataset_vals
 #include("Filtering/make_spectrum.jl")
 #include("Filtering/wavelet_filtering.jl")
 #export cwt_filter!, cwt_filter
