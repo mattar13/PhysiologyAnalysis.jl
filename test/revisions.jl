@@ -13,5 +13,3 @@ dataset = openDataset(datafile)
 plot_dataset_fits(dataset, normalize = false)
 
 plot_dataset_vals(dataset)
-using DataFrames, Query
-dataset["EXPERIMENTS"] |> @filter(_[:Age] == "P13") |> DataFrame
