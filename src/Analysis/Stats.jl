@@ -29,7 +29,7 @@ function sig_symbol(val)
 end
 
 function dataset_statistics(qEXP; control = "WT")
-     unflagged_exps = qEXP |> @filter(_.FLAG == true) |> DataFrame
+     unflagged_exps = qEXP |> @filter(_.INCLUDE == true) |> DataFrame
 
      res_rmax = unflagged_exps  |> @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
           @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],
