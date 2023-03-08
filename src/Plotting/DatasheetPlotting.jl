@@ -142,8 +142,8 @@ function plot_dataset_fits(
           qCONDS_category = qCONDS |> @filter(_[xcol] == XCAT && _[ycol] == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> DataFrame
           coll_fit_params = (qCONDS_category.RMAX_COLL[1], qCONDS_category.K_COLL[1], qCONDS_category.N_COLL[1])
           coll_RSQ = qCONDS_category.RSQ_COLL[1]
-          qAGE = qCONDS |> @filter(_[xcol] == XCAT) |> DataFrame
-          ymax = maximum(qAGE.RMAX_COLL)
+          qAGE = qCONDS |> @filter(_[xcol] == XCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> DataFrame
+          ymax = maximum(qAGE.RMAX_COLL) * 1.2
           plot_ir_fit(ax_fits[5, idxX], coll_fit_params, coll_RSQ, color_by_error = false, color = colorcycle[idxY])
           ax_fits[5, idxX].set_xlabel("Intensity (μV)")
           ax_fits[5, idxX].set_xlim(xlims)
