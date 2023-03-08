@@ -80,11 +80,12 @@ export saveDataset, backupDataset
 include("Plotting/DefaultSettings.jl") #This requires PyPlot
 include("Plotting/PlottingUtilities.jl")
 include("Plotting/PhysPyPlot.jl")
-export plot_experiment, plot_experiment_fit
+export plot_experiment
 
 include("Plotting/DatasheetPlotting.jl")
 export plot_ir_scatter, plot_ir_fit, plot_IR
 export plot_data_summary
+export plot_dataset_fits
 #include("Filtering/make_spectrum.jl")
 #include("Filtering/wavelet_filtering.jl")
 #export cwt_filter!, cwt_filter
