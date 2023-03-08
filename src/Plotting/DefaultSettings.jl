@@ -39,3 +39,10 @@ rcParams["axes.facecolor"] = (1.0, 1.0, 1.0, 1.0) #Red, Green, Blue, Alpha #Make
 
 #These are the savefig params
 rcParams["savefig.pad_inches"] = 0.0
+
+color_dict = Dict(
+     "WT" => :Black,
+     "RS1KO" => :Purple,
+     "R141C" => :Orange,
+     "C59S" => :Green
+)
