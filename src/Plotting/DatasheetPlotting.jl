@@ -320,3 +320,5 @@ function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame;
      #println(qTRACE.SubPath)
      return fig_summary
 end
+
+plot_data_summary(dataset::Dict{String, DataFrame}; kwargs...) = plot_data_summary(dataset["TRACES"], dataset["EXPERIMENTS"]; kwargs...)
