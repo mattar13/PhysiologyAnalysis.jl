@@ -164,10 +164,10 @@ function plot_dataset_vals(qTRACES::DataFrame, qEXPS::DataFrame, qCONDS::DataFra
      colorcycle = [:Black, :Purple, :Orange, :Green]
 )
      #Plot the fits of the experiment
-     fig_fits, ax_fits = plt.subplots(length(ycats), 1, figsize = (7.5, 5.0))
-     fig_fits.subplots_adjust(wspace = 0.6, hspace = 0.1, bottom = 0.1, top = 0.9)
+     fig_vals, ax_vals = plt.subplots(length(ycats), 1, figsize = (7.5, 5.0))
+     fig_vals.subplots_adjust(wspace = 0.6, hspace = 0.1, bottom = 0.1, top = 0.9)
      #println(categories)
-     ax_fits[1].set_title("$(metricX)")
+     ax_vals[1].set_title("$(metricX)")
      for (idxY, YCAT) in enumerate(ycats), (idxZ, ZCAT) in enumerate(zcats) 
           qCOND = qCONDS |> 
                @filter(_[zcol] == ZCAT && _[ycol] == YCAT && _.Photoreceptor == photoreceptor) |> 
@@ -175,14 +175,15 @@ function plot_dataset_vals(qTRACES::DataFrame, qEXPS::DataFrame, qCONDS::DataFra
 
           permute_idxs = indexin(xcats, qCOND[:, xcol])
           qCOND = qCOND[permute_idxs, :]
-          ax_fits[idxY].errorbar(1:length(xcats), qCOND[:, metricX], c=colorcycle[idxZ], yerr=qCOND[:, metricXSEM], marker="o", ms=5.0, lw=3.0)
-          ax_fits[idxY].set_ylabel("$(metricX) \n $(YCAT)")
+          ax_vals[idxY].errorbar(1:length(xcats), qCOND[:, metricX], c=colorcycle[idxZ], yerr=qCOND[:, metricXSEM], marker="o", ms=5.0, lw=3.0)
+          ax_vals[idxY].set_ylabel("$(metricX) \n $(YCAT)")
           if idxY != length(ycats)
-               ax_fits[idxY].xaxis.set_visible(false) #We want the spine to fully
+               ax_vals[idxY].xaxis.set_visible(false) #We want the spine to fully
           else
-               ax_fits[idxY].set_xticks(1:length(xcats), xcats, fontsize=11.0)  
+               ax_vals[idxY].set_xticks(1:length(xcats), xcats, fontsize=11.0)  
           end
      end
+     return fig_vals
 end
 
 plot_dataset_vals(dataset::Dict{String, DataFrame}; kwargs...) = plot_dataset_vals(dataset["TRACES"], dataset["EXPERIMENTS"], dataset["CONDITIONS"]; kwargs...)
