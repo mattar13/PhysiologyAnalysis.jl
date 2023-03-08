@@ -44,7 +44,7 @@ end
 function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
      #filter out all flags
      unflagged_exps = qExperiment |> @filter(_.INCLUDE == true) |> DataFrame
-
+     unflagged_traces = matchExperiment(qTrace, unflagged_exps)
      qConditions = unflagged_exps |>
           @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength, _.Condition}) |>
           @map({
@@ -63,7 +63,7 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
           DataFrame
      #iterate through each conditon and generate a collated IR curve
      for (idx, cond) in enumerate(eachrow(qConditions))
-          qIND_COND = qTrace |> 
+          qIND_COND = unflagged_traces |> 
                @filter(_.Age == cond.Age) |> 
                @filter(_.Genotype == cond.Genotype) |> 
                @filter(_.Condition == cond.Condition) |> 
