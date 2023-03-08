@@ -66,6 +66,7 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
           qIND_COND = qTrace |> 
                @filter(_.Age == cond.Age) |> 
                @filter(_.Genotype == cond.Genotype) |> 
+               @filter(_.Condition == cond.Condition) |> 
                @filter(_.Photoreceptor == cond.Photoreceptor) |> 
                @filter(_.Wavelength == cond.Wavelength) |> 
           DataFrame 
