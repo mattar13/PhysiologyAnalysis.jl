@@ -90,6 +90,12 @@ function plot_IR(axis::PyObject, qData::DataFrame;
      end
 end
 
+function plot_IR(qData::DataFrame)
+     fig, ax = plt.subplot(qData)
+     plot_IR(ax, qData)
+     return fig
+end
+
 function plot_dataset_fits(
      qTRACES::DataFrame, qEXPS::DataFrame, qCONDS::DataFrame;
      xlims = (10^-1, 10^5), normalize = false, 
