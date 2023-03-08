@@ -94,8 +94,8 @@ function plot_dataset_fits(
      qTRACES::DataFrame, qEXPS::DataFrame, qCONDS::DataFrame;
      xlims = (10^-1, 10^5), normalize = false, 
      condition = "BaCl_LAP4", photoreceptor = "Rods",
-     xcats = ["P9", "P11", "P13", "Adult"],
-     ycats = ["WT", "RS1KO", "R141C", "C59S"],
+     xcats = ["P9", "P11", "P13", "Adult"], xcol = :Age,
+     ycats = ["WT", "RS1KO", "R141C", "C59S"], ycol = :Genotype,
      colorcycle = [:Black, :Purple, :Orange, :Green]
 )
      #Plot the fits of the experiment
@@ -105,7 +105,7 @@ function plot_dataset_fits(
      for (idxX, XCAT) in enumerate(xcats), (idxY, YCAT) in enumerate(ycats)
           #filter out experiments
           qEXP_category = qEXPS |> 
-               @filter(_.Age == XCAT && _.Genotype == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> 
+               @filter(_[xcol] == XCAT && _[ycol] == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> 
                @orderby(_.RSQ_fit) |> 
           DataFrame
           ylims = (-0.2, maximum(qEXP_category.rmax) * 1.1)
@@ -139,11 +139,11 @@ function plot_dataset_fits(
           else
                ax_fits[idxY, idxX].xaxis.set_visible(false) #We want the spine to fully
           end
-          qCONDS_category = qCONDS |> @filter(_.Age == XCAT && _.Genotype == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> DataFrame
+          qCONDS_category = qCONDS |> @filter(_[xcol] == XCAT && _[ycol] == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> DataFrame
           println(qCONDS_category)
           coll_fit_params = (qCONDS_category.RMAX_COLL[1], qCONDS_category.K_COLL[1], qCONDS_category.N_COLL[1])
           coll_RSQ = qCONDS_category.RSQ_COLL[1]
-          qAGE = qCONDS |> @filter(_.Age == XCAT) |> DataFrame
+          qAGE = qCONDS |> @filter(_[xcol] == XCAT) |> DataFrame
           ymax = maximum(qAGE.RMAX_COLL)
           println(ymax)
           plot_ir_fit(ax_fits[5, idxX], coll_fit_params, coll_RSQ, color_by_error = false, color = colorcycle[idxY])
@@ -157,19 +157,39 @@ end
 
 plot_dataset_fits(dataset::Dict{String, DataFrame}; kwargs...) = plot_dataset_fits(dataset["TRACES"], dataset["EXPERIMENTS"], dataset["CONDITIONS"]; kwargs...)
 
-function plot_dataset_vals(qTRACE::DataFrame, qEXPS::DataFrame, qCONDS::DataFrame)
+function plot_dataset_vals(qTRACES::DataFrame, qEXPS::DataFrame, qCONDS::DataFrame;
+     #xlims = (10^-1, 10^5), normalize = false, 
+     metricX = :Rmax, metricXSEM = :Rmax_sem, photoreceptor = "Rods",
+     xcats =  ["P9", "P11", "P13", "Adult"],  xcol = :Age,
+     ycats = ["BaCl", "NoDrugs", "BaCl_LAP4"], ycol = :Condition,
+     zcats = ["WT", "RS1KO", "R141C", "C59S"], zcol = :Genotype,
+     colorcycle = [:Black, :Purple, :Orange, :Green]
+)
+     #Plot the fits of the experiment
+     fig_fits, ax_fits = plt.subplots(length(ycats), 1, figsize = (7.5, 5.0))
+     fig_fits.subplots_adjust(wspace = 0.6, hspace = 0.1, bottom = 0.1, top = 0.9)
+     #println(categories)
+     ax_fits[1].set_title("$(metricX)")
+     for (idxY, YCAT) in enumerate(ycats), (idxZ, ZCAT) in enumerate(zcats) 
+          qCOND = qCONDS |> 
+               @filter(_[zcol] == ZCAT && _[ycol] == YCAT && _.Photoreceptor == photoreceptor) |> 
+          DataFrame
 
-
+          permute_idxs = indexin(xcats, qCOND[:, xcol])
+          qCOND = qCOND[permute_idxs, :]
+          ax_fits[idxY].errorbar(1:length(xcats), qCOND[:, metricX], c=colorcycle[idxZ], yerr=qCOND[:, metricXSEM], marker="o", ms=5.0, lw=3.0)
+          ax_fits[idxY].set_ylabel("$(metricX) \n $(YCAT)")
+          if idxY != length(ycats)
+               ax_fits[idxY].xaxis.set_visible(false) #We want the spine to fully
+          else
+               ax_fits[idxY].set_xticks(1:length(xcats), xcats, fontsize=11.0)  
+          end
+     end
 end
-#=function plot_experiment_fits(df_EXPs::DataFrame, df_TRACEs::DataFrame; kwargs...)
-     fig, axis = plt.subplots(1)
-     return plot_experiment_fits(axis, df_EXPs, df_TRACEs; kwargs...)
-end
 
-plot_experiment_fits(axis, dataset::Dict{String, DataFrame}) = plot_experiment_fits(axis, dataset["EXPERIMENTS"], dataset["TRACES"])
-plot_experiment_fits(dataset::Dict{String, DataFrame}) = plot_experiment_fits(dataset["EXPERIMENTS"], dataset["TRACES"])
+plot_dataset_vals(dataset::Dict{String, DataFrame}; kwargs...) = plot_dataset_vals(dataset["TRACES"], dataset["EXPERIMENTS"], dataset["CONDITIONS"]; kwargs...)
 
-=#
+
 function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame; 
      xlims = (-0.25, 2.0)
 )
