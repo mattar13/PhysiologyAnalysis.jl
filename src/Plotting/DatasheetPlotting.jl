@@ -3,7 +3,7 @@ function plot_ir_scatter(axis::PyObject, qData::DataFrame;
      color = :black, ms = 10.0, 
      xscale = "log", xbase = 10,
      yscale = "linear", ybase = 10, 
-     label = nothing  
+     label = nothing, kwargs...  
 )
      X_VALS = qData[:, x_row]
      Y_VALS = qData[:, y_row]
@@ -45,7 +45,7 @@ function plot_ir_fit(axis::PyObject, fit_param, rsq::Real;
      end
      axis.vlines(fit_param[2], ymin=ymin, ymax = fit_param[1]/2, linestyle=(0, (5, 3)), color = color, lw = lw)#10 ^ (p14RodsNR_STF.param[1] / 2), color = color, )
      axis.hlines(fit_param[1]/2, xmin=xmin, xmax = fit_param[2], linestyle=(0, (5, 3)), color = color, lw = lw)
-     axis.set_xlim((xmin, xmax))
+     axis.set_xlim((10^-1, 10^6))
      axis.set_ylim((ymin, ymax))
      
      if xscale != "linear"
@@ -90,45 +90,86 @@ function plot_IR(axis::PyObject, qData::DataFrame;
      end
 end
 
-
-function plot_exp_fits(axis, df_EXPs::DataFrame, df_TRACEs::DataFrame;
-     xlims = (-10.0, 200.0), ylims = (1.0, 3000.0)
+function plot_dataset_fits(
+     qTRACES::DataFrame, qEXPS::DataFrame, qCONDS::DataFrame;
+     xlims = (10^-1, 10^5), normalize = false, 
+     condition = "BaCl_LAP4", photoreceptor = "Rods",
+     xcats = ["P9", "P11", "P13", "Adult"],
+     ycats = ["WT", "RS1KO", "R141C", "C59S"],
+     colorcycle = [:Black, :Purple, :Orange, :Green]
 )
-     #axis.set_title("P14 Rods NR")
-     axis.set_xlim(xlims)
-     axis.set_ylim(ylims)
-     cmap = plt.get_cmap(:RdYlGn)
-     for litter in eachrow(df_EXPs)
-          RET = df_TRACEs |> @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == (litter.Year, litter.Month, litter.Date, litter.Number, litter.Channel)) |> DataFrame
-          #println(litter)
-          axis.scatter(
-               RET.Response, RET.Total, 
-               alpha = 0.5, 
-               color = cmap(litter.RSQ), 
-               marker = "o", label = "$(litter.Year)_$(litter.Month)_$(litter.Date)_$(litter.Number)"
-          )
-          # Find the STF data
-          #STF_RES = p14RodsDR_EXP |> @filter((_.Year, _.Month, _.Date, _.Number, _.Channel) == (litter.Year, litter.Month, litter.Date, litter.Number, litter.Channel)) |> DataFrame
-          rmax = litter.RMAX; k = litter.K; n = litter.N
+     #Plot the fits of the experiment
+     fig_fits, ax_fits = plt.subplots(length(xcats)+1, length(ycats), figsize = (10.0, 10.0))
+     fig_fits.subplots_adjust(wspace = 0.6, hspace = 0.1, bottom = 0.1, top = 0.9)
+     #println(categories)
+     for (idxX, XCAT) in enumerate(xcats), (idxY, YCAT) in enumerate(ycats)
+          #filter out experiments
+          qEXP_category = qEXPS |> 
+               @filter(_.Age == XCAT && _.Genotype == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> 
+               @orderby(_.RSQ_fit) |> 
+          DataFrame
+          ylims = (-0.2, maximum(qEXP_category.rmax) * 1.1)
+          for litter in eachrow(qEXP_category)
+               #println(litter)
+               RET = matchExperiment(qTRACES, litter)
+               if normalize
+                    RET.Response ./= maximum(RET.Response) #Normalize
+                    fit_param = (1.0, litter.K_fit, litter.N_fit)
+               else
+                    fit_param = (litter.RMAX_fit, litter.K_fit, litter.N_fit)
+               end
+               plot_ir_fit(ax_fits[idxY, idxX], fit_param, litter.RSQ_fit, label_rsq = false)
+               ax_fits[idxY, idxX].scatter(RET.Photons, RET.Response,
+                    s = 6.0, 
+                    label = "$(litter.Year)_$(litter.Month)_$(litter.Date)_$(litter.Number)_$(round(litter.RSQ_fit, digits = 2))"
+               )
+          end
+          ax_fits[idxY, idxX].legend(loc = "upper right", bbox_to_anchor = (1.4, 1.0), fontsize = 4)
+          ax_fits[idxY, idxX].set_xlim(xlims)
+          ax_fits[idxY, idxX].set_ylim(ylims)
+          if idxX == 1
+               ax_fits[idxY, idxX].set_ylabel("$(YCAT) \n Resp. (μV)")
+          end
 
-          FIT = model(A_rng, [rmax, k, n])
-          axis.plot(A_rng, FIT, color = cmap(litter.RSQ))
-          axis.vlines(k, ymin=1.0, ymax = rmax/2, linestyle=(0, (5, 3)))#10 ^ (p14RodsNR_STF.param[1] / 2), color = color, )
-          axis.hlines(rmax/2, xmin=-10.0, xmax = k, linestyle=(0, (5, 3)))
+          #if idxY == size(ycats, 1)
+          #     ax_fits[idxY, idxX].set_xlabel("Intensity (μV)")
+          if idxY == 1
+               ax_fits[idxY, idxX].set_title(XCAT)
+               ax_fits[idxY, idxX].xaxis.set_visible(false) #We want the spine to fully
+          else
+               ax_fits[idxY, idxX].xaxis.set_visible(false) #We want the spine to fully
+          end
+          qCONDS_category = qCONDS |> @filter(_.Age == XCAT && _.Genotype == YCAT && _.Condition == condition && _.Photoreceptor == photoreceptor) |> DataFrame
+          println(qCONDS_category)
+          coll_fit_params = (qCONDS_category.RMAX_COLL[1], qCONDS_category.K_COLL[1], qCONDS_category.N_COLL[1])
+          coll_RSQ = qCONDS_category.RSQ_COLL[1]
+          qAGE = qCONDS |> @filter(_.Age == XCAT) |> DataFrame
+          ymax = maximum(qAGE.RMAX_COLL)
+          println(ymax)
+          plot_ir_fit(ax_fits[5, idxX], coll_fit_params, coll_RSQ, color_by_error = false, color = colorcycle[idxY])
+          ax_fits[5, idxX].set_xlabel("Intensity (μV)")
+          ax_fits[5, idxX].set_xlim(xlims)
+          ax_fits[5, idxX].set_ylim(-0.2, ymax)
      end
-     axis.legend(loc = "lower right")
-     #axis.set_xscale("Log")
-     axis.set_xlabel("a-wave (μV)", fontsize=10.0)
-     axis.set_yscale("Log", base = 10)
-     axis.set_ylabel("b-wave (μV)", fontsize=10.0)
-     #return fig
+     ax_fits[5, 1].set_ylabel("Response (μV)")
+     return fig_fits
 end
 
-function plot_exp_fits(df_EXPs::DataFrame, df_TRACEs::DataFrame; kwargs...)
+plot_dataset_fits(dataset::Dict{String, DataFrame}; kwargs...) = plot_dataset_fits(dataset["TRACES"], dataset["EXPERIMENTS"], dataset["CONDITIONS"]; kwargs...)
+
+function plot_dataset_vals(qTRACE::DataFrame, qEXPS::DataFrame, qCONDS::DataFrame)
+
+
+end
+#=function plot_experiment_fits(df_EXPs::DataFrame, df_TRACEs::DataFrame; kwargs...)
      fig, axis = plt.subplots(1)
-     plot_exp_fits(axis, df_EXPs, df_TRACEs; kwargs...)
+     return plot_experiment_fits(axis, df_EXPs, df_TRACEs; kwargs...)
 end
 
+plot_experiment_fits(axis, dataset::Dict{String, DataFrame}) = plot_experiment_fits(axis, dataset["EXPERIMENTS"], dataset["TRACES"])
+plot_experiment_fits(dataset::Dict{String, DataFrame}) = plot_experiment_fits(dataset["EXPERIMENTS"], dataset["TRACES"])
+
+=#
 function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame; 
      xlims = (-0.25, 2.0)
 )
@@ -248,7 +289,7 @@ function plot_data_summary(qTRACE::DataFrame, qEXP::DataFrame;
                     plot_fits = false, label = "Recovery"
                )
                ax_summary[idx, 4].set_xlim(photon_lims)
-               
+
                ax_summary[idx, 3].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
                ax_summary[idx, 4].legend(loc = "upper right", bbox_to_anchor = (1.0, 1.2))
           end
