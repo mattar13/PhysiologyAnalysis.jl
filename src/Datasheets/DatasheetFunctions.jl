@@ -106,6 +106,14 @@ function matchExperiment(trace::DataFrame, info::NamedTuple)
           return_traces = return_traces |> @filter(_.Channel == info.Channel) |> DataFrame
      end
 
+     if haskey(info, :Genotype)
+          return_traces = return_traces |> @filter(_.Genotype == info.Genotype) |> DataFrame
+     end
+
+     if haskey(info, :Age)
+          return_traces = return_traces |> @filter(_.Age == info.Age) |> DataFrame
+     end
+
      return return_traces
 end
 
