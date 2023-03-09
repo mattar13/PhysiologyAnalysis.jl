@@ -11,6 +11,9 @@ data_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retin
 datafile = "C:\\Users\\mtarc\\OneDrive - The University of Akron\\Projects\\Retinoschisis\\data_analysis.xlsx"
 dataset = openDataset(datafile)
 dataset["CONDITIONS"] = summarize_data(dataset)
+dataset["STATS"] = dataset_statistics(dataset)
+backupDataset(datafile)
+saveDataset(dataset, datafile)
 
 plot_dataset_fits(dataset, normalize = false, condition = "NoDrugs")
 plot_dataset_vals(dataset)
