@@ -11,6 +11,10 @@ This package will utilize many different sources for it's data. Each file format
 ### ROADMAP
 Version 1.0: Can open, plot, and analyze datafiles from .ABF files. 
 
+Notebooks are included to help analyze some electroretinography data.
+To install notebooks use this link: https://github.com/mattar13/PhysiologyInterface.jl
+
+
 To Do list: 
 - [ ] (v0.3.0) Allow for saving .abf files and modifying
 - [ ] (v0.2.0) Open .mat files (For use with MatLab and Symphony)

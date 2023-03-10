@@ -189,6 +189,7 @@ function runTraceAnalysis(all_files::DataFrame;
                elseif i.Condition == g_cond
                     responses = abs.(minimas)
                end
+               min_to_max = abs(maximas .- minimas)
                rmax = maximum(responses, dims = 1)
                Peak_Times = time_to_peak(data_ch)
                Integrated_Times = integral(data_ch)
@@ -249,7 +250,7 @@ function runTraceAnalysis(all_files::DataFrame;
                     Condition = qTRIAL[1, :Condition],
                     Channel = data_ch.chNames[1],
                     Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                    rmax = maximum(responses),
+                    rmax = maximum(responses), min_to_max = maximum(min_to_max),
                     RMAX_fit = fit_RMAX, K_fit = fit_K, N_fit = fit_N,
                     RSQ_fit = fit_RSQ, #, MSE_fit = mse_FIT,
                     rdim=responses[rdim_idx],
