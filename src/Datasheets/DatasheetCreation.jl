@@ -34,9 +34,24 @@ end
 
 
 """
-This function creates a new datasheet
+     dataset = createDataset(files::Vector{String}[; verbose = false, run_analysis = true])
+
+This function creates a dataset from a group of files. The best thing to do is to point to your datafiles root
+and then use the parseABF function. 
+
+- If run_analysis is selected, the function runTraceAnalysis will automatically be run on the dataset
+
+# Examples
+
+```julia-repl
+data_root = "\\user\\myroot"
+data_files = parseABF(data_root)
+dataset = createDataset(data_files)
+
+``` 
+
 """
-function createDataset(all_files::Vector{String}; verbose = false, run_analysis = true, kwargs...)
+function createDataset(all_files::Vector{String}; verbose::Bool = false, run_analysis::Bool = true, kwargs...)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
@@ -72,10 +87,19 @@ end
 createDataset(file_root::String; verbose = false, run_analysis = true, kwargs...) = createDataset(file_root |> parseABF; verbose = verbose, run_analysis = run_analysis, kwargs...)
 
 """
-This function opens an old datasheet
+     dataset = openDataset(datafile::String, [; 
+          typeConvert = true,  
+          sheetnames::Union{String, Vector{String}} = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS", "STATS"]
+     ])
+
+This function opens a saved dataset as an excel file. 
+
+# Example
+```julia-repl
+datafile = "\\user\\myroot\\datafile.xlsx"
+dataset = openDataset(datafile)
+```
 """
-
-
 function openDataset(datafile::String; 
           typeConvert=true,
           sheetnames::Union{String, Vector{String}} = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS", "STATS"]
