@@ -35,10 +35,9 @@ export data_filter!, data_filter
 
 #2) Fitting ============================================================================#
 include("Fitting/Models.jl")
-export HILL_MODEL
-export amplification
+export HILL_MODEL, HILLfit, STFfit
+export AMP, AMPfit
 export curve_fit #curve fitting from LsqFit
-export IR_curve
 
 #3) Data anlysis ========================================================================#
 include("Analysis/ERGAnalysis.jl")
