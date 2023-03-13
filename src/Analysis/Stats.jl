@@ -59,7 +59,7 @@ function dataset_statistics(qEXP;
                res_stat[idx, :CI] = CI = 1.96*sem(exp_data[:, stat])
                res_stat[idx, :LOWER] = mean(exp_data[:, stat]) - CI
                res_stat[idx, :UPPER] = mean(exp_data[:, stat]) + CI
-               if size(exp_data,1) > 1 && size(ctrl_data,1) > 1
+               if size(exp_data,1) > 1 && size(ctrl_data,1) > 1 && sum(ctrl_data[:, stat]) != sum(exp_data[:, stat])
                     res_stat[idx, :P] = P = UnequalVarianceTTest(ctrl_data[:, stat], exp_data[:, stat]) |> pvalue
                     res_stat[idx, :SIGN] = sig_symbol(P)
                else
