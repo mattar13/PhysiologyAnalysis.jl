@@ -1,7 +1,7 @@
-#%% Section 1. Revision of some plotting summarys
 using Revise
+
+#%% Section 1. Revision of some plotting summarys
 using PhysiologyAnalysis
-HILLfit
 using PyPlot
 PyPlot.pygui(true)
 import PhysiologyAnalysis: readABF, parseABF
