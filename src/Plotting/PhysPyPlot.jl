@@ -11,6 +11,7 @@ end
 function plot_experiment(axis::PyObject, exp::Experiment;
     channels=1, sweeps = :all, 
     axes=true, yaxes=true, xaxes=true, #Change this, this is confusing
+    xlims = nothing, ylims = nothing,
     color = :black, clims = (0.0, 1.0), #still want to figure out how this wil work
     include_ylabel = true, include_xlabel = true,
     kwargs...
@@ -40,6 +41,13 @@ function plot_experiment(axis::PyObject, exp::Experiment;
 
     if include_xlabel
         axis.set_xlabel("Time")
+    end
+    if !isnothing(xlims)
+        axis.set_xlim(xlims)
+    end
+
+    if !isnothing(ylims)
+        axis.set_ylim(ylims)
     end
     #end
 end
