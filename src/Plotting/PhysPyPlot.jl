@@ -12,7 +12,7 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     channels=1, sweeps = :all, 
     axes=true, yaxes=true, xaxes=true, #Change this, this is confusing
     xlims = nothing, ylims = nothing,
-    color = :black, clims = (0.0, 1.0), #still want to figure out how this wil work
+    color = :black, cvals = nothing, clims = (0.0, 1.0), #still want to figure out how this wil work
     include_ylabel = true, include_xlabel = true,
     kwargs...
 )
@@ -63,13 +63,24 @@ function plot_experiment(axis::Vector{PyObject}, exp::Experiment; kwargs...)
     end
 end
 
-function plot_experiment(exp::Experiment; kwargs...)
-    fig, axis = plt.subplots(size(exp, 3))
-    if size(exp,3) == 1
+function plot_experiment(exp::Experiment; layout = nothing, channels = nothing, kwargs...)
+    if !isnothing(layout)
+        plot_layout = layout
+    elseif !isnothing(channels)
+        if isa(channels, Vector{Int64})
+            plot_layout = (length(channels))
+        elseif isa(channels, Int64)
+            plot_layout = 1
+        end
+    else
+        plot_layout = (size(exp, 3))
+    end
+    println(plot_layout)
+    fig, axis = plt.subplots(plot_layout)
+    if plot_layout == 1 || plot_layout == (1)
         plot_experiment(axis::PyObject, exp::Experiment; channels=1, kwargs...)
     else
         for (ch, axis) in enumerate(axis)
-            
             plot_experiment(axis::PyObject, exp::Experiment; 
                 channels=ch, 
                 include_xlabel = ch == length(exp.chNames),
