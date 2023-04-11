@@ -40,7 +40,8 @@ function plot_experiment(axis::PyObject, exp::Experiment;
         axis.set_xlabel(xlabel)
     else
         axis.set_xlabel("Time (s)")
-
+    end
+    
     if !isnothing(ylabel)
         axis.set_ylabel()
     else
