@@ -81,7 +81,7 @@ function plot_experiment(exp::Experiment; layout = nothing, channels = nothing, 
     else
         plot_layout = (size(exp, 3))
     end
-    println(plot_layout)
+    #println(plot_layout)
     fig, axis = plt.subplots(plot_layout)
     if plot_layout == 1 || plot_layout == (1)
         plot_experiment(axis::PyObject, exp::Experiment; channels=1, kwargs...)
