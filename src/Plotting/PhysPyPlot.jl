@@ -41,7 +41,7 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     else
         axis.set_xlabel("Time (s)")
     end
-    
+
     if !isnothing(ylabel)
         axis.set_ylabel()
     else
@@ -89,7 +89,7 @@ function plot_experiment(exp::Experiment; layout = nothing, channels = nothing, 
         for (ch, axis) in enumerate(axis)
             plot_experiment(axis::PyObject, exp::Experiment; 
                 channels=ch, 
-                include_xlabel = ch == length(exp.chNames),
+                xlabel = ch == length(exp.chNames),
                 kwargs...
             )
         end
