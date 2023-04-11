@@ -13,7 +13,7 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     axes=true, yaxes=true, xaxes=true, #Change this, this is confusing
     xlims = nothing, ylims = nothing,
     color = :black, cvals = nothing, clims = (0.0, 1.0), #still want to figure out how this wil work
-    include_ylabel = true, include_xlabel = true,
+    ylabel = nothing, xlabel = nothing,
     kwargs...
 )
     dataX, dataY = plot_prep(exp; channels=channels, sweeps = sweeps)
@@ -35,13 +35,18 @@ function plot_experiment(axis::PyObject, exp::Experiment;
         axis.spines["bottom"].set_visible(false) #We want the spine to fully
         axis.xaxis.set_visible(false)
     end
-    if include_ylabel
+
+    if !isnothing(xlabel)
+        axis.set_xlabel(xlabel)
+    else
+        axis.set_xlabel("Time (s)")
+
+    if !isnothing(ylabel)
+        axis.set_ylabel()
+    else
         axis.set_ylabel("$(exp.chNames[channels]) ($(exp.chUnits[channels]))")
     end
 
-    if include_xlabel
-        axis.set_xlabel("Time")
-    end
     if !isnothing(xlims)
         axis.set_xlim(xlims)
     end
