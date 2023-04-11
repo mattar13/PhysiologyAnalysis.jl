@@ -43,7 +43,7 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     end
 
     if !isnothing(ylabel)
-        axis.set_ylabel()
+        axis.set_ylabel(ylabel)
     else
         axis.set_ylabel("$(exp.chNames[channels]) ($(exp.chUnits[channels]))")
     end
