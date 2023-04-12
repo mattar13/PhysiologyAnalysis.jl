@@ -1,10 +1,10 @@
-function plot_ir_scatter(axis::PyObject, qData::DataFrame;
+function plot_ir_scatter(axis::T, qData::DataFrame;
      x_row = :Photons, y_row = :Response, 
      color = :black, ms = 10.0, 
      xscale = "log", xbase = 10,
      yscale = "linear", ybase = 10, 
      label = nothing, kwargs...  
-)
+) where T
      X_VALS = qData[:, x_row]
      Y_VALS = qData[:, y_row]
      if isnothing(label)
@@ -21,7 +21,7 @@ function plot_ir_scatter(axis::PyObject, qData::DataFrame;
      end
 end
 
-function plot_ir_fit(axis::PyObject, fit_param, rsq::Real;
+function plot_ir_fit(axis::T, fit_param, rsq::Real;
      xscale = "log", xbase = 10,
      yscale = "linear", ybase = 10,
      color_by_error = true, cmap = :RdYlGn, color = :black,
@@ -29,7 +29,7 @@ function plot_ir_fit(axis::PyObject, fit_param, rsq::Real;
      model = HILL_MODEL,
      label_rsq = true,
      lw = 2.0  
-)
+) where T
      xmin, xmax, ymin, ymax = plt.axis() #We should plot everything based on the 
      BEST_FIT = model(fit_rng, fit_param)
 
@@ -57,7 +57,7 @@ function plot_ir_fit(axis::PyObject, fit_param, rsq::Real;
      end
 end
 
-function plot_IR(axis::PyObject, qData::DataFrame;
+function plot_IR(axis::T, qData::DataFrame;
      x_row = :Photons, y_row = :Response, 
      xscale = "log", xbase = 10,
      yscale = "linear", ybase = 10,
@@ -66,7 +66,7 @@ function plot_IR(axis::PyObject, qData::DataFrame;
      lw = 2.0, ms = 10.0, plot_fits = true,   
      label = nothing, label_rsq = true,
      fitting_kwargs...
-)
+) where T
 
      plot_ir_scatter(axis, qData;
           x_row = x_row, y_row = y_row, 

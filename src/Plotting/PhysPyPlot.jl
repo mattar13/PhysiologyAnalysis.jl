@@ -8,14 +8,14 @@ function is_cmap(color)
     end
 end
 
-function plot_experiment(axis::PyObject, exp::Experiment;
+function plot_experiment(axis::T, exp::Experiment;
     channels=1, sweeps = :all, 
     axes=true, yaxes=true, xaxes=true, #Change this, this is confusing
     xlims = nothing, ylims = nothing,
     color = :black, cvals = nothing, clims = (0.0, 1.0), #still want to figure out how this wil work
     ylabel = nothing, xlabel = nothing,
     kwargs...
-)
+) where T
     dataX, dataY = plot_prep(exp; channels=channels, sweeps = sweeps)
     if is_cmap(color)
         cmapI = plt.get_cmap(color)
@@ -58,13 +58,13 @@ function plot_experiment(axis::PyObject, exp::Experiment;
     #end
 end
 
-function plot_experiment(axis::Vector{PyObject}, exp::Experiment; kwargs...)
+function plot_experiment(axis::Vector{T}, exp::Experiment; kwargs...) where T #Is going to be a py object
     #This is for if there are multiple axes
     for (ch, axis) in enumerate(axis)
         if ch == 1
-            plot_experiment(axis::PyObject, exp::Experiment; channels=ch, include_xlabel = false, kwargs...)
+            plot_experiment(axis::T, exp::Experiment; channels=ch, include_xlabel = false, kwargs...)
         else
-            plot_experiment(axis::PyObject, exp::Experiment; channels=ch, kwargs...)
+            plot_experiment(axis::T, exp::Experiment; channels=ch, kwargs...)
         end
     end
 end
@@ -84,10 +84,10 @@ function plot_experiment(exp::Experiment; layout = nothing, channels = nothing, 
     #println(plot_layout)
     fig, axis = plt.subplots(plot_layout)
     if plot_layout == 1 || plot_layout == (1)
-        plot_experiment(axis::PyObject, exp::Experiment; channels=1, kwargs...)
+        plot_experiment(axis, exp::Experiment; channels=1, kwargs...)
     else
         for (ch, axis) in enumerate(axis)
-            plot_experiment(axis::PyObject, exp::Experiment; 
+            plot_experiment(axis, exp::Experiment; 
                 channels=ch, 
                 xlabel = ch == length(exp.chNames),
                 kwargs...
