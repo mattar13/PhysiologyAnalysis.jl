@@ -3,7 +3,7 @@ PyPlot.pygui(true) #Make the GUI external to vscode
 
 #%%=These are the default parameters for plotting==============================#
 #print("Default plotting parameters loading... ")
-#=
+
 rcParams = py.PyDict(matplotlib["rcParams"])
 
 #Settings related the the DPI of the current plot interface
@@ -40,7 +40,6 @@ rcParams["axes.facecolor"] = (1.0, 1.0, 1.0, 1.0) #Red, Green, Blue, Alpha #Make
 
 #These are the savefig params
 rcParams["savefig.pad_inches"] = 0.0
-=#
 
 color_dict = Dict(
      "WT" => :Black,
