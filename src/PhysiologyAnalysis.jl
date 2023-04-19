@@ -1,16 +1,21 @@
 module PhysiologyAnalysis
 
-# The top level is the ElectroPhysiology package
+# The top level is the ElectroPhysiology package. These are not imported into the workspace
 using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second
-using DSP #Used for lowpass, highpass, EI, and notch filtering
-import Polynomials as PN #
-using HypothesisTests
+
+#= Packages used for fitting data ====================================#
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
+
+#= Packages used for Analyzing data ==================================#
+import Polynomials as PN #used for fitting and stats
+using DataFrames, Query, XLSX #Load these extra utilites immediately
+
+#= Packages used 
+using HypothesisTests
 using Distributions
 using Statistics, StatsBase #These functions use R functions as well as StatsBase
-using DataFrames, Query, XLSX #Load these extra utilites immediately
 import XLSX: readtable, readxlsx #Import XLSX commands
 import PyPlot
 import PyPlot.plt #All the base utilities for plotting
@@ -68,14 +73,12 @@ export GenerateFitFrame
 export saveDataset, backupDataset
 
 #5) Plotting utilities will be loaded in automatically ==============================================#
-include("Plotting/DefaultSettings.jl") #This requires PyPlot
-include("Plotting/PlottingUtilities.jl")
-include("Plotting/PhysPyPlot.jl")
-export plot_experiment
 
+#= This may be included in requires in PhysiologyPlotting
 include("Plotting/DatasheetPlotting.jl")
 export plot_ir_scatter, plot_ir_fit, plot_IR
 export plot_data_summary
 export plot_dataset_fits, plot_dataset_vals
+=# 
 
 end
