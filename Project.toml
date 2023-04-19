@@ -6,7 +6,6 @@ repo = "https://github.com/mattar13/PhysiologyAnalysis.jl.git"
 version = "0.4.7"
 
 [deps]
-DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -24,7 +23,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 
 [compat]
-DSP = "0.7"
 DataFrames = "1"
 Distributions = "0.25"
 ElectroPhysiology = "0.3"
