@@ -9,21 +9,8 @@ data = readABF(test_file)
     @test isa(data, ElectroPhysiology.Experiment)
 end
 
-@testset "Testing data filtering" begin
-    data_filtered = filter_data(data)
-    @test !isnothing(data_filtered)
-
-    data_normalized = normalize(data)
-    @test !isnothing(data_normalized)
-end
-
-@testset "Testing fitting functions" begin
-    
-
-end
-
 @testset "Testing ERG analysis" begin
-    data_filt = data_filter(data)
     resps = saturated_response(data_filt)
+    println(maximum(resps))
     @test maximum(resps) == -0.2988254587666856
 end

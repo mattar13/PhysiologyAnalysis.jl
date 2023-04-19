@@ -1,7 +1,10 @@
 using Revise
-using ElectroPhysiology
 using PhysiologyAnalysis
 
+
+using ElectroPhysiology
+testFilter = raw"test/to_filter.abf"
+data = readABF(testFilter) |> filter_data
 
 
 #%%
