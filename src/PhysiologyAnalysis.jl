@@ -11,18 +11,12 @@ using LsqFit #Used for fitting amplification, Intensity Response, and Resistance
 #= Packages used for Analyzing data ==================================#
 import Polynomials as PN #used for fitting and stats
 using DataFrames, Query, XLSX #Load these extra utilites immediately
+import XLSX: readtable, readxlsx #Import XLSX commands
 
-#= Packages used 
+#= Packages not yet uses
 using HypothesisTests
 using Distributions
 using Statistics, StatsBase #These functions use R functions as well as StatsBase
-import XLSX: readtable, readxlsx #Import XLSX commands
-import PyPlot
-import PyPlot.plt #All the base utilities for plotting
-import PyPlot.matplotlib
-import PyCall as py #This allows us to use Python to call somethings 
-import PyCall: @pyimport, PyObject
-#using ContinuousWavelets, Wavelets
 
 #export some basic functions from ============================================================#
 export readABF, parseABF
