@@ -23,23 +23,15 @@ import PyCall: @pyimport, PyObject
 export readABF, parseABF
 export plt
 
-#This package does 4 things: 
-#1)Filter ====================================================================================#
-include("Filtering/filtering.jl")
-export filter_data, filter_data!
-export rolling_mean
-export normalize, normalize!
+#This package does 3 things: 
 
-include("Filtering/filteringPipelines.jl")
-export data_filter!, data_filter
-
-#2) Fitting ============================================================================#
+#1) Fitting ============================================================================#
 include("Fitting/Models.jl")
 export HILL_MODEL, HILLfit, STFfit
 export AMP, AMPfit
 export curve_fit #curve fitting from LsqFit
 
-#3) Data anlysis ========================================================================#
+#2) Data anlysis ========================================================================#
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -58,7 +50,7 @@ export max_interval_algorithim, timeseries_analysis
 include("Analysis/Stats.jl")
 export dataset_statistics
 
-#4) Import all Datasheet tools ===========================================================#
+#3) Import all Datasheet tools ===========================================================#
 export readtable, readxlsx, XLSX
 include("Datasheets/RegexFunctions.jl")
 include("Datasheets/FilePathExtraction.jl")
@@ -85,9 +77,5 @@ include("Plotting/DatasheetPlotting.jl")
 export plot_ir_scatter, plot_ir_fit, plot_IR
 export plot_data_summary
 export plot_dataset_fits, plot_dataset_vals
-#include("Filtering/make_spectrum.jl")
-#include("Filtering/wavelet_filtering.jl")
-#export cwt_filter!, cwt_filter
-#export dwt_filter!, dwt_filter
 
 end

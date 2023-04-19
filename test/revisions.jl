@@ -2,14 +2,7 @@ using Revise
 using ElectroPhysiology
 using PhysiologyAnalysis
 
-#%% Section 1. Revision of some plotting tools
-files = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Organoids\2022_06_17_Organoid\Org2_ILC42-3_9cRAL\BrainPhys_10-9cRAL" |> parseABF
-data = readABF(files[1])
-eP.truncate_data!(data, t_post = 10.0)
-eP.baseline_adjust!(data)
-eP.average_sweeps!(data)
-#eP.filter_data!(data, freq_start = 0.0001, freq_stop = 30.0, mode = :Bandpass)
-plot_experiment(data, xlims = (-0.25, 5.0))
+
 
 #%%
 using PyPlot
