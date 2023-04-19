@@ -1,45 +1,36 @@
 module PhysiologyAnalysis
 
-# The top level is the ElectroPhysiology package
+# The top level is the ElectroPhysiology package. These are not imported into the workspace
 using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second
-using DSP #Used for lowpass, highpass, EI, and notch filtering
-import Polynomials as PN #
-using HypothesisTests
+
+#= Packages used for fitting data ====================================#
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
-using Distributions
-using Statistics, StatsBase #These functions use R functions as well as StatsBase
+
+#= Packages used for Analyzing data ==================================#
+import Polynomials as PN #used for fitting and stats
 using DataFrames, Query, XLSX #Load these extra utilites immediately
 import XLSX: readtable, readxlsx #Import XLSX commands
-import PyPlot
-import PyPlot.plt #All the base utilities for plotting
-import PyPlot.matplotlib
-import PyCall as py #This allows us to use Python to call somethings 
-import PyCall: @pyimport, PyObject
-#using ContinuousWavelets, Wavelets
+
+#= Packages not yet uses
+using HypothesisTests
+using Distributions
+using Statistics, StatsBase #These functions use R functions as well as StatsBase
 
 #export some basic functions from ============================================================#
 export readABF, parseABF
 export plt
 
-#This package does 4 things: 
-#1)Filter ====================================================================================#
-include("Filtering/filtering.jl")
-export filter_data, filter_data!
-export rolling_mean
-export normalize, normalize!
+#This package does 3 things: 
 
-include("Filtering/filteringPipelines.jl")
-export data_filter!, data_filter
-
-#2) Fitting ============================================================================#
+#1) Fitting ============================================================================#
 include("Fitting/Models.jl")
 export HILL_MODEL, HILLfit, STFfit
 export AMP, AMPfit
 export curve_fit #curve fitting from LsqFit
 
-#3) Data anlysis ========================================================================#
+#2) Data anlysis ========================================================================#
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
 export saturated_response, dim_response
@@ -58,7 +49,7 @@ export max_interval_algorithim, timeseries_analysis
 include("Analysis/Stats.jl")
 export dataset_statistics
 
-#4) Import all Datasheet tools ===========================================================#
+#3) Import all Datasheet tools ===========================================================#
 export readtable, readxlsx, XLSX
 include("Datasheets/RegexFunctions.jl")
 include("Datasheets/FilePathExtraction.jl")
@@ -76,18 +67,12 @@ export GenerateFitFrame
 export saveDataset, backupDataset
 
 #5) Plotting utilities will be loaded in automatically ==============================================#
-include("Plotting/DefaultSettings.jl") #This requires PyPlot
-include("Plotting/PlottingUtilities.jl")
-include("Plotting/PhysPyPlot.jl")
-export plot_experiment
 
+#= This may be included in requires in PhysiologyPlotting
 include("Plotting/DatasheetPlotting.jl")
 export plot_ir_scatter, plot_ir_fit, plot_IR
 export plot_data_summary
 export plot_dataset_fits, plot_dataset_vals
-#include("Filtering/make_spectrum.jl")
-#include("Filtering/wavelet_filtering.jl")
-#export cwt_filter!, cwt_filter
-#export dwt_filter!, dwt_filter
+=# 
 
 end

@@ -1,7 +1,13 @@
 using Revise
-
-#%% Section 1. Revision of some plotting summarys
 using PhysiologyAnalysis
+
+
+using ElectroPhysiology
+testFilter = raw"test/to_filter.abf"
+data = readABF(testFilter) |> filter_data
+
+
+#%%
 using PyPlot
 PyPlot.pygui(true)
 import PhysiologyAnalysis: readABF, parseABF
@@ -24,10 +30,7 @@ file = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschi
 data = readABF(file |> parseABF) |> data_filter
 plot_experiment(data, xlims = (-0.25, 1.0))
 
-#%% Make a new function for extracting photon numbers from 
+#%% Make a new function for adding photon numbers to a flash stimulus
 using PhysiologyAnalysis
 file_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2022_04_21_a13MelCreAdult\Mouse2_Adult_WT"
 files_A = joinpath(file_root, "BaCl_LAP4\\Rods") |> parseABF
-
-
-PhysiologyAnalysis.DataPathExtraction.(files_A)
