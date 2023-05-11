@@ -13,6 +13,7 @@ import Polynomials as PN #used for fitting and stats
 using DataFrames, Query, XLSX #Load these extra utilites immediately
 import XLSX: readtable, readxlsx #Import XLSX commands
 
+using StatsBase #Used for mean, std, and SEM functions.
 #= Packages not yet uses
 using HypothesisTests
 using Distributions

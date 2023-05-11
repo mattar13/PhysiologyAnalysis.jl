@@ -3,7 +3,7 @@ uuid = "69cbc4a0-077e-48a7-9b45-fa8b7014b5ca"
 license = "MIT"
 authors = ["Matthew Tarchick <mtarchick13@gmail.com>"]
 repo = "https://github.com/mattar13/PhysiologyAnalysis.jl.git"
-version = "0.5.0"
+version = "0.6.0"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
