@@ -32,7 +32,7 @@ function dataset_statistics(qEXP;
      control = "WT", 
      stat_metrics = [:rmax, :rdim, :K_fit, :time_to_peak, :percent_recovery, :integration_time],
 )
-     unflagged_exps = qEXP |> @filter(_.INCLUDE == true) |> DataFrame
+     #unflagged_exps = qEXP |> @filter(_.INCLUDE == true) |> DataFrame
      exps = DataFrame[]
      for stat in stat_metrics
           res_stat = unflagged_exps  |> 
