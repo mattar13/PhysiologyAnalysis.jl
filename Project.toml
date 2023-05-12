@@ -6,9 +6,11 @@ repo = "https://github.com/mattar13/PhysiologyAnalysis.jl.git"
 version = "0.6.0"
 
 [deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 ElectroPhysiology = "da7a9670-f599-43ac-b818-143f8bf87d45"
+HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
 LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
 Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1"
@@ -18,8 +20,10 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 
 [compat]
+CSV = "0.10"
 DataFrames = "1"
 ElectroPhysiology = "0.2, 0.3"
+HypothesisTests = "0.10"
 LsqFit = "0.13"
 Polynomials = "3"
 Query = "1"
