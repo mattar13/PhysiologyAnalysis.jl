@@ -1,5 +1,4 @@
 #This file contains the calibration data
-
 function extract_categories(cond_df::DataFrame) 
      categories = []
      for row in eachrow(cond_df)
@@ -189,7 +188,9 @@ function runTraceAnalysis(all_files::DataFrame;
                elseif i.Condition == g_cond
                     responses = abs.(minimas)
                end
-               min_to_max = abs(maximas .- minimas)
+               println(maximas)
+               println(minimas)
+               min_to_max = abs.(maximas .- minimas)
                rmax = maximum(responses, dims = 1)
                Peak_Times = time_to_peak(data_ch)
                Integrated_Times = integral(data_ch)
