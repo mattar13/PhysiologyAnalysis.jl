@@ -35,7 +35,7 @@ function dataset_statistics(qEXP;
      #unflagged_exps = qEXP |> @filter(_.INCLUDE == true) |> DataFrame
      exps = DataFrame[]
      for stat in stat_metrics
-          res_stat = unflagged_exps  |> 
+          res_stat = qEXP  |> 
                @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
                @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],
                     N = length(_),
@@ -47,10 +47,10 @@ function dataset_statistics(qEXP;
           DataFrame
           for (idx, info) in enumerate(eachrow(res_stat))
                #first load the control data
-               ctrl_data = unflagged_exps |> 
+               ctrl_data = qEXP |> 
                     @filter(_.Genotype == control && _.Age == info.Age && _.Condition == info.Condition && _.Photoreceptor == info.Photoreceptor) |> 
                DataFrame
-               exp_data =  unflagged_exps |> 
+               exp_data =  qEXP |> 
                     @filter(_.Genotype == info.Genotype && _.Age == info.Age && _.Condition == info.Condition && _.Photoreceptor == info.Photoreceptor) |> 
                DataFrame
                res_stat[idx, :AVG] = mean(exp_data[:, stat])
