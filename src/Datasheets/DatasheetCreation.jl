@@ -51,7 +51,7 @@ dataset = createDataset(data_files)
 ``` 
 
 """
-function createDataset(all_files::Vector{String}; verbose::Bool = false, run_analysis::Bool = true, kwargs...)
+function createDataset(all_files::Vector{String}; verbose::Bool = false, run_analysis::Bool = false, kwargs...)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
@@ -71,7 +71,7 @@ function createDataset(all_files::Vector{String}; verbose::Bool = false, run_ana
                end
           catch error
                if verbose
-                    #throw(error)
+                    throw(error)
                     println(file)
                     println(error)
                end
@@ -80,7 +80,7 @@ function createDataset(all_files::Vector{String}; verbose::Bool = false, run_ana
      if run_analysis
           return runTraceAnalysis(dataframe; kwargs...)
      else
-          return dataframe
+          return Dict("ALL_FILES" => dataframe)
      end
 end
 
