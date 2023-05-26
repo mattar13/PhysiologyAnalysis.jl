@@ -61,6 +61,7 @@ export summarize_data
 export openDataset, createDataset, updateDataset
 export runAnalysis
 export runTraceAnalysis
+export runExperimentAnalysis
 export matchExperiment, excludeExperiment
 export flagExperiment, flagExperiment!, unflagALL!
 export parseColumn!
