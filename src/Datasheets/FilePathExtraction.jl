@@ -100,7 +100,7 @@ function DataPathExtraction(path::String, calibration_file::String;
      #Find color of the light stim used
      color_res = findmatch(path, color_regex)
      if !isnothing(color_res) #This 
-          if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" || color_res.Color == "blue"
+          if color_res.Color == "Blue" || color_res.Color == "365" || color_res.Color == "365UV" || color_res.Color == "blue" || color_res.Color == "UV"
                WAVE = 365
           elseif  color_res.Color == "green" || color_res.Color == "525" || color_res.Color == "525Green" || color_res.Color == "Green"
                WAVE = 520
