@@ -84,7 +84,7 @@ function summarize_data(dataset::Dict{String, DataFrame}; kwargs...)
      return summarize_data(dataset["TRACES"], dataset["EXPERIMENTS"]; kwargs...)
 end
 
-function runTraceAnalysis(all_files::DataFrame;
+function runTraceAnalysis(dataset::Dict{String, DataFrame};
      t_pre = 1.0, t_post = 2.0, #Extend these to see the end of the a-wave
      measure_minima = false,
      a_cond = "BaCl_LAP4", b_cond = "BaCl", g_cond = "NoDrugs", 
@@ -93,21 +93,17 @@ function runTraceAnalysis(all_files::DataFrame;
      p0 = [500.0, 1000.0, 2.0], #Default r = 500.0, k = 200.0, n = 2.0
      ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
 ) 
-     dataset = Dict{String, DataFrame}(
-          "ALL_FILES" => all_files
-     )
-     uniqueData = all_files |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype, _.Condition}) |> DataFrame #Pull out all unique files
+     uniqueData = dataset["ALL_FILES"] |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype, _.Condition}) |> DataFrame #Pull out all unique files
      if verbose
           println("Completed data query")
      end
      qTrace = DataFrame() #Make empty dataframes for all traces
-     qExperiment = DataFrame() #Make empty dataframe for all experiments
      for (idx, i) in enumerate(eachrow(uniqueData)) #Walk through each unique data
           if verbose
                println("Completeing analysis for $idx out of $(size(uniqueData,1))")
                println("Path: $(i.Path)")
           end
-          qData = all_files |> @filter(
+          qData = dataset["ALL_FILES"] |> @filter(
                (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
                (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
           ) |> DataFrame #Pull out the data 
@@ -188,12 +184,10 @@ function runTraceAnalysis(all_files::DataFrame;
                elseif i.Condition == g_cond
                     responses = abs.(minimas)
                end
-               println(maximas)
-               println(minimas)
                min_to_max = abs.(maximas .- minimas)
-               rmax = maximum(responses, dims = 1)
                Peak_Times = time_to_peak(data_ch)
                Integrated_Times = integral(data_ch)
+               rmax = maximum(responses, dims = 1)
                Percent_Recoveries = percent_recovery_interval(data_ch, rmax)
                
                for swp in axes(data_ch, 1) #Walk through all sweep info, since sweeps will represent individual datafiles most of the time
@@ -216,65 +210,68 @@ function runTraceAnalysis(all_files::DataFrame;
                     )
 
                end
-
-               #This section we need to extract Rdim responses. 
-               norm_resp = responses ./ maximum(responses)
-               rdim_idxs = findall(0.20 .< norm_resp .< 0.50)
-               if isempty(rdim_idxs)
-                    rdim_idx = argmin(responses)
-               else
-                    rdim_min = argmin(responses[rdim_idxs])
-                    rdim_idx = rdim_idxs[rdim_min]
-               end
-
-               if size(responses,1) > 2
-                    p0 = [maximum(responses), median(qData[:, :Photons]), 2.0]
-                    #Fitting each data trace to a IR curve
-                    fit, fit_RSQ = HILLfit(qTRIAL[:, :Photons], responses |> vec; p0 = p0, lb = lb, ub = ub)
-                    fit_RMAX = fit.param[1]
-                    fit_K = fit.param[2]
-                    fit_N = fit.param[3]
-                    if verbose
-                         println("Fit r-squared = $fit_RSQ")
-                    end
-               else
-                    #Fitting each data trace to a IR curve
-                    fit_RMAX = 0.0
-                    fit_K = 0.0
-                    fit_N = 0.0
-                    fit_RSQ = 0.0
-                    println("\t ONly $(length(responses)) responses. IR curve couldn't be fit")
-               end
-               push!(qExperiment, (
-                    Year=qData[1, :Year], Month=qData[1, :Month], Date=qData[1, :Date],
-                    Age=qData[1, :Age], Number=qData[1, :Number], Genotype=qData[1, :Genotype],
-                    Condition = qTRIAL[1, :Condition],
-                    Channel = data_ch.chNames[1],
-                    Photoreceptor=qData[1, :Photoreceptor], Wavelength=qData[1, :Wavelength],
-                    rmax = maximum(responses), min_to_max = maximum(min_to_max),
-                    RMAX_fit = fit_RMAX, K_fit = fit_K, N_fit = fit_N,
-                    RSQ_fit = fit_RSQ, #, MSE_fit = mse_FIT,
-                    rdim=responses[rdim_idx],
-                    integration_time=Integrated_Times[rdim_idx],
-                    time_to_peak=Peak_Times[rdim_idx],
-                    percent_recovery = mean(Percent_Recoveries) #really strange these usually are averaged
-                    #recovery_tau=Recovery_Taus[rdim_idx],
-               ))
           end
      end
      dataset["TRACES"] = qTrace
-     dataset["TRACES"][!, :INCLUDE] .= true
-     dataset["EXPERIMENTS"] = qExperiment
-     dataset["EXPERIMENTS"][!, :INCLUDE] .= true
-     #println(qTrace)
-     #if we are only summarizing one experiment, then theres no use to doing a summary
-     dataset["CONDITIONS"] = summarize_data(qTrace, qExperiment; lb = lb, p0 = p0, ub = ub)
-     dataset["STATS"] = DataFrame()
      return dataset
 end
 
-function runTraceAnalysis(dataset_dict::Dict{String, DataFrame}; kwargs...)
-     return runTraceAnalysis(dataset_dict["ALL_FILES"]; kwargs...)
+function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false,
+          lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
+          ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
+     )
+     EXPERIMENTS = dataset["TRACES"] |> @unique({_.Year, _.Month, _.Date, _.Age, _.Number, _.Genotype, _.Channel, _.Condition, _.Photoreceptor, _.Wavelength}) |> DataFrame
+     println(EXPERIMENTS)
+
+     qExperiment = DataFrame() #Make empty dataframe for all experiments
+     for exp in eachrow(EXPERIMENTS)
+          INFO = (
+               Year = exp.Year, 
+               Month = exp.Month, 
+               Date = exp.Date, 
+               Age = exp.Age, 
+               Number = exp.Number, 
+               Genotype = exp.Genotype, 
+               Channel = exp.Channel,
+               Photoreceptor = exp.Photoreceptor, 
+               Condition = exp.Condition,
+               Wavelength = exp.Wavelength
+          )
+          matched = matchExperiment(dataset["TRACES"], INFO)
+          rdim_idx = findRDIM(matched.Response)
+          println(rdim_idx)
+
+          if size(matched.Response,1) > 2
+               p0 = [maximum(matched.Response), median(matched.Photons), 2.0]
+               #Fitting each data trace to a IR curve
+               fit, fit_RSQ = HILLfit(matched.Photons, matched.Response; p0 = p0, lb = lb, ub = ub)
+               fit_RMAX = fit.param[1]
+               fit_K = fit.param[2]
+               fit_N = fit.param[3]
+               if verbose
+                    println("Fit r-squared = $fit_RSQ")
+               end
+          else
+               #Fitting each data trace to a IR curve
+               fit_RMAX = 0.0
+               fit_K = 0.0
+               fit_N = 0.0
+               fit_RSQ = 0.0
+               println("\t ONly $(length(responses)) responses. IR curve couldn't be fit")
+          end
+          frame = (;INFO... , 
+               rmax = maximum(matched.Response), rdim = matched.Response[rdim_idx],
+               RMAX_fit = fit_RMAX, K_fit = fit_K, N_fit = fit_N,
+               RSQ_fit = fit_RSQ, #, MSE_fit = mse_FIT,
+               integration_time = matched.Integrated_Time[rdim_idx],
+               time_to_peak = matched.Peak_Time[rdim_idx],
+               percent_recovery = mean(matched.Percent_Recovery) #really strange these usually are averaged
+               #recovery_tau=Recovery_Taus[rdim_idx],          
+          )
+          push!(qExperiment, frame)
+     end
+     dataset["EXPERIMENTS"] = qExperiment
+     return dataset
 end
 
 """
