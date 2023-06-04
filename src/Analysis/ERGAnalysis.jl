@@ -133,19 +133,18 @@ end
 
 
 function findRDIM(responses::Vector{T}, rng = (0.1, 0.4)) where T <: Real
-    #This section we need to extract Rdim responses. 
-    normalized_responses = responses ./ maximum(responses)
-    println(normalized_responses)
-    rdim_idxs = findall(rng[1] .< normalized_responses .< rng[2]) #Basically the rdim will now be any response under the half saturation point
-    println(normalized_responses[rdim_idxs])
-    if isempty(rdim_idxs)
-         rdim_idx = argmin(responses)
-    else
-         rdim_min = argmax(responses[rdim_idxs])
-         rdim_idx = rdim_idxs[rdim_min]
-    end
-    rdim_idx
-end
+     #This section we need to extract Rdim responses. 
+     normalized_responses = abs.(responses) ./ maximum(abs.(responses))
+     #println(normalized_responses)
+     rdim_idxs = findall(rng[1] .< normalized_responses .< rng[2]) #Basically the rdim will now be any response under the half saturation point
+     if isempty(rdim_idxs)
+          rdim_idx = argmin(responses)
+     else
+          rdim_min = argmax(responses[rdim_idxs])
+          rdim_idx = rdim_idxs[rdim_min]
+     end
+     rdim_idx
+ end
 
 
 """
