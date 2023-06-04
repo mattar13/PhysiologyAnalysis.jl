@@ -15,6 +15,7 @@ import XLSX: readtable, readxlsx #Import XLSX commands
 
 using StatsBase #Used for mean, std, and SEM functions.
 using HypothesisTests
+using ModelingToolkit, OrdinaryDiffEq
 #= Packages not yet uses
 using Distributions
 using Statistics, StatsBase #These functions use R functions as well as StatsBase
@@ -49,6 +50,9 @@ export max_interval_algorithim, timeseries_analysis
 
 include("Analysis/Stats.jl")
 export dataset_statistics
+
+include("Fitting/NoseModel.jl")
+export runNoseModel
 
 #3) Import all Datasheet tools ===========================================================#
 export readtable, readxlsx, XLSX
