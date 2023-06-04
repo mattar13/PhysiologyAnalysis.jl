@@ -257,7 +257,7 @@ function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false
                fit_K = 0.0
                fit_N = 0.0
                fit_RSQ = 0.0
-               println("\t ONly $(length(responses)) responses. IR curve couldn't be fit")
+               #println("\t ONly $(length(responses)) responses. IR curve couldn't be fit")
           end
           frame = (;INFO... , 
                rmax = maximum(matched.Response), rdim = matched.Response[rdim_idx],
