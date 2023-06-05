@@ -40,50 +40,6 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
      return allIR, fit
 end
 
-function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
-     #filter out all flags
-     unflagged_exps = qExperiment |> @filter(_.INCLUDE == true) |> DataFrame
-     unflagged_traces = matchExperiment(qTrace, unflagged_exps)
-     qConditions = unflagged_exps |>
-          @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength, _.Condition}) |>
-          @map({
-               Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
-               Condition = _.Condition[1],
-               N = length(_), 
-               Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
-               Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
-               Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
-               Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
-               Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
-               K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit),
-               RMAX_COLL = 0.0, K_COLL = 0.0, N_COLL = 0.0, RSQ_COLL = 0.0 
-               #Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
-          }) |>
-          DataFrame
-     #iterate through each conditon and generate a collated IR curve
-     for (idx, cond) in enumerate(eachrow(qConditions))
-          qIND_COND = unflagged_traces |> 
-               @filter(_.Age == cond.Age) |> 
-               @filter(_.Genotype == cond.Genotype) |> 
-               @filter(_.Condition == cond.Condition) |> 
-               @filter(_.Photoreceptor == cond.Photoreceptor) |> 
-               @filter(_.Wavelength == cond.Wavelength) |> 
-          DataFrame 
-          if size(qIND_COND, 1) > 2
-               fit, rsq = HILLfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
-               qConditions[idx, :RMAX_COLL] = fit.param[1]
-               qConditions[idx, :K_COLL] = fit.param[2]
-               qConditions[idx, :N_COLL] = fit.param[3]
-               qConditions[idx, :RSQ_COLL] = rsq
-          end
-     end
-     return qConditions
-end
-
-function summarize_data(dataset::Dict{String, DataFrame}; kwargs...)
-     return summarize_data(dataset["TRACES"], dataset["EXPERIMENTS"]; kwargs...)
-end
-
 function runTraceAnalysis(dataset::Dict{String, DataFrame};
      t_pre = 1.0, t_post = 2.0, #Extend these to see the end of the a-wave
      measure_minima = false,
@@ -174,8 +130,9 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                minimas = minimum(data_ch, dims=2)[:, 1, :]
                maximas = maximum(data_ch, dims=2)[:, 1, :]
                if i.Condition == a_cond 
-                    if measure_minima
+                    if measure_minima || i.Photoreceptor == "Cones"
                          responses = abs.(minimas)
+                         println("Only minimas")
                     else
                          responses = abs.(saturated_response(data_ch))
                     end
@@ -221,7 +178,7 @@ function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false
           ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
      )
      EXPERIMENTS = dataset["TRACES"] |> @unique({_.Year, _.Month, _.Date, _.Age, _.Number, _.Genotype, _.Channel, _.Condition, _.Photoreceptor, _.Wavelength}) |> DataFrame
-     println(EXPERIMENTS)
+     #println(EXPERIMENTS)
 
      qExperiment = DataFrame() #Make empty dataframe for all experiments
      for exp in eachrow(EXPERIMENTS)
@@ -239,7 +196,7 @@ function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false
           )
           matched = matchExperiment(dataset["TRACES"], INFO)
           rdim_idx = findRDIM(matched.Response)
-          println(rdim_idx)
+          #println(rdim_idx)
 
           if size(matched.Response,1) > 2
                p0 = [maximum(matched.Response), median(matched.Photons), 2.0]
@@ -272,6 +229,50 @@ function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false
      end
      dataset["EXPERIMENTS"] = qExperiment
      return dataset
+end
+
+function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
+     #filter out all flags
+     unflagged_exps = qExperiment# |> @filter(_.INCLUDE == true) |> DataFrame
+     unflagged_traces = matchExperiment(qTrace, unflagged_exps)
+     qConditions = unflagged_exps |>
+          @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength, _.Condition}) |>
+          @map({
+               Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
+               Condition = _.Condition[1],
+               N = length(_), 
+               Rmax = mean(_.rmax), Rmax_sem = sem(_.rmax),
+               Rdim = mean(_.rdim), Rdim_sem = sem(_.rdim),
+               Integrated_Time = mean(_.integration_time), Integrated_Time_sem = sem(_.integration_time),
+               Time_to_peak = mean(_.time_to_peak), Time_To_Peak_sem = sem(_.time_to_peak),
+               Percent_Recovery = mean(_.percent_recovery), Percent_Recovery_sem = sem(_.percent_recovery), 
+               K_IR = mean(_.K_fit), K_SEM_IR = sem(_.K_fit),
+               RMAX_COLL = 0.0, K_COLL = 0.0, N_COLL = 0.0, RSQ_COLL = 0.0 
+               #Recovery_Tau = mean(_.recovery_tau), Recovery_Tau_sem = sem(_.recovery_tau),
+          }) |>
+          DataFrame
+     #iterate through each conditon and generate a collated IR curve
+     for (idx, cond) in enumerate(eachrow(qConditions))
+          qIND_COND = unflagged_traces |> 
+               @filter(_.Age == cond.Age) |> 
+               @filter(_.Genotype == cond.Genotype) |> 
+               @filter(_.Condition == cond.Condition) |> 
+               @filter(_.Photoreceptor == cond.Photoreceptor) |> 
+               @filter(_.Wavelength == cond.Wavelength) |> 
+          DataFrame 
+          if size(qIND_COND, 1) > 2
+               fit, rsq = HILLfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
+               qConditions[idx, :RMAX_COLL] = fit.param[1]
+               qConditions[idx, :K_COLL] = fit.param[2]
+               qConditions[idx, :N_COLL] = fit.param[3]
+               qConditions[idx, :RSQ_COLL] = rsq
+          end
+     end
+     return qConditions
+end
+
+function summarize_data(dataset::Dict{String, DataFrame}; kwargs...)
+     return summarize_data(dataset["TRACES"], dataset["EXPERIMENTS"]; kwargs...)
 end
 
 """
