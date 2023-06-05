@@ -32,6 +32,9 @@ export HILL_MODEL, HILLfit, STFfit
 export AMP, AMPfit
 export curve_fit #curve fitting from LsqFit
 
+include("Fitting/NoseModel.jl")
+export findNosePeak
+
 #2) Data anlysis ========================================================================#
 include("Analysis/ERGAnalysis.jl")
 #export calculate_basic_stats
@@ -51,8 +54,7 @@ export max_interval_algorithim, timeseries_analysis
 include("Analysis/Stats.jl")
 export dataset_statistics
 
-include("Fitting/NoseModel.jl")
-export runNoseModel
+
 
 #3) Import all Datasheet tools ===========================================================#
 export readtable, readxlsx, XLSX
