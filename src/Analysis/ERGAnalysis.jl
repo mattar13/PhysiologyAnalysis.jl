@@ -97,13 +97,23 @@ This function uses a histogram method to find the saturation point.
     - Does this same function work for the Rmax of nonsaturated responses?
     - Setting the saturated threshold to infinity will completely disregard the histogram method
 """
-function saturated_response(data::Experiment{T}; mode = :Gaussian, kwargs...) where {T<:Real}
+function saturated_response(data::Experiment{T}; mode = :Logistic, kwargs...) where {T<:Real}
     #We want to pick the region to analyze first
     if mode == :Gaussian
         #This mode is better for data that has 
-        rmaxes =  gaussian_saturation(data; kwargs...)
+        rmaxes = gaussian_saturation(data; kwargs...)
     elseif mode == :Histogram
         rmaxes = histogram_saturation(data; kwargs...)
+    elseif mode == :Logistic
+        rmaxes =  zeros(size(data,1), size(data,3))
+        nose_peak = findNosePeak(data; kwargs...) #First use the logistic function to fit out the nose
+        resp = minimum(data, dims = 2)[:, 1, :] #Then find the minimum
+        for i in axes(nose_peak,1)
+            vals = (resp[:, i] .> nose_peak[i]) .* resp[:,i]
+            sats = (resp[:, i] .< nose_peak[i]) .* nose_peak[i]
+            rmaxes[:, i] .= (vals .+ sats)
+       end
+       return rmaxes
     end
 end
 

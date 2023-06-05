@@ -55,11 +55,15 @@ function NOSEfit(time, response;
      return fit, RSQ
 end
 
-function findNosePeak(data::Experiment; kwargs...)
+function findNosePeak(data::Experiment; tmax = 0.75, kwargs...)
      t = data.t
-     ŷ = minimum(data, dims =1)[1,:,1]
-     tidxs = findall(t[argmin(ŷ)].< t .< 0.5)
-     fit, RSQ = NOSEfit(t[tidxs], ŷ[tidxs]; kwargs...)
-     y = NOSEMODEL1(t[tidxs], fit.param; init_y = minimum(ŷ));
-     return y[end]
+     resp = zeros(size(data, 3))
+     for ch in axes(data,3)
+          ŷ = minimum(data, dims =1)[1,:,ch]
+          tidxs = findall(t[argmin(ŷ)].< t .< tmax)
+          fit, RSQ = NOSEfit(t[tidxs], ŷ[tidxs]; kwargs...)
+          y = NOSEMODEL1(t[tidxs], fit.param; init_y = minimum(ŷ));
+          resp[ch] = y[end]
+     end
+     return resp
 end
