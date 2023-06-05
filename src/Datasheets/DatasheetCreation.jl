@@ -71,7 +71,7 @@ function createDataset(all_files::Vector{String}; verbose::Bool = false, run_ana
                end
           catch error
                if verbose
-                    throw(error)
+                    #throw(error)
                     println(file)
                     println(error)
                end
@@ -102,7 +102,7 @@ dataset = openDataset(datafile)
 """
 function openDataset(datafile::String; 
           typeConvert=true,
-          sheetnames::Union{String, Vector{String}} = ["ALL_FILES", "TRACES", "EXPERIMENTS", "CONDITIONS", "STATS"]
+          sheetnames::Union{String, Vector{String}} = ["ALL_FILES", "TRACES", "EXPERIMENTS"]
      )
      if isa(sheetnames, Vector{String})
           df_set = Dict{String, DataFrame}()
@@ -222,9 +222,11 @@ function saveDataset(dataset::Dict{String, DataFrame}, filename::String;
           XLSX.writetable!(sheet_ALL, dataset[categories[1]])
 
           for i in eachindex(categories)[2:end]
-               XLSX.addsheet!(xf, categories[i])
-               sheet_TRACES = xf[i]
-               XLSX.writetable!(sheet_TRACES, dataset[categories[i]])
+               if haskey(dataset, categories[i])
+                    XLSX.addsheet!(xf, categories[i])
+                    sheet_TRACES = xf[i]
+                    XLSX.writetable!(sheet_TRACES, dataset[categories[i]])
+               end
           end
      end
 end
