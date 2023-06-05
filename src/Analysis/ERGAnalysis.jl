@@ -109,10 +109,11 @@ function saturated_response(data::Experiment{T}; mode = :Logistic, kwargs...) wh
         nose_peak = findNosePeak(data; kwargs...) #First use the logistic function to fit out the nose
         resp = minimum(data, dims = 2)[:, 1, :] #Then find the minimum
         for i in axes(nose_peak,1)
-            vals = (resp[:, i] .> nose_peak[i]) .* resp[:,i]
+            vals = (resp[:, i] .>= nose_peak[i]) .* resp[:,i]
             sats = (resp[:, i] .< nose_peak[i]) .* nose_peak[i]
             rmaxes[:, i] .= (vals .+ sats)
        end
+       println(rmaxes)
        return rmaxes
     end
 end
