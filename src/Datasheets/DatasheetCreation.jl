@@ -1,4 +1,22 @@
 """
+
+# Example
+```julia-repl
+dataset["EXPERIMENTS"]
+test = convertDate_inFrame!(dataset["EXPERIMENTS"])
+dataset["EXPERIMENTS"]
+saveDataset(dataset, save_file)
+```
+"""
+
+function convertDate_inFrame!(df::DataFrame)
+     df[!, :Date] = Date.(parse.(Int64, df[!, :Year]), parse.(Int64, df[!, :Month]), parse.(Int64, df[!, :Date]))
+     select!(df, Not(:Year))
+     select!(df, Not(:Month))
+     return df     
+end
+
+"""
 This function cleans the data out of a dataframe if the dataframe is already open
 """
 function cleanDatasheet!(xf::XLSX.XLSXFile, sheetname::String)
@@ -51,7 +69,7 @@ dataset = createDataset(data_files)
 ``` 
 
 """
-function createDataset(all_files::Vector{String}; verbose::Bool = false, run_analysis::Bool = false, kwargs...)
+function createDataset(all_files::Vector{String}; verbose::Bool = false, run_analysis::Bool = false, seperate_dates = false, kwargs...)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
@@ -80,6 +98,9 @@ function createDataset(all_files::Vector{String}; verbose::Bool = false, run_ana
      if run_analysis
           return runTraceAnalysis(dataframe; kwargs...)
      else
+          if !(seperate_dates)
+               convertDate_inFrame!(dataframe)
+          end
           return Dict("ALL_FILES" => dataframe)
      end
 end
@@ -238,20 +259,3 @@ function saveDataset(dataset::Dict{String, DataFrame}, filename::String;
      end
 end
 
-"""
-
-# Example
-```julia-repl
-dataset["EXPERIMENTS"]
-test = convertDate_inFrame!(dataset["EXPERIMENTS"])
-dataset["EXPERIMENTS"]
-saveDataset(dataset, save_file)
-```
-"""
-
-function convertDate_inFrame!(df::DataFrame)
-     df[!, :Date] = Date.(parse.(Int64, df[!, :Year]), parse.(Int64, df[!, :Month]), parse.(Int64, df[!, :Date]))
-     select!(df, Not(:Year))
-     select!(df, Not(:Month))
-     return df     
-end
