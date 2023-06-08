@@ -113,7 +113,7 @@ function saturated_response(data::Experiment{T}; mode = :Logistic, kwargs...) wh
             sats = (resp[:, i] .< nose_peak[i]) .* nose_peak[i]
             rmaxes[:, i] .= (vals .+ sats)
        end
-       println(rmaxes)
+       #println(rmaxes)
        return rmaxes
     end
 end
