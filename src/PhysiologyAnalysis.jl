@@ -1,6 +1,8 @@
 module PhysiologyAnalysis
 
 # The top level is the ElectroPhysiology package. These are not imported into the workspace
+using Dates
+
 using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second

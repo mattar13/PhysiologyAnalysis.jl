@@ -230,8 +230,28 @@ function saveDataset(dataset::Dict{String, DataFrame}, filename::String;
                XLSX.addsheet!(xf, categories[i])
                if haskey(dataset, categories[i])
                     sheet_TRACES = xf[i]
-                    XLSX.writetable!(sheet_TRACES, dataset[categories[i]])
+                    if !isempty(dataset[categories[i]])
+                         XLSX.writetable!(sheet_TRACES, dataset[categories[i]])
+                    end
                end
           end
      end
+end
+
+"""
+
+# Example
+```julia-repl
+dataset["EXPERIMENTS"]
+test = convertDate_inFrame!(dataset["EXPERIMENTS"])
+dataset["EXPERIMENTS"]
+saveDataset(dataset, save_file)
+```
+"""
+
+function convertDate_inFrame!(df::DataFrame)
+     df[!, :Date] = Date.(parse.(Int64, df[!, :Year]), parse.(Int64, df[!, :Month]), parse.(Int64, df[!, :Date]))
+     select!(df, Not(:Year))
+     select!(df, Not(:Month))
+     return df     
 end
