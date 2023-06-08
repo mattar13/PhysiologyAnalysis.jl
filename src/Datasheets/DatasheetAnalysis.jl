@@ -49,7 +49,7 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
      p0 = [500.0, 1000.0, 2.0], #Default r = 500.0, k = 200.0, n = 2.0
      ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
 ) 
-     uniqueData = dataset["ALL_FILES"] |> @unique({_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype, _.Condition}) |> DataFrame #Pull out all unique files
+     uniqueData = dataset["ALL_FILES"] |> @unique({_.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype, _.Condition}) |> DataFrame #Pull out all unique files
      if verbose
           println("Completed data query")
      end
@@ -60,8 +60,8 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                println("Path: $(i.Path)")
           end
           qData = dataset["ALL_FILES"] |> @filter(
-               (_.Year, _.Month, _.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
-               (i.Year, i.Month, i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
+               (_.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype) ==
+               (i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
           ) |> DataFrame #Pull out the data 
           #Determine whether or not a subtraction should be done
           if i.Condition == a_cond
@@ -76,8 +76,8 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
                qTRIALa = qData |> @filter(_.Condition == a_cond) |> DataFrame
                qTRIAL = SubFiles = qTRIALa |> @join(qTRIALb,
-                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                    {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                    {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
                     {__...,
                          SubPath = _.Path,
                }) |> DataFrame
@@ -99,8 +99,8 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
                qTRIALg = qData |> @filter(_.Condition == g_cond) |> DataFrame
                qTRIAL = SubFiles = qTRIALb |> @join(qTRIALg,
-                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                    {_.Year, _.Month, _.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                    {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                    {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
                     {__...,
                          SubPath = _.Path,
                }) |> DataFrame
@@ -154,8 +154,7 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                          (
                               Path=qTRIAL[swp, :Path], SubPath = qTRIAL[swp, :SubPath],
                               #SubPath= isnothing(SubFiles) ? SubFiles[swp, :SubPath] : nothing,
-                              Year=qTRIAL[swp, :Year], Month=qTRIAL[swp, :Month], Date=qTRIAL[swp, :Date],
-                              Age=qTRIAL[swp, :Age], Number=qTRIAL[swp, :Number], Genotype=qTRIAL[swp, :Genotype],
+                              Date=qTRIAL[swp, :Date], Age=qTRIAL[swp, :Age], Number=qTRIAL[swp, :Number], Genotype=qTRIAL[swp, :Genotype],
                               Condition = qTRIAL[swp, :Condition], Photoreceptor=qTRIAL[swp, :Photoreceptor], Wavelength=qTRIAL[swp, :Wavelength],
                               Photons=qTRIAL[swp, :Photons],
                               Channel=data_ch.chNames[1], Gain=gain,
@@ -177,14 +176,12 @@ function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false
           lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
           ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
      )
-     EXPERIMENTS = dataset["TRACES"] |> @unique({_.Year, _.Month, _.Date, _.Age, _.Number, _.Genotype, _.Channel, _.Condition, _.Photoreceptor, _.Wavelength}) |> DataFrame
+     EXPERIMENTS = dataset["TRACES"] |> @unique({_.Date, _.Age, _.Number, _.Genotype, _.Channel, _.Condition, _.Photoreceptor, _.Wavelength}) |> DataFrame
      #println(EXPERIMENTS)
 
      qExperiment = DataFrame() #Make empty dataframe for all experiments
      for exp in eachrow(EXPERIMENTS)
           INFO = (
-               Year = exp.Year, 
-               Month = exp.Month, 
                Date = exp.Date, 
                Age = exp.Age, 
                Number = exp.Number, 
@@ -231,7 +228,7 @@ function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false
      return dataset
 end
 
-function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
+function runConditionsAnalysis(qTrace::DataFrame, qExperiment::DataFrame; verbose = false, kwargs...)
      #filter out all flags
      unflagged_exps = qExperiment# |> @filter(_.INCLUDE == true) |> DataFrame
      unflagged_traces = matchExperiment(qTrace, unflagged_exps)
@@ -260,6 +257,9 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
                @filter(_.Photoreceptor == cond.Photoreceptor) |> 
                @filter(_.Wavelength == cond.Wavelength) |> 
           DataFrame 
+          if verbose
+               println("Summarizing conditions $cond")
+          end
           if size(qIND_COND, 1) > 2
                fit, rsq = HILLfit(qIND_COND.Photons, qIND_COND.Response; kwargs...)
                qConditions[idx, :RMAX_COLL] = fit.param[1]
@@ -271,8 +271,9 @@ function summarize_data(qTrace::DataFrame, qExperiment::DataFrame; kwargs...)
      return qConditions
 end
 
-function summarize_data(dataset::Dict{String, DataFrame}; kwargs...)
-     return summarize_data(dataset["TRACES"], dataset["EXPERIMENTS"]; kwargs...)
+function runConditionsAnalysis(dataset::Dict{String, DataFrame}; kwargs...)
+     dataset["CONDITIONS"] = runConditionsAnalysis(dataset["TRACES"], dataset["EXPERIMENTS"]; kwargs...)
+     return dataset
 end
 
 """
