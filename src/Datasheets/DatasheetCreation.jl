@@ -8,7 +8,6 @@ dataset["EXPERIMENTS"]
 saveDataset(dataset, save_file)
 ```
 """
-
 function convertDate_inFrame!(df::DataFrame)
      df[!, :Date] = Date.(parse.(Int64, df[!, :Year]), parse.(Int64, df[!, :Month]), parse.(Int64, df[!, :Date]))
      select!(df, Not(:Year))
@@ -49,7 +48,6 @@ function cleanDatasheet!(filename::String, sheetname::String)
           cleanDataFrame!(xf, sheetname)
      end
 end
-
 
 """
      dataset = createDataset(files::Vector{String}[; verbose = false, run_analysis = true])
