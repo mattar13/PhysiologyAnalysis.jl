@@ -68,17 +68,17 @@ include("Datasheets/DatasheetFunctions.jl")
 
 include("Datasheets/DatasheetCreation.jl")
 export openDataset, createDataset
+export saveDataset, backupDataset
 
 include("Datasheets/DatasheetAnalysis.jl")
-export summarize_data
 export runAnalysis
 export runTraceAnalysis
 export runExperimentAnalysis
+export runConditionsAnalysis
 export matchExperiment, excludeExperiment
 export flagExperiment, flagExperiment!, unflagALL!
 export parseColumn!
 export GenerateFitFrame
-export saveDataset, backupDataset
 
 #5) Plotting utilities will be loaded in automatically ==============================================#
 
