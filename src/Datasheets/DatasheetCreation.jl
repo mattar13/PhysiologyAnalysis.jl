@@ -102,21 +102,26 @@ dataset = openDataset(datafile)
 """
 function openDataset(datafile::String; 
           typeConvert=true,
-          sheetnames::Union{String, Vector{String}} = ["ALL_FILES", "TRACES", "EXPERIMENTS"]
+          sheetnames=nothing
      )
-     if isa(sheetnames, Vector{String})
+     if isnothing(sheetnames)
+          xf = XLSX.readxlsx(datafile)
           df_set = Dict{String, DataFrame}()
-          for sn in sheetnames
-               #println(sn) #Use this to debug 
-               df_set[sn] = openDataset(datafile; sheetnames=sn, typeConvert = typeConvert)
+          for sn in XLSX.sheetnames(xf)
+               df_set[sn] = openDataset(datafile; typeConvert = typeConvert, sheetnames = sn)
           end
           return df_set
-     elseif isa(sheetnames, String)
-          df = DataFrame(XLSX.readtable(datafile, sheetnames))
-          if typeConvert
-               df = safe_convert(df) #This converts the categories to a type in the first position
+     elseif !isnothing(sheetnames) && isa(sheetnames, String)
+          try
+               df = DataFrame(XLSX.readtable(datafile, sheetnames))
+               if typeConvert
+                    df = safe_convert(df) #This converts the categories to a type in the first position
+               end
+               return df
+          catch
+               println("Table doesn't exist yet")
+               return DataFrame()
           end
-          return df
      end
 end
 
@@ -222,8 +227,8 @@ function saveDataset(dataset::Dict{String, DataFrame}, filename::String;
           XLSX.writetable!(sheet_ALL, dataset[categories[1]])
 
           for i in eachindex(categories)[2:end]
+               XLSX.addsheet!(xf, categories[i])
                if haskey(dataset, categories[i])
-                    XLSX.addsheet!(xf, categories[i])
                     sheet_TRACES = xf[i]
                     XLSX.writetable!(sheet_TRACES, dataset[categories[i]])
                end

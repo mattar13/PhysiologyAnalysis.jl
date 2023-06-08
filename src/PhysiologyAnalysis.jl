@@ -59,12 +59,16 @@ export dataset_statistics
 #3) Import all Datasheet tools ===========================================================#
 export readtable, readxlsx, XLSX
 include("Datasheets/RegexFunctions.jl")
+
 include("Datasheets/FilePathExtraction.jl")
+
 include("Datasheets/DatasheetFunctions.jl")
+
 include("Datasheets/DatasheetCreation.jl")
+export openDataset, createDataset
+
 include("Datasheets/DatasheetAnalysis.jl")
 export summarize_data
-export openDataset, createDataset, updateDataset
 export runAnalysis
 export runTraceAnalysis
 export runExperimentAnalysis
