@@ -27,12 +27,11 @@ end
 This function converts a dataframe of Any to one matching each row type. 
      catchNaN allows it to catch NaN errors from excel
 """
-function safe_convert(dataframe::DataFrame)
+function safe_convert(dataframe::DataFrame; verbose = false)
      new_obj = DataFrame(dataframe)
      for (idx, col) in enumerate(eachcol(dataframe))
           #println(names(dataframe)[idx])
           typ = typeof(col[1]) #Check if there are 
-          #println(typ)
           #We will try to convert each row. If it does not work, we can remove the NaN
           #println(col)
           if ("NaN" ∈ col) #Check if there exists a word NaN in the row (excel will call these strings)
@@ -40,15 +39,20 @@ function safe_convert(dataframe::DataFrame)
                whereNaN = findall(col .== "NaN")
                #println("At position $whereNaN")
                for idxNaN in whereNaN
-                    #println(idxNaN)
+                    if verbose
+                         println("Indexes where a NaN is: $idxNaN")
+                    end
                     col[idxNaN] = NaN #Instead use a NaN Floating point objects
                end
                new_obj[:, idx] = convert.(typ, col)
           elseif !all(isa.(col, typ))#if col[1] #This is for if there is a Int to Float64 error
                whereNotSame = findall(map(!, isa.(col, typ)))
                irregular_type = col[whereNotSame[1]] |> typeof
-               #println("Column type: $typ")
-               #println("Irregular type: $(irregular_type)")
+               if verbose
+                    println(col[whereNotSame[1]])
+                    println("Column type: $typ")
+                    println("Irregular type: $(irregular_type)")
+               end
                if irregular_type == Int64 && typ == Float64 #This can cause an error
                     new_obj[!, idx] = convert.(typ, col) #Convert all values to Float64
                else
