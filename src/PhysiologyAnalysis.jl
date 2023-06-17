@@ -80,6 +80,7 @@ export flagExperiment, flagExperiment!, unflagALL!
 export parseColumn!
 export GenerateFitFrame
 
+include("Datasheets/extra_utilities.jl")
 #5) Plotting utilities will be loaded in automatically ==============================================#
 
 #= This may be included in requires in PhysiologyPlotting
