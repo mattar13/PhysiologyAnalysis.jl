@@ -121,7 +121,9 @@ dataset = openDataset(datafile)
 """
 function openDataset(datafile::String; 
           typeConvert=true,
-          sheetnames=nothing
+          sheetnames=nothing, 
+          verbose = true, 
+          debug = false
      )
      if isnothing(sheetnames)
           xf = XLSX.readxlsx(datafile)
@@ -137,8 +139,13 @@ function openDataset(datafile::String;
                     df = safe_convert(df) #This converts the categories to a type in the first position
                end
                return df
-          catch
-               println("Table doesn't exist yet")
+          catch error
+               if debug
+                    throw(error)
+               end
+               if verbose
+                    println("Table doesn't exist yet")
+               end
                return DataFrame()
           end
      end
