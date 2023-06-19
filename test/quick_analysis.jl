@@ -1,21 +1,23 @@
-using ElectroPhysiology, PhysiologyAnalysis
+using ElectroPhysiology
+using DataFrames, Query, XLSX
+using PhysiologyAnalysis
 
 #Opening and reanalyzing a previously analyzed file
-data_root = raw"C:\Users\mtarc\OneDrive - The University of Akron\Journal Submissions\2023_05_24 Critical Timepoints in retinoschisis - Unknown Journal" #The data root
-
-#%% Opening a previously existant file
-data_file = joinpath(data_root, "data_analysis.xlsx") #This is the main file we can use. The root may change
+data_file = raw"C:\Users\mtarc\OneDrive - The University of Akron\Journal Submissions\2023_05_24 Critical Timepoints in retinoschisis - Unknown Journal\data_analysis.xlsx" #The data root
 dataset = openDataset(data_file)
+backupDataset(data_file) #Backup the datafile
 
 #%% opening a file from new
-files = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2022_12_20_WTAdult\Mouse1_WT_Adult"|>parseABF
+files = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2022_07_11_Adult\Mouse1_Adult_WT\BaCl_LAP4\Rods"|>parseABF
 dataset = createDataset(files, verbose = true)
 
+#%% Conducting the analysis
 dataset = runTraceAnalysis(dataset, verbose = true)
-dataset = runExperimentAnalysis(dataset)
+dataset = runExperimentAnalysis(dataset, verbose = true)
 dataset = runConditionsAnalysis(dataset)
-backupDataset(data_file)
-saveDataset(dataset, data_file)
+dataset = runStatsAnalysis(dataset)
 
-
-dataset = createDataset(files, verbose = true)
+#%% Saving the data
+save_loc = raw"C:\Users\mtarc\OneDrive - The University of Akron\Journal Submissions\2023_05_24 Critical Timepoints in retinoschisis - Unknown Journal\2022_07_11_Analysis.xlsx"
+save_loc = raw"C:\Users\mtarc\OneDrive - The University of Akron\Journal Submissions\2023_05_24 Critical Timepoints in retinoschisis - Unknown Journal\data_analysis.xlsx"
+saveDataset(dataset, save_loc)
