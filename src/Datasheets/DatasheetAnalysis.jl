@@ -276,6 +276,8 @@ function runConditionsAnalysis(dataset::Dict{String, DataFrame}; kwargs...)
      return dataset
 end
 
+sem(x) = std(x)/sqrt(length(x))
+
 function runStatsAnalysis(dataset; 
      control = "WT", 
      stat_metrics = [:rmax, :rdim, :K_fit, :time_to_peak, :percent_recovery, :integration_time],
@@ -310,7 +312,7 @@ function runStatsAnalysis(dataset;
                res_stat[idx, :UPPER] = mean(exp_data[:, stat]) + CI
                if size(exp_data,1) > 1 && size(ctrl_data,1) > 1 && sum(ctrl_data[:, stat]) != sum(exp_data[:, stat])
                     res_stat[idx, :P] = P = UnequalVarianceTTest(ctrl_data[:, stat], exp_data[:, stat]) |> pvalue
-                    res_stat[idx, :SIGN] = sig_symbol(P)
+                    res_stat[idx, :SIGN] = "*"
                else
                     res_stat[idx, :P] = 1.0
                     res_stat[idx, :SIGN] = "-"
