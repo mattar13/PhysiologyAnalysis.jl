@@ -1,5 +1,6 @@
 module PhysiologyAnalysis
 
+using Requires
 # The top level is the ElectroPhysiology package. These are not imported into the workspace
 using Dates
 
@@ -8,16 +9,17 @@ import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second
 
 #= Packages used for fitting data ====================================#
-using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
+@time using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 
 #= Packages used for Analyzing data ==================================#
-import Polynomials as PN #used for fitting and stats
-using DataFrames, Query, XLSX #Load these extra utilites immediately
-import XLSX: readtable, readxlsx #Import XLSX commands
+@time import Polynomials as PN #used for fitting and stats
+#@time using DataFrames, Query, XLSX #Load these extra utilites immediately
+@time import XLSX: readtable, readxlsx #Import XLSX commands
 
-using StatsBase #Used for mean, std, and SEM functions.
-using HypothesisTests
-using ModelingToolkit, OrdinaryDiffEq
+@time using StatsBase #Used for mean, std, and SEM functions.
+@time using HypothesisTests
+@time using ModelingToolkit
+@time using OrdinaryDiffEq
 #= Packages not yet uses
 using Distributions
 using Statistics, StatsBase #These functions use R functions as well as StatsBase
@@ -53,41 +55,49 @@ include("Analysis/TimescaleAnalysis.jl")
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
-include("Analysis/Stats.jl")
-export dataset_statistics
-
 
 
 #3) Import all Datasheet tools ===========================================================#
-export readtable, readxlsx, XLSX
-include("Datasheets/RegexFunctions.jl")
 
-include("Datasheets/FilePathExtraction.jl")
 
-include("Datasheets/DatasheetFunctions.jl")
+function __init__()
+     @require OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed" begin
+          @require ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78" begin
+               println("Activated")
+          end
+     end
 
-include("Datasheets/DatasheetCreation.jl")
-export openDataset, createDataset
-export saveDataset, backupDataset
+     @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
+          using Query, XLSX
+          
+          println(Query)
+          
+          println(XLSX)
+          
+          export readtable, readxlsx, XLSX
+          include("Datasheets/RegexFunctions.jl")
 
-include("Datasheets/DatasheetAnalysis.jl")
-export runAnalysis
-export runTraceAnalysis
-export runExperimentAnalysis
-export runConditionsAnalysis
-export matchExperiment, excludeExperiment
-export flagExperiment, flagExperiment!, unflagALL!
-export parseColumn!
-export GenerateFitFrame
+          include("Datasheets/FilePathExtraction.jl")
 
-include("Datasheets/extra_utilities.jl")
-#5) Plotting utilities will be loaded in automatically ==============================================#
+          include("Datasheets/DatasheetFunctions.jl")
 
-#= This may be included in requires in PhysiologyPlotting
-include("Plotting/DatasheetPlotting.jl")
-export plot_ir_scatter, plot_ir_fit, plot_IR
-export plot_data_summary
-export plot_dataset_fits, plot_dataset_vals
-=# 
+          include("Datasheets/DatasheetCreation.jl")
+          export openDataset, createDataset
+          export saveDataset, backupDataset
+
+          include("Datasheets/DatasheetAnalysis.jl")
+          export runAnalysis
+          export runTraceAnalysis
+          export runExperimentAnalysis
+          export runConditionsAnalysis
+          export runStatsAnalysis
+          export matchExperiment, excludeExperiment
+          export flagExperiment, flagExperiment!, unflagALL!
+          export parseColumn!
+          export GenerateFitFrame
+
+          include("Datasheets/extra_utilities.jl")
+     end
+end
 
 end
