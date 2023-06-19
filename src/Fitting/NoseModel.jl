@@ -45,7 +45,9 @@ NOSEMODEL1(x, p; init_y = -300.0) = init_y .+ SingleLogistic(x; R1 = p[1], K1 = 
 NOSEMODEL2(x, p) = DoubleLogistic(x; R1 = p[1], K1 = p[2], R2 = p[3], K2 = p[4])
 
 function NOSEfit(time, response;     
+     #ub = [],
      p0 = [10.0, 30.0],
+     #lb = [], 
 )
      MODEL(x, p) = NOSEMODEL1(x, p; init_y = minimum(response))
      fit = curve_fit(NOSEMODEL1, time, response, p0)

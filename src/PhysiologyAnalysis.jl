@@ -9,17 +9,16 @@ import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second
 
 #= Packages used for fitting data ====================================#
-@time using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
+using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 
 #= Packages used for Analyzing data ==================================#
-@time import Polynomials as PN #used for fitting and stats
+import Polynomials as PN #used for fitting and stats
 #@time using DataFrames, Query, XLSX #Load these extra utilites immediately
-@time import XLSX: readtable, readxlsx #Import XLSX commands
+import XLSX: readtable, readxlsx #Import XLSX commands
 
-@time using StatsBase #Used for mean, std, and SEM functions.
-@time using HypothesisTests
-@time using ModelingToolkit
-@time using OrdinaryDiffEq
+using StatsBase #Used for mean, std, and SEM functions.
+using HypothesisTests
+
 #= Packages not yet uses
 using Distributions
 using Statistics, StatsBase #These functions use R functions as well as StatsBase
@@ -35,9 +34,6 @@ include("Fitting/Models.jl")
 export HILL_MODEL, HILLfit, STFfit
 export AMP, AMPfit
 export curve_fit #curve fitting from LsqFit
-
-include("Fitting/NoseModel.jl")
-export findNosePeak
 
 #2) Data anlysis ========================================================================#
 include("Analysis/ERGAnalysis.jl")
@@ -55,19 +51,20 @@ include("Analysis/TimescaleAnalysis.jl")
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
-
-
 #3) Import all Datasheet tools ===========================================================#
-
-
 function __init__()
      @require OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed" begin
           @require ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78" begin
-               println("Activated")
+               println("Loading differential equations and nose fitting")
+               using ModelingToolkit
+               using OrdinaryDiffEq
+               include("Fitting/NoseModel.jl")
+               export findNosePeak
           end
      end
 
      @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
+          @time using DataFrames
           using Query, XLSX
           
           println(Query)
