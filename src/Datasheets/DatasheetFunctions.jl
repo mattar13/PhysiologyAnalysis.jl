@@ -208,3 +208,27 @@ function unflagALL!(dataset)
      dataset["TRACES"][:, :INCLUDE] .= true
      dataset["EXPERIMENTS"][:, :INCLUDE] .= true
 end
+
+#Extend the writeXLSX
+import ElectroPhysiology.writeXLSX #we need to do this or it will get caught in a recursion
+import ElectroPhysiology.Experiment
+function writeXLSX(filename::String, exp::Experiment, mode::Symbol; kwargs...)
+     println("Editing the function")
+     writeXLSX(filename, exp; kwargs...)
+     if mode == :analysis
+          filenames = joinpath(splitpath(exp.HeaderDict["abfPath"])[1:end-1]...) |> parseABF
+          dataset = createDataset(filenames)
+          dataset = runTraceAnalysis(dataset, verbose = true)
+          dataset = runExperimentAnalysis(dataset, verbose = true)
+          dataset = runConditionsAnalysis(dataset)
+          dataset = runStatsAnalysis(dataset)
+          println(dataset)
+          XLSX.openxlsx(filename, mode = "rw") do xf
+               for key in keys(dataset)
+                    XLSX.addsheet!(xf, key)
+                    sheet = xf[key]
+                    XLSX.writetable!(sheet, dataset[key])
+               end
+          end
+     end
+end
