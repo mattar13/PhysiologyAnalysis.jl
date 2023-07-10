@@ -77,6 +77,7 @@ function __init__()
           include("Datasheets/FilePathExtraction.jl")
 
           include("Datasheets/DatasheetFunctions.jl")
+          export matchDataset, excludeDataset, concatDatasets
 
           include("Datasheets/DatasheetCreation.jl")
           export openDataset, createDataset
