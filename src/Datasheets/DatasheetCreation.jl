@@ -271,11 +271,3 @@ function saveDataset(dataset::Dict{String, DataFrame}, filename::String;
      end
 end
 
-function concatenate_datasets(dataset1, dataset2)
-     dataset1["ALL_FILES"] = vcat(dataset1["ALL_FILES"], dataset2["ALL_FILES"])
-     dataset1["TRACES"] = vcat(dataset1["TRACES"], dataset2["TRACES"])
-     dataset1["EXPERIMENTS"] = vcat(dataset1["EXPERIMENTS"], dataset2["EXPERIMENTS"])
-     dataset1["CONDITIONS"] = vcat(dataset1["CONDITIONS"], dataset2["CONDITIONS"])
-     dataset1["STATS"] = vcat(dataset1["STATS"], dataset2["STATS"])
-     return dataset1
-end

@@ -84,14 +84,6 @@ If you pass either a named tuple or a dataframe row, this will pull out all the 
 """
 function matchExperiment(trace::DataFrame, info::NamedTuple)
      return_traces = copy(trace)
-     if haskey(info, :Year)
-          return_traces = return_traces |> @filter(_.Year == info.Year) |> DataFrame
-     end
-
-     if haskey(info, :Month)
-          return_traces = return_traces |> @filter(_.Month == info.Month) |> DataFrame
-     end
-
      if haskey(info, :Date)
           return_traces = return_traces |> @filter(_.Date == info.Date) |> DataFrame
      end
@@ -133,34 +125,14 @@ function matchExperiment(trace::DataFrame, rows::DataFrame)
 end
 
 function excludeExperiment(trace::DataFrame, info::NamedTuple)
-     return_traces = copy(trace)
-     if haskey(info, :Year)
-          return_traces = return_traces |> @filter(_.Year != info.Year) |> DataFrame
+     data_opposite_match = matchExperiment(trace, info)
+     excluded_experiment = DataFrame()
+     for row in eachrow(trace)
+          if row ∉ eachrow(data_opposite_match)
+               push!(excluded_experiment, row)
+          end
      end
-
-     if haskey(info, :Month)
-          return_traces = return_traces |> @filter(_.Month != info.Month) |> DataFrame
-     end
-
-     if haskey(info, :Date)
-          return_traces = return_traces |> @filter(_.Date != info.Date) |> DataFrame
-     end
-
-     if haskey(info, :Number)
-          return_traces = return_traces |> @filter(_.Number != info.Number) |> DataFrame
-     end
-     if haskey(info,:Photoreceptor)
-          return_traces = return_traces |> @filter(_.Photoreceptor != info.Photoreceptor) |> DataFrame
-     end
-     if haskey(info, :Condition)
-          return_traces = return_traces |> @filter(_.Condition != info.Condition) |> DataFrame
-     end
-
-     if haskey(info, :Channel)
-          return_traces = return_traces |> @filter(_.Channel != info.Channel) |> DataFrame
-     end
-
-     return return_traces
+     return excluded_experiment
 end
 
 excludeExperiment(trace::DataFrame, row::DataFrameRow) = excludeExperiment(trace, NamedTuple(row))
@@ -179,6 +151,41 @@ function match_excludeExperiment(trace::DataFrame, match_rows, exclude_rows)
      excluded = excludeExperiment(matched, exclude_rows)
      return excluded
 end
+
+"""
+This function takes the whole dataset and then returns it as a partition of that dataset
+"""
+
+function matchDataset(dataset::Dict{String, DataFrame}, info)
+     new_dataset = Dict{String, DataFrame}()
+     new_dataset["ALL_FILES"] = matchExperiment(dataset["ALL_FILES"], info)
+     new_dataset["TRACES"] = matchExperiment(dataset["TRACES"], info)
+     new_dataset["EXPERIMENTS"] = matchExperiment(dataset["EXPERIMENTS"], info)
+     new_dataset = runConditionsAnalysis(new_dataset)
+     new_dataset = runStatsAnalysis(new_dataset)
+     return new_dataset    
+end
+
+
+function excludeDataset(dataset::Dict{String, DataFrame}, info)
+     new_dataset = Dict{String, DataFrame}()
+     new_dataset["ALL_FILES"] = excludeExperiment(dataset["ALL_FILES"], info)
+     new_dataset["TRACES"] = excludeExperiment(dataset["TRACES"], info)
+     new_dataset["EXPERIMENTS"] = excludeExperiment(dataset["EXPERIMENTS"], info)
+     new_dataset = runConditionsAnalysis(new_dataset)
+     new_dataset = runStatsAnalysis(new_dataset)
+     return new_dataset    
+end
+
+function concatDatasets(dataset1::Dict{String, DataFrame}, dataset2::Dict{String, DataFrame})
+     dataset1["ALL_FILES"] = vcat(dataset1["ALL_FILES"], dataset2["ALL_FILES"])
+     dataset1["TRACES"] = vcat(dataset1["TRACES"], dataset2["TRACES"])
+     dataset1["EXPERIMENTS"] = vcat(dataset1["EXPERIMENTS"], dataset2["EXPERIMENTS"])
+     dataset1["CONDITIONS"] = vcat(dataset1["CONDITIONS"], dataset2["CONDITIONS"])
+     dataset1["STATS"] = vcat(dataset1["STATS"], dataset2["STATS"])
+     return dataset1
+end
+
 
 """
 This function matches the experiments in info and then switches the include flag to false
