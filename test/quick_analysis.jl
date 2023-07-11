@@ -8,8 +8,8 @@ dataset = openDataset(data_file)
 backupDataset(data_file) #Backup the datafile
 
 #%% opening a file from new
-files = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\Retinoschisis\2019_03_12_AdultWT"|>parseABF
-save_loc = raw"C:\Users\mtarc\OneDrive - The University of Akron\Journal Submissions\2023_05_24 Critical Timepoints in retinoschisis - Unknown Journal\2019_03_12_Analysis.xlsx"
+files = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\P14_Wildtype"|>parseABF
+save_loc = raw"C:\Users\mtarc\OneDrive - The University of Akron\Data\ERG\P14_Wildtype\data_analysis.xlsx"
 dataset = createDataset(files, verbose = true)
 
 #%% Conducting the analysis
