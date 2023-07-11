@@ -78,7 +78,8 @@ function __init__()
 
           include("Datasheets/DatasheetFunctions.jl")
           export matchDataset, excludeDataset, concatDatasets
-
+          export analyzeXLSX
+          
           include("Datasheets/DatasheetCreation.jl")
           export openDataset, createDataset
           export saveDataset, backupDataset
