@@ -279,13 +279,17 @@ end
 sem(x) = std(x)/sqrt(length(x))
 
 function runStatsAnalysis(dataset; 
-     control = "WT", 
+     control = "WT",
      stat_metrics = [:rmax, :rdim, :K_fit, :time_to_peak, :percent_recovery, :integration_time],
+     verbose = false,  
 )
      qEXP = dataset["EXPERIMENTS"]     
      #unflagged_exps = qEXP |> @filter(_.INCLUDE == true) |> DataFrame
      exps = DataFrame[]
      for stat in stat_metrics
+          if verbose
+               println("Running $stat")
+          end
           res_stat = qEXP  |> 
                @groupby({_.Genotype, _.Age, _.Condition, _.Photoreceptor}) |> 
                @map({Genotype = key(_)[1], Age = key(_)[2], Condition = key(_)[3], Photoreceptor = key(_)[4],

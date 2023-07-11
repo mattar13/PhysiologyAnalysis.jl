@@ -68,7 +68,7 @@ dataset = createDataset(data_files)
 
 """
 function createDataset(all_files::Vector{String}; 
-     verbose::Bool = false, run_analysis::Bool = false, seperate_dates = false, 
+     verbose::Bool = false, seperate_dates = false, 
      debug = false,
      kwargs...)
      dataframe = DataFrame()
@@ -99,15 +99,11 @@ function createDataset(all_files::Vector{String};
                end
           end
      end
-     if run_analysis
-          return runTraceAnalysis(dataframe; kwargs...)
-     else
-          println(dataframe)
-          if !(seperate_dates)
-               convertDate_inFrame!(dataframe)
-          end
-          return Dict("ALL_FILES" => dataframe)
+     println(dataframe)
+     if !(seperate_dates)
+          convertDate_inFrame!(dataframe)
      end
+     return Dict("ALL_FILES" => dataframe)
 end
 
 createDataset(file_root::String; verbose = false, run_analysis = true, kwargs...) = createDataset(file_root |> parseABF; verbose = verbose, run_analysis = run_analysis, kwargs...)

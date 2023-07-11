@@ -64,7 +64,7 @@ function __init__()
      end
 
      @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
-          @time using DataFrames
+          using DataFrames
           using Query, XLSX
           
           println(Query)

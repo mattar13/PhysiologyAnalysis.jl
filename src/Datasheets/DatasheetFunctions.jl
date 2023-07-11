@@ -212,17 +212,32 @@ end
 #Extend the writeXLSX
 import ElectroPhysiology.writeXLSX #we need to do this or it will get caught in a recursion
 import ElectroPhysiology.Experiment
-function writeXLSX(filename::String, exp::Experiment, mode::Symbol; kwargs...)
+function writeXLSX(filename::String, data::Experiment, mode::Symbol; verbose = true, kwargs...)
      println("Editing the function")
-     writeXLSX(filename, exp; kwargs...)
      if mode == :analysis
-          filenames = joinpath(splitpath(exp.HeaderDict["abfPath"])[1:end-1]...) |> parseABF
-          dataset = createDataset(filenames)
-          dataset = runTraceAnalysis(dataset, verbose = true)
-          dataset = runExperimentAnalysis(dataset, verbose = true)
-          dataset = runConditionsAnalysis(dataset)
-          dataset = runStatsAnalysis(dataset)
-          println(dataset)
+          filenames = joinpath(splitpath(data.HeaderDict["abfPath"])[1:end-1]...) |> parseABF
+          verbose ? print("Analyzing data for $filename \n Begin...") : nothing
+          dataset = createDataset(filenames, verbose = verbose)
+          verbose ? print("Files, ") : nothing
+          dataset = runTraceAnalysis(dataset, verbose = verbose)
+          verbose ? print("Traces, ") : nothing
+          dataset = runExperimentAnalysis(dataset, verbose = verbose)
+          verbose ? print("Experiments, ") : nothing
+          dataset = runConditionsAnalysis(dataset, verbose = verbose)
+          verbose ? print("Conditions, ") : nothing
+          dataset = runStatsAnalysis(dataset, verbose = verbose)
+          verbose ? println("Stats. Completed.") : nothing
+          
+          #we need to change the photons of the experiment here
+          qPhotons = dataset["TRACES"] |> @unique(_.Photons) |> DataFrame
+          @assert length(qPhotons.Photons) == size(data, 1)
+          setIntensity(data.stimulus_protocol, qPhotons.Photons) ##Set the intensity of the flash intensities
+
+          println(dataset["TRACES"])
+          verbose ? print("Saving excel file... ") : nothing
+          writeXLSX(filename, data; verbose = verbose, kwargs...)
+          verbose ? println("Completed") : nothing
+
           XLSX.openxlsx(filename, mode = "rw") do xf
                for key in keys(dataset)
                     XLSX.addsheet!(xf, key)
@@ -230,5 +245,9 @@ function writeXLSX(filename::String, exp::Experiment, mode::Symbol; kwargs...)
                     XLSX.writetable!(sheet, dataset[key])
                end
           end
+     else
+          verbose ? print("Saving excel file... ") : nothing
+          writeXLSX(filename, data; verbose = verbose, kwargs...)
+          verbose ? println("Completed") : nothing
      end
 end
