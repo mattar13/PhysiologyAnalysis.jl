@@ -85,7 +85,7 @@ function __init__()
           export saveDataset, backupDataset
 
           include("Datasheets/DatasheetAnalysis.jl")
-          export runAnalysis
+          export runDataAnalysis
           export runTraceAnalysis
           export runExperimentAnalysis
           export runConditionsAnalysis
