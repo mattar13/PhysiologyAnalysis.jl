@@ -209,7 +209,7 @@ function unflagALL!(dataset)
      dataset["EXPERIMENTS"][:, :INCLUDE] .= true
 end
 
-function analyzeXLSX(filename::String)
+function analyzeXLSX(filename::String, data::Experiment; verbose = false)
      filenames = joinpath(splitpath(data.HeaderDict["abfPath"])[1:end-1]...) |> parseABF
      verbose ? print("Analyzing data for $filename \n Begin...") : nothing
      dataset = createDataset(filenames, verbose = verbose)
@@ -217,7 +217,7 @@ function analyzeXLSX(filename::String)
      dataset = runTraceAnalysis(dataset, verbose = verbose)
      verbose ? print("Traces, ") : nothing
      dataset = runExperimentAnalysis(dataset, verbose = verbose)
-     verbose ? print("Experiments, ") : nothing
+     verbose ? print("Experiments. Completed ") : nothing
      dataset = runConditionsAnalysis(dataset, verbose = verbose)
      verbose ? print("Conditions, ") : nothing
      dataset = runStatsAnalysis(dataset, verbose = verbose)
@@ -239,7 +239,7 @@ import ElectroPhysiology.Experiment
 function writeXLSX(filename::String, data::Experiment, mode::Symbol; verbose = true, kwargs...)
      println("Editing the function")
      if mode == :analysis
-          dataset = analyzeXLSX(filename::String, data::Experiment)
+          dataset = runDataAnalysis(data; verbose = false)
           
           #we need to change the photons of the experiment here
           qPhotons = dataset["TRACES"] |> @unique(_.Photons) |> DataFrame
