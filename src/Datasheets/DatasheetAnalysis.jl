@@ -42,7 +42,7 @@ end
 
 function runTraceAnalysis(dataset::Dict{String, DataFrame};
      t_pre = 1.0, t_post = 2.0, #Extend these to see the end of the a-wave
-     measure_minima = false,
+     measure_minima = false, subtraction = true,
      a_cond = "BaCl_LAP4", b_cond = "BaCl", g_cond = "NoDrugs", 
      verbose = true, 
      lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
@@ -64,59 +64,83 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                (i.Date, i.Number, i.Wavelength, i.Photoreceptor, i.Genotype)
           ) |> DataFrame #Pull out the data 
           #Determine whether or not a subtraction should be done
-          if i.Condition == a_cond
-               qTRIALa = qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
-               qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
-               #pull out only A-wave files
-               data = readABF(qTRIALa.Path)
-               dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post) #This function is found in the filter pipeline 
-               #println(dataABF |> size)
-          elseif i.Condition == b_cond
-               #println("Analysis of B-wave file")
-               qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
-               qTRIALa = qData |> @filter(_.Condition == a_cond) |> DataFrame
-               qTRIAL = SubFiles = qTRIALa |> @join(qTRIALb,
-                    {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                    {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                    {__...,
-                         SubPath = _.Path,
-               }) |> DataFrame
-               if isempty(qTRIAL)
-                    println("\t Experiment $(i.Path) was incomplete")
-                    continue
+          if subtraction
+               if i.Condition == a_cond
+                    qTRIALa = qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
+                    qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
+                    #pull out only A-wave files
+                    data = readABF(qTRIALa.Path)
+                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post) #This function is found in the filter pipeline 
+                    #println(dataABF |> size)
+               elseif i.Condition == b_cond
+                    #println("Analysis of B-wave file")
+                    qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
+                    qTRIALa = qData |> @filter(_.Condition == a_cond) |> DataFrame
+                    qTRIAL = SubFiles = qTRIALa |> @join(qTRIALb,
+                         {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                         {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                         {__...,
+                              SubPath = _.Path,
+                    }) |> DataFrame
+                    if isempty(qTRIAL)
+                         println("\t Experiment $(i.Path) was incomplete")
+                         continue
+                    end
+                    #println(SubFiles.Path)
+                    data = readABF(SubFiles.Path) #Read the AB data
+                    filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    dataSUB = readABF(SubFiles.SubPath)
+                    filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post)
+          
+                    #if we want to subtract we need to filter first
+                    dataABF = filt_data - filt_dataSUB
+                    #println(size(dataABF))
+               elseif i.Condition == g_cond
+                    #println("Analysis of Glial files")
+                    qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
+                    qTRIALg = qData |> @filter(_.Condition == g_cond) |> DataFrame
+                    qTRIAL = SubFiles = qTRIALb |> @join(qTRIALg,
+                         {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                         {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
+                         {__...,
+                              SubPath = _.Path,
+                    }) |> DataFrame
+                    if isempty(qTRIAL)
+                         println("\t Experiment $(i.Path) was incomplete")
+                         continue
+                    end
+                    #println(qTRIAL |> size)
+                    data = readABF(SubFiles.Path) #Read the AB data
+                    filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    dataSUB = readABF(SubFiles.SubPath)
+                    filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post)
+          
+                    #if we want to subtract we need to filter first
+                    dataABF = filt_data - filt_dataSUB
+                    #println(size(dataABF))
                end
-               #println(SubFiles.Path)
-               data = readABF(SubFiles.Path) #Read the AB data
-               filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
-               dataSUB = readABF(SubFiles.SubPath)
-               filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post)
-     
-               #if we want to subtract we need to filter first
-               dataABF = filt_data - filt_dataSUB
-               #println(size(dataABF))
-          elseif i.Condition == g_cond
-               #println("Analysis of Glial files")
-               qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
-               qTRIALg = qData |> @filter(_.Condition == g_cond) |> DataFrame
-               qTRIAL = SubFiles = qTRIALb |> @join(qTRIALg,
-                    {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                    {_.Date, _.Number, _.Photons, _.Wavelength, _.Photoreceptor, _.Genotype},
-                    {__...,
-                         SubPath = _.Path,
-               }) |> DataFrame
-               if isempty(qTRIAL)
-                    println("\t Experiment $(i.Path) was incomplete")
-                    continue
+          else
+               if i.Condition == a_cond
+                    qTRIALa = qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
+                    qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
+                    #pull out only A-wave files
+                    data = readABF(qTRIALa.Path)
+                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post) #This function is found in the filter pipeline 
+                    #println(dataABF |> size)
+               elseif i.Condition == b_cond
+                    #println("Analysis of B-wave file")
+                    qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
+                    #println(SubFiles.Path)
+                    data = readABF(qTRIALb.Path) #Read the AB data
+                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    #println(size(dataABF))
+               elseif i.Condition == g_cond
+                    #println("Analysis of Glial files")
+                    qTRIALg = qData |> @filter(_.Condition == g_cond) |> DataFrame
+                    #println(qTRIAL |> size)
+                    data = readABF(SubFiles.Path) #Read the AB data
+                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
                end
-               #println(qTRIAL |> size)
-               data = readABF(SubFiles.Path) #Read the AB data
-               filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
-               dataSUB = readABF(SubFiles.SubPath)
-               filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post)
-     
-               #if we want to subtract we need to filter first
-               dataABF = filt_data - filt_dataSUB
-               #println(size(dataABF))
           end
           #Conduct the analysis for each channel
           for (ch_idx, data_ch) in enumerate(eachchannel(dataABF)) #walk through each row of the data iterator
@@ -228,11 +252,11 @@ function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false
      return dataset
 end
 
-function runConditionsAnalysis(qTrace::DataFrame, qExperiment::DataFrame; verbose = false, kwargs...)
+function runConditionsAnalysis(dataset::Dict{String, DataFrame}; verbose = false, kwargs...)
      #filter out all flags
-     unflagged_exps = qExperiment# |> @filter(_.INCLUDE == true) |> DataFrame
-     unflagged_traces = matchExperiment(qTrace, unflagged_exps)
-     qConditions = unflagged_exps |>
+     qExps = dataset["EXPERIMENTS"]
+     qTraces = matchExperiment(dataset["TRACES"], qExps)
+     qConditions = qExps |>
           @groupby({_.Age, _.Genotype, _.Photoreceptor, _.Wavelength, _.Condition}) |>
           @map({
                Age = _.Age[1], Genotype = _.Genotype[1], Photoreceptor = _.Photoreceptor[1], Wavelength = _.Wavelength[1],
@@ -250,7 +274,7 @@ function runConditionsAnalysis(qTrace::DataFrame, qExperiment::DataFrame; verbos
           DataFrame
      #iterate through each conditon and generate a collated IR curve
      for (idx, cond) in enumerate(eachrow(qConditions))
-          qIND_COND = unflagged_traces |> 
+          qIND_COND = qTraces |> 
                @filter(_.Age == cond.Age) |> 
                @filter(_.Genotype == cond.Genotype) |> 
                @filter(_.Condition == cond.Condition) |> 
@@ -268,11 +292,7 @@ function runConditionsAnalysis(qTrace::DataFrame, qExperiment::DataFrame; verbos
                qConditions[idx, :RSQ_COLL] = rsq
           end
      end
-     return qConditions
-end
-
-function runConditionsAnalysis(dataset::Dict{String, DataFrame}; kwargs...)
-     dataset["CONDITIONS"] = runConditionsAnalysis(dataset["TRACES"], dataset["EXPERIMENTS"]; kwargs...)
+     dataset["CONDITIONS"] = qConditions
      return dataset
 end
 
@@ -333,16 +353,23 @@ function runStatsAnalysis(dataset;
      return dataset
 end
 
-function runDataAnalysis(filenames::Vector{String}; verbose = false)
+function runDataAnalysis(filenames::Vector{String}; verbose = true, subtraction = true)
      verbose ? print("Analyzing data for $filename \n Begin...") : nothing
+     
      dataset = createDataset(filenames, verbose = verbose)
      verbose ? print("Files, ") : nothing
-     dataset = runTraceAnalysis(dataset, verbose = verbose)
+     
+     dataset = runTraceAnalysis(dataset, verbose = verbose, subtraction = subtraction)
      verbose ? print("Traces, ") : nothing
+     println(dataset["TRACES"])
+     
      dataset = runExperimentAnalysis(dataset, verbose = verbose)
+     #println(dataset["EXPERIMENTS"])
      verbose ? print("Experiments. Completed ") : nothing
+     
      dataset = runConditionsAnalysis(dataset, verbose = verbose)
      verbose ? print("Conditions, ") : nothing
+     
      dataset = runStatsAnalysis(dataset, verbose = verbose)
      verbose ? println("Stats. Completed.") : nothing
      return dataset

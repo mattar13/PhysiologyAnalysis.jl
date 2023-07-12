@@ -209,6 +209,9 @@ function unflagALL!(dataset)
      dataset["EXPERIMENTS"][:, :INCLUDE] .= true
 end
 
+"""
+This function won't work right until we can open data from XLSX files
+"""
 function analyzeXLSX(filename::String, data::Experiment; verbose = false)
      filenames = joinpath(splitpath(data.HeaderDict["abfPath"])[1:end-1]...) |> parseABF
      verbose ? print("Analyzing data for $filename \n Begin...") : nothing
@@ -251,7 +254,13 @@ function writeXLSX(filename::String, data::Experiment, mode::Symbol; verbose = t
           writeXLSX(filename, data; verbose = verbose, kwargs...)
           verbose ? println("Completed") : nothing
 
-
+          XLSX.openxlsx(filename, mode = "rw") do xf
+               for key in keys(dataset)
+                    XLSX.addsheet!(xf, key)
+                    sheet = xf[key]
+                    XLSX.writetable!(sheet, dataset[key])
+               end
+          end
      else
           verbose ? print("Saving excel file... ") : nothing
           writeXLSX(filename, data; verbose = verbose, kwargs...)
