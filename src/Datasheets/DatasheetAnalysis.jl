@@ -375,14 +375,14 @@ function runDataAnalysis(filenames::Vector{String}; verbose = true, subtraction 
      return dataset
 end
 
-function runDataAnalysis(data::Experiment; verbose = false)
+function runDataAnalysis(data::Experiment; verbose = false, subtraction = true)
      filenames = joinpath(splitpath(data.HeaderDict["abfPath"])[1:end-1]...) |> parseABF
-     return runDataAnalysis(filenames; verbose = verbose)
+     return runDataAnalysis(filenames; verbose = verbose, subtraction = subtraction)
 end
 
-function runDataAnalysis(fileroot::String; verbose = false)
+function runDataAnalysis(fileroot::String; verbose = false, subtraction = true)
      filenames = fileroot |> parseABF
-     return runDataAnalysis(filenames; verbose = verbose)
+     return runDataAnalysis(filenames; verbose = verbose, subtraction = subtraction)
 end
 
 #This can be used for IR and STF, but not for Tau or LP model
