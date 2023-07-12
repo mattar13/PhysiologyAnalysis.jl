@@ -333,6 +333,31 @@ function runStatsAnalysis(dataset;
      return dataset
 end
 
+function runDataAnalysis(filenames::Vector{String}; verbose = false)
+     verbose ? print("Analyzing data for $filename \n Begin...") : nothing
+     dataset = createDataset(filenames, verbose = verbose)
+     verbose ? print("Files, ") : nothing
+     dataset = runTraceAnalysis(dataset, verbose = verbose)
+     verbose ? print("Traces, ") : nothing
+     dataset = runExperimentAnalysis(dataset, verbose = verbose)
+     verbose ? print("Experiments. Completed ") : nothing
+     dataset = runConditionsAnalysis(dataset, verbose = verbose)
+     verbose ? print("Conditions, ") : nothing
+     dataset = runStatsAnalysis(dataset, verbose = verbose)
+     verbose ? println("Stats. Completed.") : nothing
+     return dataset
+end
+
+function runDataAnalysis(data::Experiment)
+     filenames = joinpath(splitpath(data.HeaderDict["abfPath"])[1:end-1]...) |> parseABF
+     return runDataAnalysis(filenames)
+end
+
+function runDataAnalysis(fileroot::String)
+     filenames = fileroot |> parseABF
+     return runDataAnalysis(filenames)
+end
+
 #This can be used for IR and STF, but not for Tau or LP model
 function GenerateFitFrame(df_TRACE, xData, yData; 
      MODEL = HILL_MODEL, #These function
