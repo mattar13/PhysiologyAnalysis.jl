@@ -348,14 +348,14 @@ function runDataAnalysis(filenames::Vector{String}; verbose = false)
      return dataset
 end
 
-function runDataAnalysis(data::Experiment)
+function runDataAnalysis(data::Experiment; verbose = false)
      filenames = joinpath(splitpath(data.HeaderDict["abfPath"])[1:end-1]...) |> parseABF
-     return runDataAnalysis(filenames)
+     return runDataAnalysis(filenames; verbose = verbose)
 end
 
-function runDataAnalysis(fileroot::String)
+function runDataAnalysis(fileroot::String; verbose = false)
      filenames = fileroot |> parseABF
-     return runDataAnalysis(filenames)
+     return runDataAnalysis(filenames; verbose = verbose)
 end
 
 #This can be used for IR and STF, but not for Tau or LP model
