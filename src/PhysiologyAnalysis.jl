@@ -51,6 +51,18 @@ include("Analysis/TimescaleAnalysis.jl")
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
+# These functions are used by the base
+#This file contains things like extraction and convienance functions
+function set_calibration_path(pathname::String ;path = "$(homepath)/Datasheets/calibration.txt")
+     open(path, "w") do file
+          write(file, pathname)
+     end
+end
+
+homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
+
+calibration_path() = read("$(homepath)/Datasheets/calibration.txt", String)
+
 #3) Import all Datasheet tools ===========================================================#
 function __init__()
      @require OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed" begin

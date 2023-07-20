@@ -1,4 +1,3 @@
-calibration_path() = read("src/Datasheets/calibration.txt", String)
 """
     photon_lookup(wavelength, nd, percent, stim_time, calibration_file[,sheet_name])
 
@@ -53,13 +52,7 @@ function photon_lookup(photon::Real; path = :default, sheet_name::String="Curren
           throw(error)
      end
 end
-#This file contains things like extraction and convienance functions
 
-function set_calibration_path(pathname::String ;path = raw"src\Datasheets\calibration.txt")
-     open(path, "w") do file
-          write(file, pathname)
-     end
-end
 
 
 """
