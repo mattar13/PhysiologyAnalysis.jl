@@ -4,12 +4,12 @@ calibration_path() = read("src/Datasheets/calibration.txt", String)
 
 Uses the calibration file or datasheet to look up the photon density. The Photon datasheet should be either 
 """
-function photon_lookup(wavelength::Real, nd::Real, percent::Real; calibration_path = :default, sheet_name::String="Current_Test")
+function photon_lookup(wavelength::Real, nd::Real, percent::Real; path = :default, sheet_name::String="Current_Test")
      try
-          if calibration_file == :default
+          if path == :default
                df = DataFrame(XLSX.readtable(calibration_path(), sheet_name))
           else
-               df = DataFrame(XLSX.readtable(calibration_path, sheet_name))
+               df = DataFrame(XLSX.readtable(path, sheet_name))
           end
           Qi = df |>
                @filter(_.Wavelength == wavelength) |>
@@ -31,12 +31,12 @@ function photon_lookup(wavelength::Real, nd::Real, percent::Real; calibration_pa
      end
 end
 
-function photon_lookup(photon::Real; calibration_file = :default, sheet_name::String="Current_Test")
+function photon_lookup(photon::Real; path = :default, sheet_name::String="Current_Test")
      try
-          if calibration_file == :default
-               df = DataFrame(XLSX.readtable(calibration_path, sheet_name))
+          if path == :default
+               df = DataFrame(XLSX.readtable(calibration_path(), sheet_name))
           else
-               df = DataFrame(XLSX.readtable(calibration_file, sheet_name))
+               df = DataFrame(XLSX.readtable(path, sheet_name))
           end
           Qi = df |>
                @filter(_.Photons == photon) |>
