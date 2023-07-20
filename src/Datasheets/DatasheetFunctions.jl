@@ -10,18 +10,18 @@ function photon_lookup(wavelength::Real, nd::Real, percent::Real; calibration_pa
                df = DataFrame(XLSX.readtable(calibration_path(), sheet_name))
           else
                df = DataFrame(XLSX.readtable(calibration_path, sheet_name))
-               Qi = df |>
-                    @filter(_.Wavelength == wavelength) |>
-                    @filter(_.ND == nd) |>
-                    @filter(_.Intensity == percent) |>
-                    #@filter(_.stim_time == stim_time) |>
-                    @map(_.Photons) |>
-               DataFrame
-               #%%
-               if !isempty(Qi)
-                    #Only return f an entry exists
-                    return Qi.value[1]
-               end
+          end
+          Qi = df |>
+               @filter(_.Wavelength == wavelength) |>
+               @filter(_.ND == nd) |>
+               @filter(_.Intensity == percent) |>
+               #@filter(_.stim_time == stim_time) |>
+               @map(_.Photons) |>
+          DataFrame
+          #%%
+          if !isempty(Qi)
+               #Only return f an entry exists
+               return Qi.value[1]
           end
      catch error
           if isa(error, AssertionError)
@@ -32,37 +32,26 @@ function photon_lookup(wavelength::Real, nd::Real, percent::Real; calibration_pa
 end
 
 function photon_lookup(photon::Real; calibration_file = :default, sheet_name::String="Current_Test")
-     if calibration_file == :default
-          calibration_path = read("src/Datasheets/calibration.txt", String)
-          try
+     try
+          if calibration_file == :default
                df = DataFrame(XLSX.readtable(calibration_path, sheet_name))
-               Qi = df |>
-                    @filter(_.Photons == photon) |>
-                    @map({Wavelength = _.Wavelength, ND = _.ND, Intensity = _.Intensity}) |>
-               DataFrame
-               if !isempty(Qi)
-                    #Only return f an entry exists
-                    return (Qi.Wavelength[1], Qi.ND[1], Qi.Intensity[1])
-               end
-          catch error
-               if isa(error, AssertionError)
-                    println("Calibration File Incorrectly specified")
-               end
-               throw(error)
+          else
+               df = DataFrame(XLSX.readtable(calibration_file, sheet_name))
           end
-     else
-          df = DataFrame(XLSX.readtable(calibration_file, sheet_name))
           Qi = df |>
                @filter(_.Photons == photon) |>
                @map({Wavelength = _.Wavelength, ND = _.ND, Intensity = _.Intensity}) |>
           DataFrame
-          if size(Qi, 1) != 0
+          if !isempty(Qi)
                #Only return f an entry exists
-               return (Qi.wavelength[1], Qi.ND[1], Qi.Intensity[1])
+               return (Qi.Wavelength[1], Qi.ND[1], Qi.Intensity[1])
           end
+     catch error
+          if isa(error, AssertionError)
+               println("Calibration File Incorrectly specified")
+          end
+          throw(error)
      end
-
-
 end
 #This file contains things like extraction and convienance functions
 
