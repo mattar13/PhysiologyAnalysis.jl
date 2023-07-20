@@ -1,12 +1,14 @@
+calibration_path() = read("src/Datasheets/calibration.txt", String)
 """
     photon_lookup(wavelength, nd, percent, stim_time, calibration_file[,sheet_name])
 
 Uses the calibration file or datasheet to look up the photon density. The Photon datasheet should be either 
 """
-function photon_lookup(wavelength::Real, nd::Real, percent::Real; calibration_file = :default, sheet_name::String="Current_Test")
-     if calibration_file == :default
-          calibration_path = read("src/Datasheets/calibration.txt", String)
-          try
+function photon_lookup(wavelength::Real, nd::Real, percent::Real; calibration_path = :default, sheet_name::String="Current_Test")
+     try
+          if calibration_file == :default
+               df = DataFrame(XLSX.readtable(calibration_path(), sheet_name))
+          else
                df = DataFrame(XLSX.readtable(calibration_path, sheet_name))
                Qi = df |>
                     @filter(_.Wavelength == wavelength) |>
@@ -20,28 +22,13 @@ function photon_lookup(wavelength::Real, nd::Real, percent::Real; calibration_fi
                     #Only return f an entry exists
                     return Qi.value[1]
                end
-          catch error
-               if isa(error, AssertionError)
-                    println("Calibration File Incorrectly specified")
-               end
-               throw(error)
           end
-     else
-          df = DataFrame(XLSX.readtable(calibration_file, sheet_name))
-          Qi = df |>
-               @filter(_.Wavelength == wavelength) |>
-               @filter(_.ND == nd) |>
-               @filter(_.Intensity == percent) |>
-               #@filter(_.stim_time == stim_time) |>
-               @map(_.Photons) |>
-          DataFrame
-          #%%
-          if size(Qi, 1) != 0
-               #Only return f an entry exists
-               return Qi.value[1]
+     catch error
+          if isa(error, AssertionError)
+               println("Calibration File Incorrectly specified")
           end
+          throw(error)
      end
-
 end
 
 function photon_lookup(photon::Real; calibration_file = :default, sheet_name::String="Current_Test")
@@ -84,6 +71,8 @@ function set_calibration_path(pathname::String ;path = raw"src\Datasheets\calibr
           write(file, pathname)
      end
 end
+
+
 """
 This function converts a dataframe of Any to one matching each row type. 
      catchNaN allows it to catch NaN errors from excel
