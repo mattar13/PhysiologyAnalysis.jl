@@ -353,25 +353,36 @@ function runStatsAnalysis(dataset;
      return dataset
 end
 
-function runDataAnalysis(filenames::Vector{String}; verbose = true, subtraction = true)
-     verbose ? print("Analyzing data for $filename \n Begin...") : nothing
+function runDataAnalysis(filenames::Vector{String}; 
+     #Options for the createDataset
+     #Options for runTraceAnalysis
+     seperate_dates = false, 
      
-     dataset = createDataset(filenames, verbose = verbose)
-     verbose ? print("Files, ") : nothing
+     subtraction = true, 
+
+     debug::Bool = false,
+     verbose = true, 
+)
+     #verbose ? print("Analyzing data for $filename \n Begin...") : nothing
+     dataset = createDataset(filenames; 
+          seperate_dates = seperate_dates, 
+          verbose = verbose, debug = debug, 
+     )
+     #verbose ? print("Files, ") : nothing
      
      dataset = runTraceAnalysis(dataset, verbose = verbose, subtraction = subtraction)
-     verbose ? print("Traces, ") : nothing
+     #verbose ? print("Traces, ") : nothing
      println(dataset["TRACES"])
      
      dataset = runExperimentAnalysis(dataset, verbose = verbose)
      #println(dataset["EXPERIMENTS"])
-     verbose ? print("Experiments. Completed ") : nothing
+     #verbose ? print("Experiments. Completed ") : nothing
      
      dataset = runConditionsAnalysis(dataset, verbose = verbose)
-     verbose ? print("Conditions, ") : nothing
+     #verbose ? print("Conditions, ") : nothing
      
      dataset = runStatsAnalysis(dataset, verbose = verbose)
-     verbose ? println("Stats. Completed.") : nothing
+     #verbose ? println("Stats. Completed.") : nothing
      return dataset
 end
 
