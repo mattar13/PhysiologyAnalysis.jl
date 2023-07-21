@@ -71,13 +71,10 @@ function createDataset(all_files::Vector{String};
      seperate_dates = false, 
      verbose::Bool = false, 
      debug::Bool = false,
-
 )
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
-          if verbose
-               print("Analyzing file $idx of $(size(all_files, 1)): $file ...")
-          end
+          verbose ? print("Analyzing file $idx of $(size(all_files, 1)): $file ...") : nothing
           try
                entry = DataPathExtraction(file)
                if isnothing(entry) && verbose #Throw this in the case that the entry cannot be fit
@@ -85,23 +82,16 @@ function createDataset(all_files::Vector{String};
                     #elseif length(entry) != size(dataframe, 2)
                #     println("Entry does not match dataframe size. Probably an extra category")
                else
-                    if verbose
-                         println("Success")
-                    end
+                    verbose ? println("Success") : nothing
                     push!(dataframe, entry)
                end
           catch error
-               if verbose
-                    #throw(error)
-                    println(file)
-                    println(error)
-               end
+               verbose ? println("$file \n $error") : nothing
                if debug 
                     throw(error)
                end
           end
      end
-     println(dataframe)
      if !(seperate_dates)
           convertDate_inFrame!(dataframe)
      end
