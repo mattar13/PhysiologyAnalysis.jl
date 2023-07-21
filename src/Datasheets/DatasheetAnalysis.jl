@@ -198,9 +198,10 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
      return dataset
 end
 
-function runExperimentAnalysis(dataset::Dict{String, DataFrame}; verbose = false,
+function runExperimentAnalysis(dataset::Dict{String, DataFrame}; 
           lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
           ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
+          verbose = false,
      )
      EXPERIMENTS = dataset["TRACES"] |> @unique({_.Date, _.Age, _.Number, _.Genotype, _.Channel, _.Condition, _.Photoreceptor, _.Wavelength}) |> DataFrame
      #println(EXPERIMENTS)
@@ -366,16 +367,22 @@ function runDataAnalysis(filenames::Vector{String};
      t_pre=1.0, 
      t_post=1.0,
      measure_minima = false, 
-     subtraction = true,     #Options for runExperimentAnalysis
-     #Options for runConditionsAnalysis
+     subtraction = true,     
+     #Options for runExperimentAnalysis
+     lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
+     ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
+     
      #Options for runStatsAnalysis
+     control = "WT",
+     stat_metrics = [:rmax, :rdim, :K_fit, :time_to_peak, :percent_recovery, :integration_time],
 
+     #General options
      debug::Bool = false,
-     verbose = true, 
+     verbose = 1, #3 modes -> 0: nothing, 1: only shows progress, 2: shows progress and inside of functions
 )
-     verbose ? print("Analyzing data \n Begin...") : nothing
-     dataset = createDataset(filenames; seperate_dates = seperate_dates, verbose = verbose, debug = debug)
-     verbose ? print("Files, ") : nothing
+     verbose > 0 ? print("Analyzing data \n Begin...") : nothing
+     dataset = createDataset(filenames; seperate_dates = seperate_dates, verbose = verbose==2, debug = debug);
+     verbose > 0 ? print("Files, ") : nothing
      
      dataset = runTraceAnalysis(dataset,      
           a_cond = a_cond, 
@@ -385,18 +392,19 @@ function runDataAnalysis(filenames::Vector{String};
           t_pre = t_pre, 
           t_post = t_post,
           measure_minima = measure_minima, 
-          subtraction = subtraction, verbose = verbose, 
-     )
-     verbose ? print("Traces, ") : nothing
+          subtraction = subtraction, 
+          verbose = verbose==2, 
+     );
+     verbose > 0 ? print("Traces, ") : nothing
      
-     dataset = runExperimentAnalysis(dataset, verbose = verbose)
-     verbose ? print("Experiments. Completed ") : nothing
+     dataset = runExperimentAnalysis(dataset, lb = lb, ub = ub, verbose = verbose==2);
+     verbose > 0 ? print("Experiments. Completed ") : nothing
      
-     dataset = runConditionsAnalysis(dataset, verbose = verbose)
-     verbose ? print("Conditions, ") : nothing
+     dataset = runConditionsAnalysis(dataset, verbose = verbose==2);
+     verbose > 0 ? print("Conditions, ") : nothing
      
-     dataset = runStatsAnalysis(dataset, verbose = verbose)
-     verbose ? println("Stats. Completed.") : nothing
+     dataset = runStatsAnalysis(dataset, control = control, stat_metrics = stat_metrics, verbose = verbose==2);
+     verbose > 0 ? println("Stats. Completed.") : nothing
      return dataset
 end
 
