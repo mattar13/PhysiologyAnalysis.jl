@@ -187,7 +187,6 @@ function DataPathExtraction(path::String, calibration_file::String;
                          WAVE,
                          ND,
                          PERCENT,
-                         calibration_file
                     ) .* stim_time
                end
           end
@@ -209,7 +208,7 @@ function DataPathExtraction(path::String, calibration_file::String;
 
 end
 
-DataPathExtraction(path::String; kwargs...) = DataPathExtraction(path, calibration_file; kwargs...)
+DataPathExtraction(path::String; kwargs...) = DataPathExtraction(path, calibration_path(); kwargs...)
 
 #Couldn't we potentially use this function to extract the datasheet anyways
 #TODO: We want to change this to use the DataPathExtraction instead

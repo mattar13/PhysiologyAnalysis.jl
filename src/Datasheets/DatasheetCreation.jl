@@ -69,8 +69,9 @@ dataset = createDataset(data_files)
 """
 function createDataset(all_files::Vector{String}; 
      verbose::Bool = false, seperate_dates = false, 
-     debug = false,
-     kwargs...)
+     debug::Bool = false,
+     kwargs...
+)
      dataframe = DataFrame()
      for (idx, file) in enumerate(all_files)
           if verbose
