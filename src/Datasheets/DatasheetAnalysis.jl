@@ -41,13 +41,15 @@ function extractIR(trace_datafile::DataFrame, category; measure = :Response, kwa
 end
 
 function runTraceAnalysis(dataset::Dict{String, DataFrame};
-     t_pre = 1.0, t_post = 2.0, #Extend these to see the end of the a-wave
-     measure_minima = false, subtraction = true,
-     a_cond = "BaCl_LAP4", b_cond = "BaCl", g_cond = "NoDrugs", 
+     a_cond = "BaCl_LAP4", 
+     b_cond = "BaCl", 
+     g_cond = "NoDrugs", 
+     sample_rate = 10_000.0,
+     t_pre=1.0, 
+     t_post=1.0,
+     measure_minima = false, 
+     subtraction = true,
      verbose = true, 
-     lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
-     p0 = [500.0, 1000.0, 2.0], #Default r = 500.0, k = 200.0, n = 2.0
-     ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
 ) 
      uniqueData = dataset["ALL_FILES"] |> @unique({_.Date, _.Number, _.Wavelength, _.Photoreceptor, _.Genotype, _.Condition}) |> DataFrame #Pull out all unique files
      if verbose
@@ -70,7 +72,7 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #pull out only A-wave files
                     data = readABF(qTRIALa.Path)
-                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post) #This function is found in the filter pipeline 
+                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                     #println(dataABF |> size)
                elseif i.Condition == b_cond
                     #println("Analysis of B-wave file")
@@ -88,9 +90,9 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     end
                     #println(SubFiles.Path)
                     data = readABF(SubFiles.Path) #Read the AB data
-                    filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate,)
                     dataSUB = readABF(SubFiles.SubPath)
-                    filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate,)
           
                     #if we want to subtract we need to filter first
                     dataABF = filt_data - filt_dataSUB
@@ -111,9 +113,9 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     end
                     #println(qTRIAL |> size)
                     data = readABF(SubFiles.Path) #Read the AB data
-                    filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate)
                     dataSUB = readABF(SubFiles.SubPath)
-                    filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate)
           
                     #if we want to subtract we need to filter first
                     dataABF = filt_data - filt_dataSUB
@@ -355,34 +357,46 @@ end
 
 function runDataAnalysis(filenames::Vector{String}; 
      #Options for the createDataset
-     #Options for runTraceAnalysis
      seperate_dates = false, 
-     
-     subtraction = true, 
+     #Options for runTraceAnalysis
+     a_cond = "BaCl_LAP4", 
+     b_cond = "BaCl", 
+     g_cond = "NoDrugs", 
+     sample_rate = 10_000.0,
+     t_pre=1.0, 
+     t_post=1.0,
+     measure_minima = false, 
+     subtraction = true,     #Options for runExperimentAnalysis
+     #Options for runConditionsAnalysis
+     #Options for runStatsAnalysis
 
      debug::Bool = false,
      verbose = true, 
 )
-     #verbose ? print("Analyzing data for $filename \n Begin...") : nothing
-     dataset = createDataset(filenames; 
-          seperate_dates = seperate_dates, 
-          verbose = verbose, debug = debug, 
-     )
-     #verbose ? print("Files, ") : nothing
+     verbose ? print("Analyzing data \n Begin...") : nothing
+     dataset = createDataset(filenames; seperate_dates = seperate_dates, verbose = verbose, debug = debug)
+     verbose ? print("Files, ") : nothing
      
-     dataset = runTraceAnalysis(dataset, verbose = verbose, subtraction = subtraction)
-     #verbose ? print("Traces, ") : nothing
-     println(dataset["TRACES"])
+     dataset = runTraceAnalysis(dataset,      
+          a_cond = a_cond, 
+          b_cond = b_cond, 
+          g_cond = g_cond, 
+          sample_rate = sample_rate,
+          t_pre = t_pre, 
+          t_post = t_post,
+          measure_minima = measure_minima, 
+          subtraction = subtraction, verbose = verbose, 
+     )
+     verbose ? print("Traces, ") : nothing
      
      dataset = runExperimentAnalysis(dataset, verbose = verbose)
-     #println(dataset["EXPERIMENTS"])
-     #verbose ? print("Experiments. Completed ") : nothing
+     verbose ? print("Experiments. Completed ") : nothing
      
      dataset = runConditionsAnalysis(dataset, verbose = verbose)
-     #verbose ? print("Conditions, ") : nothing
+     verbose ? print("Conditions, ") : nothing
      
      dataset = runStatsAnalysis(dataset, verbose = verbose)
-     #verbose ? println("Stats. Completed.") : nothing
+     verbose ? println("Stats. Completed.") : nothing
      return dataset
 end
 
