@@ -380,10 +380,12 @@ function runDataAnalysis(filenames::Vector{String};
      debug::Bool = false,
      verbose = 1, #3 modes -> 0: nothing, 1: only shows progress, 2: shows progress and inside of functions
 )
-     verbose > 0 ? print("Analyzing data \n Begin...") : nothing
+     now = Dates.now()
+     verbose > 0 ? println("[$now]: Begin analyzing data: ") : nothing
      dataset = createDataset(filenames; seperate_dates = seperate_dates, verbose = verbose==2, debug = debug);
-     verbose > 0 ? print("Files, ") : nothing
+     verbose > 0 ? println("\t [$(Dates.now() - now)] Files") : nothing
      
+     now = Dates.now()
      dataset = runTraceAnalysis(dataset,      
           a_cond = a_cond, 
           b_cond = b_cond, 
@@ -395,16 +397,19 @@ function runDataAnalysis(filenames::Vector{String};
           subtraction = subtraction, 
           verbose = verbose==2, 
      );
-     verbose > 0 ? print("Traces, ") : nothing
+     verbose > 0 ? println("\t [$(Dates.now() - now)] Traces") : nothing
      
+     now = Dates.now()
      dataset = runExperimentAnalysis(dataset, lb = lb, ub = ub, verbose = verbose==2);
-     verbose > 0 ? print("Experiments. Completed ") : nothing
+     verbose > 0 ? println("\t [$(Dates.now() - now)] Experiments") : nothing
      
+     now = Dates.now()
      dataset = runConditionsAnalysis(dataset, verbose = verbose==2);
-     verbose > 0 ? print("Conditions, ") : nothing
+     verbose > 0 ? println("\t [$(Dates.now() - now)] Conditions") : nothing
      
+     now = Dates.now()
      dataset = runStatsAnalysis(dataset, control = control, stat_metrics = stat_metrics, verbose = verbose==2);
-     verbose > 0 ? println("Stats. Completed.") : nothing
+     verbose > 0 ? println("\t [$(Dates.now() - now)] Stats ") : nothing
      return dataset
 end
 
