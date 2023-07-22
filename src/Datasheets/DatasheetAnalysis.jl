@@ -47,7 +47,8 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
      sample_rate = 10_000.0,
      t_pre=1.0, 
      t_post=1.0,
-     measure_minima = false, 
+     measure_minima = false,
+     measure_abs = false,
      subtraction = true,
      verbose = true, 
 ) 
@@ -127,21 +128,21 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #pull out only A-wave files
                     data = readABF(qTRIALa.Path)
-                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post) #This function is found in the filter pipeline 
+                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                     #println(dataABF |> size)
                elseif i.Condition == b_cond
                     #println("Analysis of B-wave file")
                     qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
                     #println(SubFiles.Path)
                     data = readABF(qTRIALb.Path) #Read the AB data
-                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                     #println(size(dataABF))
                elseif i.Condition == g_cond
                     #println("Analysis of Glial files")
                     qTRIALg = qData |> @filter(_.Condition == g_cond) |> DataFrame
                     #println(qTRIAL |> size)
                     data = readABF(SubFiles.Path) #Read the AB data
-                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post)
+                    dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                end
           end
           #Conduct the analysis for each channel
@@ -155,19 +156,22 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                end
                minimas = minimum(data_ch, dims=2)[:, 1, :]
                maximas = maximum(data_ch, dims=2)[:, 1, :]
-               if i.Condition == a_cond 
-                    if measure_minima || i.Photoreceptor == "Cones"
+               if measure_abs
+                    responses = maximum(abs.(hcat(maximas, minimas)), dims = 2) |> vec
+               else
+                    if i.Condition == a_cond 
+                         if measure_minima || i.Photoreceptor == "Cones"
+                              responses = abs.(minimas)
+                              verbose ? println("Only minimas") : nothing
+                         else
+                              responses = abs.(saturated_response(data_ch))
+                         end
+                    elseif i.Condition == b_cond
+                         responses = abs.(maximas)
+                    elseif i.Condition == g_cond
                          responses = abs.(minimas)
-                         println("Only minimas")
-                    else
-                         responses = abs.(saturated_response(data_ch))
                     end
-               elseif i.Condition == b_cond
-                    responses = abs.(maximas)
-               elseif i.Condition == g_cond
-                    responses = abs.(minimas)
                end
-               min_to_max = abs.(maximas .- minimas)
                Peak_Times = time_to_peak(data_ch)
                Integrated_Times = integral(data_ch)
                rmax = maximum(responses, dims = 1)
@@ -367,6 +371,7 @@ function runDataAnalysis(filenames::Vector{String};
      t_pre=1.0, 
      t_post=1.0,
      measure_minima = false, 
+     measure_abs = false,
      subtraction = true,     
      #Options for runExperimentAnalysis
      lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
@@ -394,6 +399,7 @@ function runDataAnalysis(filenames::Vector{String};
           t_pre = t_pre, 
           t_post = t_post,
           measure_minima = measure_minima, 
+          measure_abs = measure_abs,
           subtraction = subtraction, 
           verbose = verbose==2, 
      );
