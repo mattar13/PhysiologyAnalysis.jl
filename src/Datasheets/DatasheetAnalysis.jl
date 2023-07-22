@@ -158,7 +158,6 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                maximas = maximum(data_ch, dims=2)[:, 1, :]
                if measure_abs
                     responses = maximum(abs.(hcat(maximas, minimas)), dims = 2) |> vec
-                    #println(isa(responses, AbstractArray{Float64}))
                else
                     if i.Condition == a_cond 
                          if measure_minima || i.Photoreceptor == "Cones"
