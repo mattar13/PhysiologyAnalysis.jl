@@ -187,7 +187,7 @@ This function is the amount of time that a certain trace spends in a particular 
     >>> Tᵣ = percent_recovery_interval(data1_testA, rmaxes)
 
 """
-function percent_recovery_interval(data::Experiment{T}, rmaxes::Matrix{T}; iᵣ::T=0.50) where {T<:Real}
+function percent_recovery_interval(data::Experiment{T}, rmaxes::AbstractArray{T}; iᵣ::T=0.50) where {T<:Real}
     #first we can normalize the data to a range
     @assert size(data,3) == size(rmaxes, 2) #rmax data matches data channels
     #Tᵣ = fill(NaN, size(data,1), size(data,3))
