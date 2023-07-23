@@ -124,15 +124,16 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                end
           else
                if i.Condition == a_cond
-                    qTRIALa = qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
+                    qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
                     qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #pull out only A-wave files
-                    data = readABF(qTRIALa.Path)
+                    data = readABF(qTRIAL.Path)
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                     #println(dataABF |> size)
                elseif i.Condition == b_cond
                     #println("Analysis of B-wave file")
                     qTRIAL = qData |> @filter(_.Condition == b_cond) |> DataFrame
+                    qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #println(SubFiles.Path)
                     data = readABF(qTRIAL.Path) #Read the AB data
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
@@ -140,6 +141,7 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                elseif i.Condition == g_cond
                     #println("Analysis of Glial files")
                     qTRIAL = qData |> @filter(_.Condition == g_cond) |> DataFrame
+                    qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #println(qTRIAL |> size)
                     data = readABF(qTRIAL.Path) #Read the AB data
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
