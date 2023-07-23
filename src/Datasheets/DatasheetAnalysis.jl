@@ -132,16 +132,16 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     #println(dataABF |> size)
                elseif i.Condition == b_cond
                     #println("Analysis of B-wave file")
-                    qTRIALb = qData |> @filter(_.Condition == b_cond) |> DataFrame
+                    qTRIAL = qData |> @filter(_.Condition == b_cond) |> DataFrame
                     #println(SubFiles.Path)
-                    data = readABF(qTRIALb.Path) #Read the AB data
+                    data = readABF(qTRIAL.Path) #Read the AB data
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                     #println(size(dataABF))
                elseif i.Condition == g_cond
                     #println("Analysis of Glial files")
-                    qTRIALg = qData |> @filter(_.Condition == g_cond) |> DataFrame
+                    qTRIAL = qData |> @filter(_.Condition == g_cond) |> DataFrame
                     #println(qTRIAL |> size)
-                    data = readABF(SubFiles.Path) #Read the AB data
+                    data = readABF(qTRIAL.Path) #Read the AB data
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                end
           end
