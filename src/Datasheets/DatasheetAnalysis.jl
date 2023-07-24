@@ -206,6 +206,7 @@ end
 
 function runExperimentAnalysis(dataset::Dict{String, DataFrame}; 
           lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
+          p0 = :determine,
           ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
           verbose = false,
      )
@@ -229,7 +230,9 @@ function runExperimentAnalysis(dataset::Dict{String, DataFrame};
           #println(rdim_idx)
 
           if size(matched.Response,1) > 2
-               p0 = [maximum(matched.Response), median(matched.Photons), 2.0]
+               if p0 == :determine
+                    p0 = [maximum(matched.Response), median(matched.Photons), 2.0]
+               end
                #Fitting each data trace to a IR curve
                fit, fit_RSQ = HILLfit(matched.Photons, matched.Response; p0 = p0, lb = lb, ub = ub)
                fit_RMAX = fit.param[1]
@@ -377,6 +380,7 @@ function runDataAnalysis(filenames::Vector{String};
      subtraction = true,     
      #Options for runExperimentAnalysis
      lb = [1.0, 1.0, 0.1], #Default rmin = 100, kmin = 0.1, nmin = 0.1 
+     p0 = :determine, 
      ub = [Inf, Inf, 10.0], #Default rmax = 2400, kmax = 800
      
      #Options for runStatsAnalysis
@@ -408,7 +412,7 @@ function runDataAnalysis(filenames::Vector{String};
      verbose > 0 ? println("\t [$(Dates.now() - now)] Traces") : nothing
      
      now = Dates.now()
-     dataset = runExperimentAnalysis(dataset, lb = lb, ub = ub, verbose = verbose==2);
+     dataset = runExperimentAnalysis(dataset, lb = lb, p0 = p0, ub = ub, verbose = verbose==2);
      verbose > 0 ? println("\t [$(Dates.now() - now)] Experiments") : nothing
      
      now = Dates.now()
