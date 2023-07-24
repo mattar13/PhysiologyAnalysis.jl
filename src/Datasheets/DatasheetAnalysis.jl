@@ -313,7 +313,7 @@ sem(x) = std(x)/sqrt(length(x))
 function runStatsAnalysis(dataset; 
      control = "WT",
      stat_metrics = [:rmax, :rdim, :K_fit, :time_to_peak, :percent_recovery, :integration_time],
-     verbose = false,  
+     verbose = true,  
 )
      qEXP = dataset["EXPERIMENTS"]     
      #unflagged_exps = qEXP |> @filter(_.INCLUDE == true) |> DataFrame
@@ -346,11 +346,21 @@ function runStatsAnalysis(dataset;
                res_stat[idx, :CI] = CI = 1.96*sem(exp_data[:, stat])
                res_stat[idx, :LOWER] = mean(exp_data[:, stat]) - CI
                res_stat[idx, :UPPER] = mean(exp_data[:, stat]) + CI
-               #println(size(exp_data,1))
-               #println(size(ctrl_data,1))
+               
+               verbose ? println(stat) : nothing
+               verbose ? println("Size data = $(size(exp_data,1))") : nothing
+               verbose ? println("Size control data = $(size(ctrl_data,1))") : nothing
+               verbose ? println(ctrl_data[:, stat]) : nothing
+               verbose ? println(exp_data[:, stat]) : nothing
+
                if size(exp_data,1) > 1 && size(ctrl_data,1) > 1 && sum(ctrl_data[:, stat]) != sum(exp_data[:, stat])
-                    res_stat[idx, :P] = P = UnequalVarianceTTest(ctrl_data[:, stat], exp_data[:, stat]) |> pvalue
-                    res_stat[idx, :SIGN] = "*"
+                    try
+                         res_stat[idx, :P] = P = UnequalVarianceTTest(ctrl_data[:, stat], exp_data[:, stat]) |> pvalue
+                         res_stat[idx, :SIGN] = "*"
+                    catch #error
+                         res_stat[idx, :P] = 1.0
+                         res_stat[idx, :SIGN] = "-"
+                    end
                else
                     res_stat[idx, :P] = 1.0
                     res_stat[idx, :SIGN] = "-"
