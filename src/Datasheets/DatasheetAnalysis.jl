@@ -72,7 +72,7 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     qTRIALa = qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
                     qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #pull out only A-wave files
-                    data = readABF(qTRIALa.Path)
+                    data = readABF(qTRIALa.Path, sort_by_date = false)
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                     #println(dataABF |> size)
                elseif i.Condition == b_cond
@@ -90,9 +90,9 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                          continue
                     end
                     #println(SubFiles.Path)
-                    data = readABF(SubFiles.Path) #Read the AB data
+                    data = readABF(SubFiles.Path, sort_by_date = false) #Read the AB data
                     filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate,)
-                    dataSUB = readABF(SubFiles.SubPath)
+                    dataSUB = readABF(SubFiles.SubPath, sort_by_date = false)
                     filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate,)
           
                     #if we want to subtract we need to filter first
@@ -113,9 +113,9 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                          continue
                     end
                     #println(qTRIAL |> size)
-                    data = readABF(SubFiles.Path) #Read the AB data
+                    data = readABF(SubFiles.Path, sort_by_date = false) #Read the AB data
                     filt_data = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate)
-                    dataSUB = readABF(SubFiles.SubPath)
+                    dataSUB = readABF(SubFiles.SubPath, sort_by_date = false)
                     filt_dataSUB = data_filter(dataSUB, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate)
           
                     #if we want to subtract we need to filter first
@@ -127,7 +127,7 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     qTRIAL = qData |> @filter(_.Condition == a_cond) |> DataFrame
                     qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #pull out only A-wave files
-                    data = readABF(qTRIAL.Path)
+                    data = readABF(qTRIAL.Path, sort_by_date = false)
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                     #println(dataABF |> size)
                elseif i.Condition == b_cond
@@ -135,7 +135,7 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     qTRIAL = qData |> @filter(_.Condition == b_cond) |> DataFrame
                     qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #println(SubFiles.Path)
-                    data = readABF(qTRIAL.Path) #Read the AB data
+                    data = readABF(qTRIAL.Path, sort_by_date = false) #Read the AB data
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                     #println(size(dataABF))
                elseif i.Condition == g_cond
@@ -143,7 +143,7 @@ function runTraceAnalysis(dataset::Dict{String, DataFrame};
                     qTRIAL = qData |> @filter(_.Condition == g_cond) |> DataFrame
                     qTRIAL[!, :SubPath] .= "NONE" #There is no subtraction
                     #println(qTRIAL |> size)
-                    data = readABF(qTRIAL.Path) #Read the AB data
+                    data = readABF(qTRIAL.Path, sort_by_date = false) #Read the AB data
                     dataABF = data_filter(data, avg_swp = false, t_pre = t_pre, t_post=t_post, sample_rate = sample_rate) #This function is found in the filter pipeline 
                end
           end
