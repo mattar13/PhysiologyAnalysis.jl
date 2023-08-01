@@ -16,5 +16,5 @@ https://github.com/mattar13/ElectroPhysiology.jl
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://mattar13.github.io/ElectroPhysiology.jl/dev
 
-[GHA-img]: https://github.com/mattar13/ElectroPhysiology.jl/workflows/CI/badge.svg
-[GHA-url]: https://github.com/mattar13/ElectroPhysiology.jl/actions?query=workflows/CI
+[GHA-img]: https://github.com/mattar13/PhysiologyAnalysis.jl/workflows/CI/badge.svg
+[GHA-url]: https://github.com/mattar13/PhysiologyAnalysis.jl/actions?query=workflows/CI
