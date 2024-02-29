@@ -7,7 +7,7 @@ using Dates
 using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second
-
+import ElectroPhysiology: TWO_PHOTON
 #= Packages used for fitting data ====================================#
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 
@@ -74,16 +74,16 @@ function __init__()
      end
 
      #Eventually we should massively restructure this
-     @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
-          using .DataFrames
-          #println("Dataframes exported)
-          @require Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1" begin
-               using .Query 
-               #println(Query Exported)
-               @require XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0" begin
-                    #println(XLSX exported)
-                    println("Loading dataframes and file opening")
-                    using .XLSX
+     @require XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0" begin
+          #println(XLSX exported)
+          println("Loading dataframes and file opening")
+          using .XLSX
+          @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
+               using .DataFrames
+               #println("Dataframes exported)
+               @require Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1" begin
+                    using .Query 
+                    #println(Query Exported)
                     
                     export readtable, readxlsx, XLSX
                     include("Datasheets/RegexFunctions.jl")
@@ -124,14 +124,15 @@ function __init__()
                   println("Imported necessary things")
                   export zProject, frameAverage 
                   export normalize, binarize
+                  export findROIcentroid
               end
           end
      end
 
      @require Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c" begin
           using .Flux
-          include("Analysis/ImagingAnalysis/MachineLearning.jl")
-          export build_model
+          #include("Analysis/ImagingAnalysis/CellPose_port.jl")
+          #export build_model
      end
 
      #We want to add something for PyCall 
