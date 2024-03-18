@@ -45,7 +45,10 @@ export get_response
 export calculate_threshold
 
 #using JLD2 #Maybe this should be added to Requires.jl
-include("Analysis/TimescaleAnalysis.jl")
+include("Analysis/WaveAnalysis/thresholding.jl")
+export calculate_threshold
+
+include("Analysis/WaveAnalysis/TimescaleAnalysis.jl")
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
