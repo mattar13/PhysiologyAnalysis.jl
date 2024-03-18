@@ -8,9 +8,9 @@ function calculate_threshold(x::AbstractArray{T}; Z = 4.0, dims = -1) where {T <
     if dims == -1
         return [mean(x) + Z*std(x)]
     else
-        mean = mean(x, dims = dims)
+        avg = mean(x, dims = dims)
         dev = Z * std(x, dims = dims)
-        return mean + dev #We want these all to come out as vectors vs matrices
+        return avg + dev #We want these all to come out as vectors vs matrices
     end
 end
 
