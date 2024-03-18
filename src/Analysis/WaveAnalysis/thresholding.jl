@@ -17,5 +17,9 @@ end
 calculate_threshold(data::Experiment{F, T}; kwargs...) where {F, T<:Real} = calculate_threshold(data.data_array; kwargs...)
 
 """
-A function that takes the threshold 
+A function that takes the threshold and returns spike array
 """
+
+function extract_spikes(data::Experiment)
+
+end
