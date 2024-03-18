@@ -15,6 +15,7 @@ using LsqFit #Used for fitting amplification, Intensity Response, and Resistance
 import Polynomials as PN #used for fitting and stats
 
 using StatsBase #Used for mean, std, and SEM functions.
+using Statistics
 using HypothesisTests
 
 #= Packages not yet uses
