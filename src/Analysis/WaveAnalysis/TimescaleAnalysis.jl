@@ -3,7 +3,7 @@ This function returns all the time stamps in a spike or burst array
     The same function exists in RetinalChaos
 """
 
-function get_timestamps(tseries::Vector{T}, spike_array::Array{Bool,1}) where {T<:Real}
+function get_timestamps(tseries::Vector{T}, spike_array::BitArray{1}) where {T<:Real}
     diff_vals = map(i -> (spike_array[i] - spike_array[i+1]), 1:length(spike_array)-1)
     diff_starts = findall(x -> x == -1, diff_vals) #This is a list of all the starting points in the array
     diff_ends = findall(x -> x == 1, diff_vals) #This is a list of all the ending points in the array
@@ -20,57 +20,25 @@ function get_timestamps(tseries::Vector{T}, spike_array::Array{Bool,1}) where {T
         diff_ends = diff_ends[2:end]
     end
 
-    return hcat(tseries[diff_starts], tseries[diff_ends])
+    return zip(tseries[diff_starts], tseries[diff_ends]) |> collect
 end
 
-function get_timestamps(tseries::Vector{T}, spike_array::Array{Bool,2}; dim=2) where {T<:Real}
-    dims = dim == 2 ? 1 : 2
-    sizes = size(spike_array, dims)
-    tstamps = Array{Matrix{T},1}(undef, sizes...)
-    #test = map(x, spike_array)
-    for i in 1:sizes #focus the analysis on the last data channel
-        if dim == 2
-            tstamps[i] = get_timestamps(tseries, spike_array[i, :])
-        elseif dim == 1
-            tstamps[i] = get_timestamps(tseries, spike_array[:, i])
+function get_timestamps(tseries::Vector{T}, spike_array::BitArray{3}) where {T<:Real}
+    n_trials, n_data, n_channels = size(spike_array)
+    tstamps = Array{Vector{Tuple{T,T}}}(undef, (size(spike_array,1), size(spike_array,3)))
+    for trial in 1:n_trials #focus the analysis on the last data channel
+        for channel in 1:n_channels
+            tstamps[trial, channel] = get_timestamps(tseries, spike_array[trial, :, channel])
         end
     end
     return tstamps
 end
 
-
-function get_timestamps(tseries::Vector{T}, spike_array::Array{Bool,N}; dim=2) where {T<:Real,N}
-    @assert N > 2
-    dims = collect(1:N)[collect(1:N).!=dim]
-    sizes = dims .|> x -> size(spike_array, x)
-    reshaped_array = reshape(spike_array, *(sizes...), size(spike_array, dim))
-    tstamps = get_timestamps(tseries, reshaped_array)
-    tstamps = reshape(tstamps, sizes...)
-    return tstamps
-
-    #println(sim)
-    tstamps = Array{Matrix{T},N - 1}(undef, sizes...)
-    return tstamps
-    test = map(x, spike_array)
-    for d in dims
-        for idx in axes(spike_array, d) #focus the analysis on the last data channel
-            #tstamps[i] = get_timestamps(tseries, spike_array[i, :])
-            println(idx)
-        end
-    end
-    return tstamps
-
-
-    for i in axes(spike_array, dims) #focus the analysis on the last data channel
-        tstamps[i] = get_timestamps(tseries, spike_array[i, :])
-    end
-    return tstamps
+function get_timestamps(exp::Experiment; Z = 4.0)
+    thresholds = calculate_threshold(exp, Z = Z)
+    spike_array = exp.data_array .> thresholds
+    get_timestamps(exp.t, spike_array)  
 end
-
-get_timestamps(trng::StepRangeLen{T,P,P}, spike_array::Array{Bool, N}) where {T<:Real, P, N} = get_timestamps(collect(trng), spike_array)
-
-
-#get_timestamps()
 
 function extract_interval(timestamps::Matrix{T};
     max_duration=10e5, max_interval=10e5,
