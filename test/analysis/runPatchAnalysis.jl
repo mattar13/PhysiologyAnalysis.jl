@@ -9,7 +9,7 @@ using Statistics
 drive = "D:/"
 root = "Data/Patching/"
 folder = "2024_03_11_VglutGC6/Cell3/"
-file = "24311012.abf"
+file = "24311015.abf"
 filepath = joinpath(drive, root, folder, file)
 
 # Open and prepare the data______________________________________________________________#
@@ -24,7 +24,7 @@ timestamps = get_timestamps(data, Z = 2)
 # Eventually need to figure this out, but not today
 # max_interval_algorithim(timestamps[1,1], SPBmin = 1, verbose = true)
 
-#%% Plot the data _________________________________________________________________________#
+# Plot the data _________________________________________________________________________#
 fig = Figure(title = "Test")
 ax1 = Axis(fig[1,1], title = filepath,
      ylabel = "$(data.chNames[1]) ($(data.chUnits[1]))")
