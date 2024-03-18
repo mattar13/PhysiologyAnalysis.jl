@@ -8,8 +8,8 @@ using Statistics
 #%% Point to the file location ____________________________________________________________#
 drive = "D:/"
 root = "Data/Patching/"
-folder = "2024_03_11_VglutGC6/Cell3/"
-file = "24311015.abf"
+folder = "2024_03_11_VglutGC6/Cell2/"
+file = "24311005.abf"
 filepath = joinpath(drive, root, folder, file)
 
 # Open and prepare the data______________________________________________________________#
@@ -36,4 +36,3 @@ for i in 1:size(data,1)
 end
 
 display(fig)
-save("D:/Data/Analysis/test.png", fig)

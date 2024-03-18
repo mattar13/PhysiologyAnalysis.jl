@@ -10,8 +10,8 @@ using Statistics
 #%% Point to the file location ____________________________________________________________#
 drive = "D:/"
 root = "Data/Calcium Imaging/"
-folder = "2024_03_11_VglutGC6/Cell3/"
-file = "freeRec001.tif"
+folder = "2024_03_11_VglutGC6/Cell2/"
+file = "freeRec004.tif"
 filepath = joinpath(drive, root, folder, file);
 
 # Open and prepare the data______________________________________________________________#
@@ -31,8 +31,6 @@ fig = Figure(size = (500, 750))
 ax1 = Axis(fig[1,1])
 ax2 = Axis(fig[2,1])
 rowsize!(fig.layout, 2, Relative(1/4))
-maximum(mov)
-minimum(mov)
 hm1 = heatmap!(ax1, xlims, ylims, zproj, colormap = Reverse(:speed), colorrange = (0.0, 0.01))
 lines!(ax2, t, fluo)
 ticker = vlines!(ax2, [0.0])
