@@ -40,15 +40,29 @@ function get_timestamps(exp::Experiment; Z = 4.0)
     get_timestamps(exp.t, spike_array)  
 end
 
-function extract_interval(timestamps::Matrix{T};
+function extract_interval(timestamps::Vector{Tuple{T,T}},     
     max_duration=10e5, max_interval=10e5,
     min_duration=0.0, min_interval=0.0
-) where {T<:Real}
-    durations = timestamps[:, 2] .- timestamps[:, 1]
-    lagged_starts = timestamps[2:end, 1]
-    lagged_ends = timestamps[1:end-1, 2]
-    intervals = lagged_starts .- lagged_ends
+) where T <: Real
+    durations = map(ts -> (ts[2]-ts[1]), timestamps)
+    intervals = map(i -> timestamps[i][1] - timestamps[i-1][2], 2:length(timestamps))
     return durations[min_duration.<durations.<max_duration], intervals[min_interval.<intervals.<max_interval]
+end
+
+function extract_interval(timestamps::Matrix{Vector{Tuple{T,T}}}; kwargs...) where {T<:Real}
+    durations = Array{Vector{T}}(undef, size(timestamps))
+    intervals = Array{Vector{T}}(undef, size(timestamps))
+    for trial in axes(timestamps,1)
+        for channel in axes(timestamps, 2)
+            tstamps = timestamps[trial, channel]
+            if !isempty(tstamps)
+                duration_I, interval_I = extract_interval(tstamps; kwargs...)
+                durations[trial, channel] = duration_I
+                intervals[trial, channel] = interval_I
+            end
+        end
+    end
+    return durations, intervals
 end
 
 function extract_interval(timestamp_arr::VecOrMat{Matrix{T}};
