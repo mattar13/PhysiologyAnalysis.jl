@@ -36,3 +36,4 @@ for i in 1:size(data,1)
 end
 
 display(fig)
+save("D:/Data/Analysis/ic_test.png")

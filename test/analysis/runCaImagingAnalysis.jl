@@ -21,11 +21,11 @@ px_x, px_y = data.HeaderDict["framesize"]
 xlims = data.HeaderDict["xrng"]; #Extract the x domain
 ylims = data.HeaderDict["yrng"]; #Extract the y domain
 t = data.t; #Extract the t domain
-
-mov = get_all_frames(data); #get all frames as a 3D array
+#Every other frame is a different channel
+mov = get_all_frames(data)[:,:,1:2:end]; #get all frames as a 3D array
 fluo = mean(mov, dims = (1,2))[1,1,:]
 zproj = maximum(mov, dims = 3)[:,:,1] #Can we save this directly? 
-
+t = t[1:2:end]
 # Plot the data _________________________________________________________________________#
 fig = Figure(size = (500, 750))
 ax1 = Axis(fig[1,1])
@@ -36,8 +36,8 @@ lines!(ax2, t, fluo)
 ticker = vlines!(ax2, [0.0])
 display(fig)
 
-#%% Animate the Imaging video ___________________________________________________________#
-record(fig, "D:/Data/Analysis/ca_img.mp4", 2:size(data,2), framerate = fps*10) do i 
+# Animate the Imaging video ___________________________________________________________#
+record(fig, "D:/Data/Analysis/ca_img_test.mp4", 2:length(t), framerate = fps*10) do i 
     println(i)
     hm1[3] = mov[:,:,i]
     ticker[1] = [t[i]]
