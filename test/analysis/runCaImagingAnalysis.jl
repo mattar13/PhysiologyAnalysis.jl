@@ -26,6 +26,7 @@ mov = get_all_frames(data)[:,:,1:2:end]; #get all frames as a 3D array
 fluo = mean(mov, dims = (1,2))[1,1,:]
 zproj = maximum(mov, dims = 3)[:,:,1] #Can we save this directly? 
 t = t[1:2:end]
+
 # Plot the data _________________________________________________________________________#
 fig = Figure(size = (500, 750))
 ax1 = Axis(fig[1,1])
