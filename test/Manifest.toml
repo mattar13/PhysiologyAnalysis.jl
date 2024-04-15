@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.2"
+julia_version = "1.9.4"
 manifest_format = "2.0"
 project_hash = "1d3c61baaeef1b1a8460e8237abe34f809ce1f2c"
 
@@ -477,10 +477,10 @@ uuid = "5ae413db-bbd1-5e63-b57d-d24a61df00f5"
 version = "2.2.4+0"
 
 [[deps.ElectroPhysiology]]
-deps = ["ContinuousWavelets", "DSP", "DataFrames", "Dates", "Documenter", "Polynomials", "Statistics", "Wavelets", "XLSX"]
-git-tree-sha1 = "1f09dba5369a11078f952abf76dba005edd0603b"
+deps = ["ContinuousWavelets", "DSP", "DataFrames", "Dates", "Documenter", "Polynomials", "Requires", "Statistics", "Wavelets", "XLSX"]
+git-tree-sha1 = "3f56d6722b029b34cca25d9090203749a82defc6"
 uuid = "da7a9670-f599-43ac-b818-143f8bf87d45"
-version = "0.4.13"
+version = "0.5.2"
 
 [[deps.EnumX]]
 git-tree-sha1 = "bdb1942cd4c45e3c678fd11569d5cccd80976237"
@@ -1170,12 +1170,12 @@ version = "0.3.1"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
-version = "0.6.3"
+version = "0.6.4"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "7.84.0+0"
+version = "8.4.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -1184,7 +1184,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
-version = "1.10.2+0"
+version = "1.11.0+1"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1628,9 +1628,11 @@ version = "0.4.20"
 
 [[deps.PhysiologyPlotting]]
 deps = ["Dates", "Distributions", "ElectroPhysiology", "Requires", "Statistics"]
-git-tree-sha1 = "9e72a5660f1ea98d80c2f9455e661921d287c3b4"
+git-tree-sha1 = "74d24e635dcad82b0edb03a71c0d644777afe97d"
+repo-rev = "master"
+repo-url = "https://github.com/mattar13/PhysiologyPlotting.jl.git"
 uuid = "d5a2a81f-3167-4eb5-8f67-b1ebe6a4430d"
-version = "0.1.12"
+version = "0.1.13"
 
 [[deps.PikaParser]]
 deps = ["DocStringExtensions"]
@@ -2491,7 +2493,7 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.48.0+0"
+version = "1.52.0+1"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
