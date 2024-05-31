@@ -122,14 +122,18 @@ function __init__()
      @require FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549" begin
           using .FileIO
           @require Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0" begin
-              using .Images
-              @require ImageView = "86fae568-95e7-573e-a6b2-d8a6b900c9ef" begin
-                  using .ImageView
-                  include("Analysis/ImagingAnalysis/PixelExtraction.jl")
-                  println("Imported necessary things")
-                  export zProject, frameAverage 
-                  export normalize, binarize
-                  export findROIcentroid
+               using .Images
+               @require ImageView = "86fae568-95e7-573e-a6b2-d8a6b900c9ef" begin
+                    using .ImageView
+                    include("Analysis/ImagingAnalysis/PixelExtraction.jl")
+                    println("Imported necessary things")
+                    export zProject, frameAverage 
+                    export normalize, binarize
+                    export findROIcentroid
+                    @require ImageFiltering = "6a3955dd-da59-5b1f-98d4-e7296123deb5" begin
+                         include("Analysis/ImagingAnalysis/deltaF.jl")
+                         export deltaF, deltaF_F, roll_mean
+                    end
               end
           end
      end
