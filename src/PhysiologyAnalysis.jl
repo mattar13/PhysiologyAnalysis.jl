@@ -85,36 +85,11 @@ function __init__()
           using .XLSX
           @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
                using .DataFrames
-               #println("Dataframes exported)
                @require Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1" begin
                     using .Query 
-                    #println(Query Exported)
-                    
-                    export readtable, readxlsx, XLSX
-                    include("Datasheets/RegexFunctions.jl")
 
                     include("Datasheets/FilePathExtraction.jl")
-
-                    include("Datasheets/DatasheetFunctions.jl")
-                    export matchDataset, excludeDataset, concatDatasets
-                    export analyzeXLSX
-                    
-                    include("Datasheets/DatasheetCreation.jl")
-                    export openDataset, createDataset
-                    export saveDataset, backupDataset
-
-                    include("Datasheets/DatasheetAnalysis.jl")
-                    export runDataAnalysis
-                    export runTraceAnalysis
-                    export runExperimentAnalysis
-                    export runConditionsAnalysis
-                    export runStatsAnalysis
-                    export matchExperiment, excludeExperiment
-                    export flagExperiment, flagExperiment!, unflagALL!
-                    export parseColumn!
-                    export GenerateFitFrame
-
-                    include("Datasheets/extra_utilities.jl")
+                    export traverse_root
                end
           end
      end

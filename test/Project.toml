@@ -1,5 +1,6 @@
 [deps]
 Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
@@ -8,3 +9,5 @@ ImageView = "86fae568-95e7-573e-a6b2-d8a6b900c9ef"
 Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
 PhysiologyPlotting = "d5a2a81f-3167-4eb5-8f67-b1ebe6a4430d"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1"
+XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
