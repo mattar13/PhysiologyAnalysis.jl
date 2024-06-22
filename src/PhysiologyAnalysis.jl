@@ -8,7 +8,7 @@ using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second
 import ElectroPhysiology: TWO_PHOTON
-import ElectroPhysiology: readABFInfo
+import ElectroPhysiology: readABFInfo, getABF_datetime
 #= Packages used for fitting data ====================================#
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 
