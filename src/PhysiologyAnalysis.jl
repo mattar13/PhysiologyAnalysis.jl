@@ -8,6 +8,7 @@ using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second
 import ElectroPhysiology: TWO_PHOTON
+import ElectroPhysiology: readABFInfo
 #= Packages used for fitting data ====================================#
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 
@@ -90,6 +91,7 @@ function __init__()
 
                     include("Datasheets/FilePathExtraction.jl")
                     export traverse_root
+                    export getABF_datetime
                end
           end
      end
