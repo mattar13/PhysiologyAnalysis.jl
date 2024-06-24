@@ -92,6 +92,16 @@ function __init__()
                     include("Datasheets/FilePathExtraction.jl")
                     export traverse_root
                     export getABF_datetime
+
+                    include("Datasheets/DataSheetCreation.jl")
+                    export create2PDataSheet
+                    export save2PDataSheet, open2PDataSheet
+
+                    include("Datasheets/DataSheetModify.jl")
+                    export expand_dates
+
+                    include("Datasheets/DataSheetAnalysis.jl")
+                    export pair_experiments
                end
           end
      end
