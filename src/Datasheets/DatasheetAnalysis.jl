@@ -9,7 +9,7 @@ function pair_experiments(patch_datasheet, img_datasheet;
         "TIF Date" => DateTime[]
     )
     for (i, row) in enumerate(eachrow(patch_datasheet))
-        if !occursin("IV", row.Protocols)
+        if occursin("5mins", row.protocols)
             date = row.date_created
             elapsed_dates = (Dates.value.(abs.(date.- img_datasheet[:, "date_created"]))./1000)./60
 

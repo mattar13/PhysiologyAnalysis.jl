@@ -19,23 +19,26 @@ function create2PDataSheet(img_dir, patch_dir; verbose = false)
             end
         end
     end
-    img_allDates
-    img_datasheet = DataFrame(filename = img_files, date_created = img_allDates, filetype = "TIF")
+    img_datasheet = DataFrame(filename = img_files, date_created = img_allDates, filetype = "TIF", protocols = "Image")
 
 
     patch_files = traverse_root(patch_dir)
     patch_allDates = []
+    protocols = []
+
     for (idx, patch_file) in enumerate(patch_files)
         if verbose
             println(patch_file)
         end
+        HeaderDict = ElectroPhysiology.readABFInfo(patch_file)
         push!(patch_allDates, getABF_datetime(patch_file))
+        push!(protocols, HeaderDict["ProtocolPath"])
         if verbose
             println("File $idx out of $(length(patch_files))")
         end
     end
-    patch_allDates
-    patch_datasheet = DataFrame(filename = patch_files, date_created = patch_allDates, filetype = "ABF")
+    patch_datasheet = DataFrame(filename = patch_files, date_created = patch_allDates, filetype = "ABF", protocols = protocols)
+
     all_files = [img_datasheet; patch_datasheet] |> @orderby(_.date_created) |> DataFrame
     return Dict{String, DataFrame}(
         "All Files" => all_files,
