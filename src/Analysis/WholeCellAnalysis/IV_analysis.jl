@@ -18,7 +18,6 @@ function calculate_peak(exp::Experiment{E, T}; channel = 1, digital_cmd = "Cmd 0
      cmd_v = exp[:, findfirst(exp[1,:,3] .!= 0.0), 3]
      I_CM = zeros(cmd_v |> size)
      for (i, tr) in enumerate(eachtrial(exp))
-         println(tr |> size)
          if cmd_v[i]-10 < 0.0 #I don't know why we have to subtract 10. Maybe this isn't every time
              I_CM[i] = minimum(tr, dims = 2)[1, 1, channel]
          else
