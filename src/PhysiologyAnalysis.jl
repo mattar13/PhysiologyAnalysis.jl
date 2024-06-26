@@ -8,6 +8,7 @@ using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
 import ElectroPhysiology: now, year, month, day, hour, minute, second
 import ElectroPhysiology: TWO_PHOTON
+import ElectroPhysiology: readABFInfo, getABF_datetime
 #= Packages used for fitting data ====================================#
 using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 
@@ -85,36 +86,22 @@ function __init__()
           using .XLSX
           @require DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0" begin
                using .DataFrames
-               #println("Dataframes exported)
                @require Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1" begin
                     using .Query 
-                    #println(Query Exported)
-                    
-                    export readtable, readxlsx, XLSX
-                    include("Datasheets/RegexFunctions.jl")
 
                     include("Datasheets/FilePathExtraction.jl")
+                    export traverse_root
+                    export getABF_datetime
 
-                    include("Datasheets/DatasheetFunctions.jl")
-                    export matchDataset, excludeDataset, concatDatasets
-                    export analyzeXLSX
-                    
-                    include("Datasheets/DatasheetCreation.jl")
-                    export openDataset, createDataset
-                    export saveDataset, backupDataset
+                    include("Datasheets/DataSheetCreation.jl")
+                    export create2PDataSheet
+                    export save2PDataSheet, open2PDataSheet
 
-                    include("Datasheets/DatasheetAnalysis.jl")
-                    export runDataAnalysis
-                    export runTraceAnalysis
-                    export runExperimentAnalysis
-                    export runConditionsAnalysis
-                    export runStatsAnalysis
-                    export matchExperiment, excludeExperiment
-                    export flagExperiment, flagExperiment!, unflagALL!
-                    export parseColumn!
-                    export GenerateFitFrame
+                    include("Datasheets/DataSheetModify.jl")
+                    export expand_dates
 
-                    include("Datasheets/extra_utilities.jl")
+                    include("Datasheets/DataSheetAnalysis.jl")
+                    export pair_experiments
                end
           end
      end
