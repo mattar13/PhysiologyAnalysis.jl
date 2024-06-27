@@ -8,7 +8,6 @@ function calculate_baseline(exp::Experiment{E, T}; channel = 1) where {E, T <: R
      baselines
 end
 
-
 function calculate_peak(exp::Experiment{E, T}; channel = 1, digital_cmd = "Cmd 0") where {E, T<:Real}
      if size(exp,3) != 3
           #We need to add a new channel
@@ -41,4 +40,15 @@ function calculate_resistance(exp)
      Rin = 1/Rin_fit.param[1]*1e3
 
      return Rs, Rin
+end
+
+function calculate_capacitance(exp; channel = 1)
+     V_HOLD = extract_timepoint(exp; channel = 2)
+     I_RIN = extract_timepoint(exp) #Find the stable state current
+     epoch_idx1 = exp.HeaderDict["EpochTableByChannel"][channel].epochWaveformBytrial[1].p1s[3] #This monstrosity is the first point of the
+     epoch_idx2 = exp.HeaderDict["EpochTableByChannel"][channel].epochWaveformBytrial[1].p2s[3] #This monstrosity is the first point of the
+     data_section = exp[:,epoch_idx1:epoch_idx2,1].-I_RIN
+     Q = sum((data_section[4,:])) * (exp.dt/1e3) * 1e-9 #This is the charge in Amp*ms
+     V = V_HOLD[4,1] * 1e-3 #This is the holding voltage in V
+     abs.((Q./V)*1e12) #This is the capacitance in picoFarads
 end
