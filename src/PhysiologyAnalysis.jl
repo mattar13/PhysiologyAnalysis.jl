@@ -107,7 +107,7 @@ function __init__()
                     export expand_dates
 
                     include("Datasheets/DataSheetAnalysis.jl")
-                    export pair_experiments
+                    export pair_experiments!, IV_analysis!
                end
           end
      end

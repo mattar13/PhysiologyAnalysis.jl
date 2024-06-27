@@ -33,13 +33,13 @@ function calculate_resistance(exp)
      I_CM = calculate_peak(exp)
      I_RIN = extract_timepoint(exp)
      @. lin_model(x, p) = p[1]*x+p[2]
-     Rs_fit = curve_fit(lin_model, V_HOLD, I_CM, [1.0, 0.0])
-     Rin_fit = curve_fit(lin_model, V_HOLD[1:4], I_RIN[1:4], [1.0, 0.0]) #The higher 
-     
-     Rs = 1/Rs_fit.param[1]*1e3
-     Rin = 1/Rin_fit.param[1]*1e3
-
-     return Rs, Rin
+     Rs_fit = curve_fit(lin_model, I_CM, V_HOLD,  [1.0, 0.0])
+     Rin_fit = curve_fit(lin_model, I_RIN[1:4], V_HOLD[1:4],  [1.0, 0.0]) #The higher 
+     Rs = Rs_fit.param[1]*1e3
+     Rin = Rin_fit.param[1]*1e3
+     V_M = Rin_fit.param[2]
+     V_HOLD = Rs_fit.param[2]
+     return Rs, Rin, V_M, V_HOLD
 end
 
 function calculate_capacitance(exp; channel = 1)
