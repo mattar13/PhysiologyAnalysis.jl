@@ -12,6 +12,9 @@ V_HOLD = extract_timepoint(data, channel = 2)
 I_CM = calculate_peak(data)
 I_RIN = extract_timepoint(data)
 Rs, Rin = calculate_resistance(data)
+Cm = calculate_capacitance(data)
+
+PhysiologyAnalysis.__init__()
 
 #%% When we get to the dataframe creation we can fill in details here
 using XLSX, DataFrames, Query
