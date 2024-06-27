@@ -5,7 +5,7 @@ using PhysiologyAnalysis
 using Pkg; Pkg.activate("test")
 
 # Can we do an analysis for the IV curves
-data_fn = raw"G:\Data\Patching\2024_06_22_VCGC6_P8\Cell4\24622021.abf"
+data_fn = raw"D:\Data\Patching\2024_06_22_VCGC6_P8\Cell4\24622021.abf"
 
 data = readABF(data_fn); #Open the data
 V_HOLD = extract_timepoint(data, channel = 2)
@@ -45,10 +45,7 @@ series_resistance = IV_fit.coefs[1]
 Ic_fit = LinRange(-1000, 3000, 1000)
 Vc_fit = IV_fit.(Ic_fit)
 
-
-
-
-#=[Plot data]==================================================================#
+#%%=[Plot data]==================================================================#
 fig = Figure(size = (900, 400))
 ax1a = Axis(fig[1,1], ylabel = "Current (pA)")
 ax2a = Axis(fig[2,1], xlabel = "Time (s)", ylabel = "Voltage (mV)")
