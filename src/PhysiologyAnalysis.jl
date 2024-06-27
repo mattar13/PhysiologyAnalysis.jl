@@ -57,8 +57,9 @@ export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
 
-include("Analysis/WholeCellAnalysis/IV_analysis.jl")
-export calculate_baseline, calculate_peak, calculate_resistance
+include("Analysis/WholeCellAnalysis/passive_analysis.jl")
+export calculate_baseline, calculate_peak 
+export calculate_resistance, calculate_capacitance
 export extract_timepoint
 # These functions are used by the base
 #This file contains things like extraction and convienance functions
