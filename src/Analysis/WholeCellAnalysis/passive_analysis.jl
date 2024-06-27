@@ -13,7 +13,6 @@ function calculate_peak(exp::Experiment{E, T}; channel = 1, digital_cmd = "Cmd 0
           #We need to add a new channel
           create_signal_waveform!(exp, digital_cmd)
      end
-
      cmd_v = exp[:, findfirst(exp[1,:,3] .!= 0.0), 3]
      I_CM = zeros(cmd_v |> size)
      for (i, tr) in enumerate(eachtrial(exp))
