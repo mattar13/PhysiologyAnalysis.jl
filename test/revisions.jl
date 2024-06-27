@@ -3,7 +3,17 @@ using Dates
 using ElectroPhysiology 
 using PhysiologyAnalysis
 using Pkg; Pkg.activate("test")
-#When we get to the dataframe creation we can fill in details here
+
+# Can we do an analysis for the IV curves
+data_fn = raw"G:\Data\Patching\2024_06_22_VCGC6_P8\Cell4\24622021.abf"
+
+data = readABF(data_fn); #Open the data
+V_HOLD = extract_timepoint(data, channel = 2)
+I_CM = calculate_peak(data)
+I_RIN = extract_timepoint(data)
+Rs, Rin = calculate_resistance(data)
+
+#%% When we get to the dataframe creation we can fill in details here
 using XLSX, DataFrames, Query
 using FileIO, Images, ImageView, ImageMagick
 import .PhysiologyAnalysis.traverse_root
@@ -68,5 +78,3 @@ img_datasheet = dataset["TIF Files"]
 patch_datasheet = dataset["ABF Files"] 
 dataset["Paired Files"] = pair_experiments(patch_datasheet, img_datasheet)
 save2PDataSheet(filename, dataset)
-
-

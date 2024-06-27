@@ -6,6 +6,7 @@ using Dates
 
 using ElectroPhysiology
 import ElectroPhysiology: Experiment, readABF, parseABF
+import ElectroPhysiology: eachtrial, eachchannel
 import ElectroPhysiology: now, year, month, day, hour, minute, second
 import ElectroPhysiology: TWO_PHOTON
 import ElectroPhysiology: readABFInfo, getABF_datetime
@@ -55,6 +56,11 @@ include("Analysis/WaveAnalysis/TimescaleAnalysis.jl")
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
 
+
+include("Analysis/WholeCellAnalysis/passive_analysis.jl")
+export calculate_baseline, calculate_peak 
+export calculate_resistance, calculate_capacitance
+export extract_timepoint
 # These functions are used by the base
 #This file contains things like extraction and convienance functions
 function set_calibration_path(pathname::String ;path = "$(homepath)/Datasheets/calibration.txt")
