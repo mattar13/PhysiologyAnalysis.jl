@@ -69,6 +69,19 @@ function set_calibration_path(pathname::String ;path = "$(homepath)/Datasheets/c
      end
 end
 
+using ElectroPhysiology.FileIO
+using ElectroPhysiology.Images
+using ElectroPhysiology.ImageView
+include("Analysis/ImagingAnalysis/PixelExtraction.jl")
+export zProject, frameAverage 
+export normalize, binarize
+export findROIcentroid
+
+using ElectroPhysiology.ImageFiltering
+include("Analysis/ImagingAnalysis/deltaF.jl")
+export deltaF, deltaF_F, roll_mean
+
+
 homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
 
 calibration_path() = read("$(homepath)/Datasheets/calibration.txt", String)
@@ -109,25 +122,6 @@ function __init__()
                     include("Datasheets/DataSheetAnalysis.jl")
                     export pair_experiments!, IV_analysis!
                end
-          end
-     end
-
-     @require FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549" begin
-          using .FileIO
-          @require Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0" begin
-               using .Images
-               @require ImageView = "86fae568-95e7-573e-a6b2-d8a6b900c9ef" begin
-                    using .ImageView
-                    include("Analysis/ImagingAnalysis/PixelExtraction.jl")
-                    println("Imported necessary things")
-                    export zProject, frameAverage 
-                    export normalize, binarize
-                    export findROIcentroid
-                    @require ImageFiltering = "6a3955dd-da59-5b1f-98d4-e7296123deb5" begin
-                         include("Analysis/ImagingAnalysis/deltaF.jl")
-                         export deltaF, deltaF_F, roll_mean
-                    end
-              end
           end
      end
 
