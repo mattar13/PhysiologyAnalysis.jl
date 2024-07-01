@@ -69,15 +69,15 @@ function set_calibration_path(pathname::String ;path = "$(homepath)/Datasheets/c
      end
 end
 
-using ElectroPhysiology.FileIO
-using ElectroPhysiology.Images
-using ElectroPhysiology.ImageView
+using FileIO
+using Images
+using ImageView
 include("Analysis/ImagingAnalysis/PixelExtraction.jl")
 export zProject, frameAverage 
 export normalize, binarize
 export findROIcentroid
 
-using ElectroPhysiology.ImageFiltering
+using ImageFiltering
 include("Analysis/ImagingAnalysis/deltaF.jl")
 export deltaF, deltaF_F, roll_mean
 
