@@ -69,9 +69,7 @@ function set_calibration_path(pathname::String ;path = "$(homepath)/Datasheets/c
      end
 end
 
-using FileIO
-using Images
-using ImageView
+using FileIO, Images
 include("Analysis/ImagingAnalysis/PixelExtraction.jl")
 export zProject, frameAverage 
 export normalize, binarize
