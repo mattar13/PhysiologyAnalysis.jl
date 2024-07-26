@@ -27,9 +27,3 @@ function cellpose_model(;model_type="cyto", relative_path_loc = "Analysis\\Imagi
      model = cellpose.models.Cellpose(model_type=model_type)
      return model
 end
-
-function cellpose_eval(img)
-     mask, flow, style, diam = model.eval(grn_zproj)
-     return mask
-end
-
