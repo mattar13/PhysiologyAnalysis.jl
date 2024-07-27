@@ -5,8 +5,32 @@ using PhysiologyAnalysis
 using Pkg; Pkg.activate("test")
 
 using GLMakie, PhysiologyPlotting
-using PyCall
 
+# SETUPS
+
+#Set the environment for the python path
+ENV["PYTHON"] = raw"C:\Users\mtarc\anaconda3"
+using PyCall
+using Conda
+
+Conda.add("cellpose")
+Conda.pip_interop(true, ENV["PYTHON"])
+Conda.pip("install", "opencv-python")
+Conda.pip("install", "numpy")
+
+#╔═╡Set up the python environment to play nice with julia
+path_loc = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]..., "Analysis", "ImagingAnalysis", "CellPoseModels") 
+py"""
+import os
+os.environ["CELLPOSE_LOCAL_MODELS_PATH"] = $path_loc
+import cellpose
+from cellpose import models
+"""
+
+#╔═╡Import and create the models
+cellpose = pyimport("cellpose")
+model = cellpose.models.Cellpose(model_type="cyto")
+ 
 #╔═╡Point to the filename
 data2P_fn = raw"G:\Data\Calcium Imaging\2024_07_24_OPN4_P9\ca_img4004.tif"
 
@@ -24,17 +48,7 @@ ylims = LinRange(ymin, ymax, size(img_arr,2))
 grn_zproj = project(data2P, dims = (3))[:,:,1,1]
 red_zproj = project(data2P, dims = (3))[:,:,1,2]
 
-#╔═╡Set up the python environment to play nice with julia
-path_loc = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]..., "Analysis", "ImagingAnalysis", "CellPoseModels") 
-py"""
-import os
-os.environ["CELLPOSE_LOCAL_MODELS_PATH"] = $path_loc
-import cellpose
-from cellpose import models
-"""
-#╔═╡Import and create the models
-cellpose = pyimport("cellpose")
-model = cellpose.models.Cellpose(model_type="cyto")
+
 mask, flow, style, diam = model.eval(grn_zproj)
 
 #%% ╔═╡Plot the figure
