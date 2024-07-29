@@ -3,11 +3,6 @@ using ElectroPhysiology, PhysiologyAnalysis
 using Pkg; Pkg.activate("test")
 using GLMakie, PhysiologyPlotting
 
-#%% We want to make several convienance functions so we can run everything
-include(raw"C:\Users\mtarc\.julia\dev\PhysiologyAnalysis\src\Analysis\ImagingAnalysis\CellPose_port.jl")
-
-model = cellpose_model()
-
 #╔═╡Point to the filename
 data2P_fn = raw"G:\Data\Calcium Imaging\2024_07_24_OPN4_P9\ca_img4004.tif"
 
@@ -25,6 +20,9 @@ ylims = LinRange(ymin, ymax, size(img_arr,2))
 grn_zproj = project(data2P, dims = (3))[:,:,1,1]
 red_zproj = project(data2P, dims = (3))[:,:,1,2]
 
+include(raw"C:\Users\mtarc\.julia\dev\PhysiologyAnalysis\src\Analysis\ImagingAnalysis\CellPose_port.jl")
+model = cellpose_model()
+mask, flow, style, diam = model.eval(grn_zproj)
 
 #%% ╔═╡Plot the figure
 fig = Figure(figsize = (1000, 500))
