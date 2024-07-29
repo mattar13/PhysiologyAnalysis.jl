@@ -1,16 +1,16 @@
 using PyCall, Conda
 
-function build_cellpose(;python_env = "", model_dir = nothing)
-     if isnothing(model_dir)
-          error("Please specify a directory for the models to reside in")
-     else
-          ENV["PYTHON"] = python_env
-          Pkg.build("PyCall")
-          #This is necessary to run cellpose from new
-          Conda.pip_interop(true)
-          Conda.pip("install", "opencv-python")
-          Conda.pip("install")
-     end
+"""
+In order to run this, we need to have python included in the path
+"""
+function build_cellpose(;python_env = "")
+     ENV["PYTHON"] = python_env
+     Pkg.build("PyCall")
+     #This is necessary to run cellpose from new
+     Conda.pip_interop(true)
+     Conda.pip("install", "numpy")
+     Conda.pip("install --user", "opencv-python")
+     Conda.pip("install", "cellpose")
 end
 
 function cellpose_model(;model_type="cyto", relative_path_loc = "Analysis\\ImagingAnalysis\\CellPoseModels\\")
