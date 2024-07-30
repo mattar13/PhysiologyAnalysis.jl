@@ -123,10 +123,13 @@ function __init__()
           end
      end
 
-     @require Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c" begin
-          using .Flux
-          #include("Analysis/ImagingAnalysis/CellPose_port.jl")
-          #export build_model
+     @require PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0" begin       
+          using .PyCall
+          @require Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d" begin
+               using .Conda
+               include("Analysis/ImagingAnalysis/CellPose_port.jl")
+               println("CellPose port loaded")
+          end
      end
 
      #We want to add something for PyCall 
