@@ -1,5 +1,3 @@
-using PyCall, Conda
-
 """
 In order to run this, we need to have python included in the path
 """
