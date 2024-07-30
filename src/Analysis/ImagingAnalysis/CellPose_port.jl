@@ -9,7 +9,7 @@ function build_cellpose(;python_env = "", model_dir = nothing)
           #This is necessary to run cellpose from new
           Conda.pip_interop(true)
           Conda.pip("install", "opencv-python")
-          Conda.pip("install")
+          Conda.pip("install", "cellpose")
      end
 end
 
