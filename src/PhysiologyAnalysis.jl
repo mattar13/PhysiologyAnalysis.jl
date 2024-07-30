@@ -129,6 +129,7 @@ function __init__()
                using .Conda
                include("Analysis/ImagingAnalysis/CellPose_port.jl")
                println("CellPose port loaded")
+               export cellpose_model
           end
      end
 
