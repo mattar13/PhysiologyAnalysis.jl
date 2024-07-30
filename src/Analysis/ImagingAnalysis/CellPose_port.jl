@@ -16,14 +16,19 @@ end
 function cellpose_model(;model_type="cyto", relative_path_loc = "Analysis\\ImagingAnalysis\\CellPoseModels\\")
      #╔═╡Set up the python environment to play nice with julia
      path_loc = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]..., relative_path_loc) 
-     py"""
-     import os
-     os.environ["CELLPOSE_LOCAL_MODELS_PATH"] = $path_loc
-     import cellpose
-     from cellpose import models
-     """
-     #╔═╡Import and create the models
-     cellpose = pyimport("cellpose")
-     model = cellpose.models.Cellpose(model_type=model_type)
-     return model
+     try
+          py"""
+          import os
+          os.environ["CELLPOSE_LOCAL_MODELS_PATH"] = $path_loc
+          import cellpose
+          from cellpose import models
+          """
+          #╔═╡Import and create the models
+          cellpose = pyimport("cellpose")
+          model = cellpose.models.Cellpose(model_type=model_type)
+          return model
+     catch error
+          #If the error is with python, I want to build_cellpose from PyCall
+          throw(error)
+     end
 end
