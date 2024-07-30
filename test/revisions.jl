@@ -49,3 +49,17 @@ for idx in 1:maximum(data2P.HeaderDict["ROIs"])
 end
 
 fig
+
+roi_mask = getROImask(data2P)
+idx = 1
+coords = findall(roi_mask .== idx)
+
+data2P.HeaderDict["state.acq.baseZoomFactor"]
+data2P.HeaderDict["state.motor.absZPosition"]
+data2P.HeaderDict["state.motor.absXPosition"]
+data2P.HeaderDict["state.motor.absYPosition"]
+data2P.HeaderDict["state.acq.numAvgFramesDisplay"]
+
+for (k,v) in data2P.HeaderDict
+    println(k)
+end
