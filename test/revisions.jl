@@ -4,18 +4,16 @@ using Pkg; Pkg.activate("test")
 using GLMakie, PhysiologyPlotting
 
 #╔═╡Point to the filename
-data2P_fn = raw"D:\Data\Calcium Imaging\2024_07_24_OPN4_P9\ca_img4004.tif"
+data2P_fn = raw"G:\Data\Calcium Imaging\2024_07_24_OPN4_P9\ca_img4004.tif"
 
 #╔═╡Extract the image
-domain_x = (xmin, xmax) = (0.0, 0.350)
-domain_y = (ymin, ymax) = (0.0, 0.350)
-data2P = readImage(data2P_fn);	
+data2P = readImage(data2P_fn);
+xlims = data2P.HeaderDict["xrng"]
+ylims = data2P.HeaderDict["yrng"]
 deinterleave!(data2P) #This seperates the movies into two seperate movies
 
 #╔═╡Seperate the red and green channels
 img_arr = get_all_frames(data2P)
-xlims = LinRange(ymin, xmax, size(img_arr,1))
-ylims = LinRange(ymin, ymax, size(img_arr,2))
 
 grn_trace = project(data2P, dims = (1,2))[1,1,:,1]
 red_trace = project(data2P, dims = (1,2))[1,1,:,2]
@@ -53,12 +51,6 @@ fig
 roi_mask = getROImask(data2P)
 idx = 1
 coords = findall(roi_mask .== idx)
-
-data2P.HeaderDict["state.acq.baseZoomFactor"]
-data2P.HeaderDict["state.motor.absZPosition"]
-data2P.HeaderDict["state.motor.absXPosition"]
-data2P.HeaderDict["state.motor.absYPosition"]
-data2P.HeaderDict["state.acq.numAvgFramesDisplay"]
 
 for (k,v) in data2P.HeaderDict
     println(k)
