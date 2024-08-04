@@ -56,7 +56,8 @@ using Peaks #Use this as a better way to find peaks
 include("Analysis/WaveAnalysis/TimescaleAnalysis.jl")
 export get_timestamps, extract_interval
 export max_interval_algorithim, timeseries_analysis
-export find_maxima
+export findmaxima
+export crosscor, crosscor!
 
 include("Analysis/WholeCellAnalysis/passive_analysis.jl")
 export calculate_baseline, calculate_peak 
