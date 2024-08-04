@@ -270,8 +270,6 @@ function timeseries_analysis(t, vm_array;
     end
 end
 
-
-
 #Eventually I will add a @require loop here
 function timeseries_analysis(t::AbstractArray{T}, vm_array::Array{T,N}, save_file::String;
     tstamps_name="timestamps", data_name="data",

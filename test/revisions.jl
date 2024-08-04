@@ -3,8 +3,8 @@ using ElectroPhysiology, PhysiologyAnalysis
 using Pkg; Pkg.activate("test")
 using GLMakie, PhysiologyPlotting
 
-#╔═╡Point to the filename
-data2P_fn = raw"D:\Data\Two Photon\2024_07_31_VGGC6_SWCNT-DA\CNT-DA_bolus_gentle016.tif" #might be good
+#%% ╔═╡Point to the filename
+data2P_fn = raw"D:\Data\Two Photon\2024_07_30_WT_SWCNT-DA\k_puff_cnt100_ipl004.tif" #might be good
 
 #╔═╡Extract the image
 data2P = readImage(data2P_fn);
@@ -12,7 +12,7 @@ xlims = data2P.HeaderDict["xrng"]
 ylims = data2P.HeaderDict["yrng"]
 deinterleave!(data2P) #This seperates the movies into two seperate movies
 
-#%% ╔═╡Seperate the red and green channels
+# ╔═╡Seperate the red and green channels
 img_arr = get_all_frames(data2P)
 red_zstack = img_arr[:,:,:,2]*100
 grn_zstack = img_arr[:,:,:,1]*100
@@ -26,13 +26,54 @@ delta_f_f_red_trace = mean(delta_f_f_red_zstack, dims = (1,2))[1,1,:]
 delta_f_f_grn_trace = mean(delta_f_f_grn_zstack, dims = (1,2))[1,1,:]
 
 #%% ╔═╡ I want to use the peakfinder algorithim
-using Peaks
-fig1 = Figure(size = (1000, 800))
-ax1 = GLMakie.Axis(fig1[1,1], title = "Green Trace")#, aspect = 1.0)
-lines!(ax1, data2P.t, delta_f_f_grn_trace)
-
 pks, vals = findmaxima(delta_f_f_grn_trace, 40)
-scatter!(ax1, data2P.t[pks], vals)
+pks = pks[vals.<10.0]
+vals = vals[vals.<10.0]
+
+#Do the crosscorrelation analysis
+using StatsBase
+
+#%% ╔═╡ Plot the results of the peak finding
+fig1 = Figure(size = (1000, 800))
+ax1 = GLMakie.Axis(fig1[1,1:2], title = "Green Trace")#, aspect = 1.0)
+ax2 = GLMakie.Axis(fig1[2,1:2], title = "Green Trace")#, aspect = 1.0)
+lines!(ax1, data2P.t, delta_f_f_grn_trace, color = :green)
+lines!(ax2, data2P.t, delta_f_f_red_trace, color = :red)
+
+scatter!(ax1, data2P.t[pks], vals, color = :red, markersize = 10.0)
+
+ax3a = GLMakie.Axis(fig1[3,1], title = "Section")#, aspect = 1.0)
+ax3b = GLMakie.Axis(fig1[3,2], title = "Section")#, aspect = 1.0)
+
+#Plot all of the wave events on top of each other (using the 40)
+event_length = 50
+new_t = (-event_length/2:event_length/2-1) * data2P.dt
+red_sect_arr = zeros(event_length, length(pks))
+for (i, pk) in enumerate(pks)
+    t = pk#data2P.t[pk]
+    if t-event_length/2 < 0
+        t_start = 1
+    else
+        t_start = round(Int64, t-event_length/2)
+    end
+
+    if t+event_length/2 > length(delta_f_f_grn_trace)
+       t_end = length(delta_f_f_grn_trace) 
+    else
+        t_end = round(Int64, t+event_length/2-1)
+    end
+
+    t_rng = t_start:t_end
+    grn_sect = delta_f_f_grn_trace[t_rng]
+    red_sect = delta_f_f_red_trace[t_rng]
+    red_sect_arr[1:length(red_sect), i] = red_sect
+    
+    lines!(ax3a, new_t, grn_sect, color = :green)
+    lines!(ax3b, new_t, red_sect, color = :red, alpha = 0.2)
+end
+red_sect_arr
+red_mean = mean(red_sect_arr, dims = 2)[:,1]
+lines!(ax3b, new_t, red_mean, color = :red)
 fig1
 
 #%% ╔═╡Plot the figure of the cells and their background
