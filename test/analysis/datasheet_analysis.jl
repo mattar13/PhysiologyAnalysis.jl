@@ -6,7 +6,6 @@ using Pkg; Pkg.activate("test")
 
 #%% When we get to the dataframe creation we can fill in details here
 using XLSX, DataFrames, Query
-using FileIO, Images, ImageView, ImageMagick
 
 #%% Open all dates for the imaging files
 img_dir = raw"D:\Data\Calcium Imaging"
