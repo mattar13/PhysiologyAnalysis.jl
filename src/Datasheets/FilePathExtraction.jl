@@ -8,3 +8,5 @@ function traverse_root(root_path)
      end
      return path_list
 end
+
+#%% Lets get a filename and extract all of the characteristics

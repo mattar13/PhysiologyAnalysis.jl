@@ -1,9 +1,14 @@
 using Revise
 using ElectroPhysiology, PhysiologyAnalysis
 using Pkg; Pkg.activate("test")
-using GLMakie, PhysiologyPlotting
 
-#╔═╡Point to the filename
+#%% ╔═╡This task is for filepath name and extraction using Dataframes.jl
+example_fn = raw"D:\Data\Patching\2024_07_22_OPN4_P7\Cell5\24722019.abf"
+
+
+
+#%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
+using GLMakie, PhysiologyPlotting
 data2P_fn = raw"G:\Data\Calcium Imaging\2024_07_24_OPN4_P9\ca_img4004.tif"
 
 #╔═╡Extract the image
@@ -22,7 +27,6 @@ grn_zproj = project(data2P, dims = (3))[:,:,1,1]
 red_zproj = project(data2P, dims = (3))[:,:,1,2]
 
 #Pkg.build("PyCall")
-PhysiologyAnalysis.__init__()
 using PyCall, Conda
 model = cellpose_model()
 mask, flow, style, diam = model.eval(grn_zproj)
@@ -46,7 +50,6 @@ for idx in 1:maximum(data2P.HeaderDict["ROIs"])
     lines!(ax2, data2P.t, ROI_trace)
 end
 
-fig
 
 roi_mask = getROImask(data2P)
 idx = 1
