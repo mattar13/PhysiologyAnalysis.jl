@@ -1,21 +1,22 @@
-using Revise
+using Dates, Revise
 using ElectroPhysiology, PhysiologyAnalysis
 using Pkg; Pkg.activate("test")
 
 #%% ╔═╡This task is for filepath name and extraction using Dataframes.jl
-example_fn = raw"D:\Data\Patching\2024_07_22_OPN4_P7\Cell5\24722019.abf"
+using XLSX, DataFrames, Query
+example_fn = raw"D:\Data\Patching\2024_07_22_OPN4g_P7\Cell5\24722019.abf"
+example_fn = raw"G:\Data\Calcium Imaging\2024_07_26_OPN4g_P11\ca_img1006.tif"
+
+age, genotype, cell_n = parse_cell_details(example_fn)
 
 
+file_match[:Year]
+example_files = raw"G:\Data\Patching"
 
-#%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
-using GLMakie, PhysiologyPlotting
-data2P_fn = raw"G:\Data\Calcium Imaging\2024_07_24_OPN4_P9\ca_img4004.tif"
-
-#╔═╡Extract the image
-data2P = readImage(data2P_fn);
+#%%
+deinterleave!(data2P) #This seperates the movies into two seperate movies
 xlims = data2P.HeaderDict["xrng"]
 ylims = data2P.HeaderDict["yrng"]
-deinterleave!(data2P) #This seperates the movies into two seperate movies
 
 # ╔═╡Seperate the red and green channels
 img_arr = get_all_frames(data2P)

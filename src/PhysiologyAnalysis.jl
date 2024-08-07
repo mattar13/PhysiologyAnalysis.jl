@@ -110,7 +110,7 @@ function __init__()
 
                     include("Datasheets/FilePathExtraction.jl")
                     export traverse_root
-                    export getABF_datetime
+                    export parse_cell_details
 
                     include("Datasheets/DataSheetCreation.jl")
                     export create2PDataSheet
