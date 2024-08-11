@@ -81,6 +81,8 @@ using ImageFiltering
 include("Analysis/ImagingAnalysis/deltaF.jl")
 export deltaF, deltaF_F, roll_mean
 
+include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
+export findROIcentroids
 
 homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
 
