@@ -11,7 +11,7 @@ function build_cellpose(;python_env = "")
      Conda.pip("install", "cellpose")
 end
 
-function cellpose_model(;model_type="cyto", relative_path_loc = "Analysis\\ImagingAnalysis\\CellPoseModels\\")
+function cellpose_model(;model_type="cyto", flow_threshold = 0.4, cellprob_threshold = 0.0, relative_path_loc = "Analysis\\ImagingAnalysis\\CellPoseModels\\")
      #╔═╡Set up the python environment to play nice with julia
      path_loc = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]..., relative_path_loc) 
      try
@@ -23,7 +23,7 @@ function cellpose_model(;model_type="cyto", relative_path_loc = "Analysis\\Imagi
           """
           #╔═╡Import and create the models
           cellpose = pyimport("cellpose")
-          model = cellpose.models.Cellpose(model_type=model_type)
+          model = cellpose.models.Cellpose(model_type=model_type, flow_threshold = flow_threshold, cellprob_threshold = cellprob_threshold)
           return model
      catch error
           #If the error is with python, I want to build_cellpose from PyCall
