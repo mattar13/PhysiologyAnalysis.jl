@@ -23,7 +23,7 @@ function cellpose_model(;model_type="cyto", flow_threshold = 0.4, cellprob_thres
           """
           #╔═╡Import and create the models
           cellpose = pyimport("cellpose")
-          model = cellpose.models.Cellpose(model_type=model_type, flow_threshold = flow_threshold, cellprob_threshold = cellprob_threshold)
+          model = cellpose.models.Cellpose(model_type=model_type)
           return model
      catch error
           #If the error is with python, I want to build_cellpose from PyCall
