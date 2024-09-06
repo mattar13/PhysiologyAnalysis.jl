@@ -1,4 +1,4 @@
-function roll_mean(img; voxel_x = 1, voxel_y = 1, voxel_z = 100, mode ="replicate")
+function roll_mean(img; voxel_x = 1, voxel_y = 1, voxel_z = 100, boundary_mode ="replicate")
      if voxel_x == 0
           voxel_x = size(img,1)
      end
@@ -11,12 +11,16 @@ function roll_mean(img; voxel_x = 1, voxel_y = 1, voxel_z = 100, mode ="replicat
      imfilter(img, kernel, mode)
 end
 
-function deltaF(img; kwargs...)
+function deltaF(img; mode = :mean, kwargs...)
      background = roll_mean(img; kwargs...)
      img .- background
 end
 
-function deltaF_F(img; kwargs...)
-     background = roll_mean(img; kwargs...)
+function deltaF_F(img; mode = :mean, kwargs...)
+     if mode == :rolling_mean
+          background = roll_mean(img; kwargs...)
+     elseif mode == :mean
+          background = mean(img, dims = 3)[:,:,1]
+     end
      (img .- background)./background
 end

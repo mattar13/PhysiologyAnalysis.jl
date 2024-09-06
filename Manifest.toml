@@ -320,9 +320,9 @@ version = "1.6.0"
 
 [[deps.ElectroPhysiology]]
 deps = ["CurveFit", "DSP", "Dates", "FileIO", "ImageMagick", "Images", "OffsetArrays", "Polynomials", "Requires", "Statistics", "TimeZones"]
-git-tree-sha1 = "bc3d33f16398a60fa45ce1c4a186a0646390ca0d"
+git-tree-sha1 = "938714f0a5429d36647aa45a84ec510f3e35d950"
 uuid = "da7a9670-f599-43ac-b818-143f8bf87d45"
-version = "0.5.22"
+version = "0.5.23"
 
 [[deps.ExprTools]]
 git-tree-sha1 = "27415f162e6028e81c72b82ef756bf321213b6ec"

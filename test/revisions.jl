@@ -4,7 +4,8 @@ using Pkg; Pkg.activate("test")
 
 #%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
 using GLMakie, PhysiologyPlotting
-data2P_fn = raw"D:\Data\Calcium Imaging\2024_07_24_OPN4g_P9\ca_img4004.tif"
+file_loc = "G:/Data/Two Photon"
+data2P_fn = "$(file_loc)/2024_09_03_SWCNT_VGGC6/swcntBATH_kpuff_nomf_20um001.tif"
 
 #╔═╡Extract the image
 data2P = readImage(data2P_fn);
@@ -13,16 +14,20 @@ ylims = data2P.HeaderDict["yrng"]
 
 deinterleave!(data2P) #This seperates the movies into two seperate movies
 
+#Lets adjust the delta f/f calculation to take the mean
+
+
+
 # ╔═╡Seperate the red and green channels
 img_arr = get_all_frames(data2P)
-red_zstack = img_arr[:,:,:,2]*100
-grn_zstack = img_arr[:,:,:,1]*100
+red_zstack = img_arr[:,:,:,2]
+grn_zstack = img_arr[:,:,:,1]
 red_zproj = project(data2P, dims = (3))[:,:,1,2]
 grn_zproj = project(data2P, dims = (3))[:,:,1,1]
 red_trace = project(data2P, dims = (1,2))[1,1,:,2]
 grn_trace = project(data2P, dims = (1,2))[1,1,:,1]
-delta_f_f_red_zstack = deltaF_F(red_zstack; voxel_z = 200, mode = "symmetric")
-delta_f_f_grn_zstack = deltaF_F(grn_zstack; voxel_z = 200, mode = "symmetric")
+delta_f_f_red_zstack = deltaF_F(red_zstack)
+delta_f_f_grn_zstack = deltaF_F(grn_zstack)
 delta_f_f_red_trace = mean(delta_f_f_red_zstack, dims = (1,2))[1,1,:]
 delta_f_f_grn_trace = mean(delta_f_f_grn_zstack, dims = (1,2))[1,1,:]
 
