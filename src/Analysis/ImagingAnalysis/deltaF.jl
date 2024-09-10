@@ -8,7 +8,7 @@ function roll_mean(img; voxel_x = 1, voxel_y = 1, voxel_z = 100, boundary_mode =
      end
 
      kernel = centered(ones(voxel_x,voxel_y,voxel_z) / (voxel_x*voxel_y*voxel_z))
-     imfilter(img, kernel, mode)
+     imfilter(img, kernel, boundary_mode)
 end
 
 function deltaF(img; mode = :mean, kwargs...)
