@@ -1,4 +1,4 @@
-function roll_mean(img; voxel_x = 1, voxel_y = 1, voxel_z = 100, boundary_mode ="replicate")
+function roll_mean(img; voxel_x = 1, voxel_y = 1, voxel_z = 100, boundary_mode = "symmetric")
      if voxel_x == 0
           voxel_x = size(img,1)
      end
