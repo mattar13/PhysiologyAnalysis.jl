@@ -79,3 +79,40 @@ function roi_function_fit(baselined_trace::Vector{Float64}, stim_frame::Int; sta
 
     return fit_trace, optimal[1], optimal[2], optimal[3], optimal[4]
 end
+
+"""
+    process_file(tiff_stack_path::String, roi_size::Int; stim_side::String="left", stim_frame::Int=200, ma_tail_start::Int=485, loading_bar::Bool=true)
+
+Processes the TIFF stack by splitting it into ROIs and applying processing.
+"""
+function process_file(tiff_stack_path::String, roi_size::Int; stim_side::String = "left", stim_frame::Int = 200, ma_tail_start::Int = 485, loading_bar::Bool = true)
+    # Load image using readImage (which handles normalization)
+    raw_stack = readImage(tiff_stack_path)
+
+    # Convert to Float64 if needed
+    stack = Float64.(raw_stack)
+
+    # Determine pixel splits
+    image_size = size(stack)[2:3]
+    xsplits, ysplits = pixel_splits(image_size, roi_size)
+
+    roi_num_counter = 0
+    n_x = length(xsplits) - 1
+    n_y = length(ysplits) - 1
+    total = n_x * n_y
+    p = loading_bar ? Progress(total, 1) : nothing
+
+    for i in 1:n_x
+        for j in 1:n_y
+            roi_array = stack[:, xsplits[i] + 1:xsplits[i + 1], ysplits[j] + 1:ysplits[j + 1]]
+            pooled_trace = [mean(view(roi_array, k, :, :)) for k in 1:size(roi_array, 1)]
+            baselined_trace = baseline_als(pooled_trace)
+            fit_trace, a, tau1, tau2, c = roi_function_fit(baselined_trace, stim_frame)
+            # Here you can store or process the fit_trace and parameters as needed
+            roi_num_counter += 1
+            if loading_bar
+                next!(p)
+            end
+        end
+    end
+end
