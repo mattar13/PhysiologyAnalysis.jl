@@ -1,70 +1,26 @@
-using Dates, Revise
+using Dates
+using Revise
 using ElectroPhysiology, PhysiologyAnalysis
-using Pkg; Pkg.activate("test")
 
+include("../src/Analysis/ImagingAnalysis/NanoImg.jl")
 #%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
-using GLMakie, PhysiologyPlotting
-file_loc = "G:/Data/Two Photon"
-data2P_fn = "$(file_loc)/2024_09_03_SWCNT_VGGC6/swcntBATH_kpuff_nomf_20um001.tif"
 
-#╔═╡Extract the image
-data2P = readImage(data2P_fn);
-xlims = data2P.HeaderDict["xrng"]
-ylims = data2P.HeaderDict["yrng"]
-
+fn = raw"G:\Data\Two Photon\2025_01_08_VGGC6_SWCNT\swcnt2_r3_1-50bo_kpuff_nomf_rac_10um011.tif"
+data2P = readImage(fn);
 deinterleave!(data2P) #This seperates the movies into two seperate movies
 
-#Lets adjust the delta f/f calculation to take the mean
+img_frames = get_all_frames(data2P)
+pixel_splits(size(img_frames)[1:2], 15)
 
-
-
-# ╔═╡Seperate the red and green channels
-img_arr = get_all_frames(data2P)
-red_zstack = img_arr[:,:,:,2]
-grn_zstack = img_arr[:,:,:,1]
-red_zproj = project(data2P, dims = (3))[:,:,1,2]
-grn_zproj = project(data2P, dims = (3))[:,:,1,1]
-red_trace = project(data2P, dims = (1,2))[1,1,:,2]
-grn_trace = project(data2P, dims = (1,2))[1,1,:,1]
-delta_f_f_red_zstack = deltaF_F(red_zstack)
-delta_f_f_grn_zstack = deltaF_F(grn_zstack)
-delta_f_f_red_trace = mean(delta_f_f_red_zstack, dims = (1,2))[1,1,:]
-delta_f_f_grn_trace = mean(delta_f_f_grn_zstack, dims = (1,2))[1,1,:]
-
-#%% ╔═╡ Lets use CellPose to label cells
-#Pkg.build("PyCall")
-using PyCall, Conda
-model = cellpose_model()
-mask, flow, style, diam = model.eval(grn_zproj)
-data2P.HeaderDict["ROIs"] .= vec(mask)
-
-# Can we find out the centroid of each img from ROIs?
-mask = getROImask(data2P)
-centroids = findROIcentroids(data2P)
-
-# ╔═╡Plot the figure
-fig2 = Figure(size = (1200, 500))
-ax1 = GLMakie.Axis(fig2[1,1], title = "Green Channel", aspect = 1.0)
-ax2 = GLMakie.Axis(fig2[1,2], title = "Fluor")
-
-hm1 = heatmap!(ax1, xlims, ylims, grn_zproj, colormap = :viridis, colorrange = (0.0, maximum(grn_zproj)/25))
-hm2 = contour!(ax1, xlims, ylims, mask, color = :red)
-lines!(ax2, data2P.t, grn_trace)
-
-for idx in 1:maximum(data2P.HeaderDict["ROIs"])
-    println(idx)
-    ROI_data = data2P[getROIindexes(data2P, idx), :, :]
-    ROI_trace = mean(ROI_data, dims = 1)[1,:,1]
-    lines!(ax2, data2P.t, ROI_trace)
-end
-
-for (k, v) in centroids
-    println("$k - $v")
-    scatter!(ax1, (v[2], v[1]))
-end
-fig2
+time = data2P.t
+og_y = img_frames[100,100,:,2]
+baseline_y = baseline_als(og_y)
 
 #%%
-for (k,v) in data2P.HeaderDict
-    println(k)
-end 
+using Pkg; Pkg.activate("test")
+
+using GLMakie, PhysiologyPlotting
+fig = Figure()
+ax1 = Axis(fig[1, 1])
+lines!(ax1, time, og_y, color = :blue)
+lines!(ax1, time, baseline_y, color = :red)
