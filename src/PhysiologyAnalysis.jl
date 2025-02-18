@@ -48,7 +48,6 @@ export integral #This finds the integration time
 export get_response
 export calculate_threshold
 
-#using JLD2 #Maybe this should be added to Requires.jl
 include("Analysis/WaveAnalysis/thresholding.jl")
 export calculate_threshold
 
@@ -63,6 +62,7 @@ include("Analysis/WholeCellAnalysis/passive_analysis.jl")
 export calculate_baseline, calculate_peak 
 export calculate_resistance, calculate_capacitance
 export extract_timepoint
+
 # These functions are used by the base
 #This file contains things like extraction and convienance functions
 function set_calibration_path(pathname::String ;path = "$(homepath)/Datasheets/calibration.txt")
@@ -77,12 +77,14 @@ export zProject, frameAverage
 export normalize, binarize
 export findROIcentroid
 
-using ImageFiltering
-include("Analysis/ImagingAnalysis/deltaF.jl")
-export deltaF, deltaF_F, roll_mean
+#using ImageFiltering #Maybe remove image filtering 
+using SparseArrays
+include("Analysis/ImagingAnalysis/DeltaFF.jl")
+export baseline_trace
 
 include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
 export findROIcentroids
+export pixel_splits
 
 homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
 
@@ -131,7 +133,7 @@ function __init__()
           using .PyCall
           @require Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d" begin
                using .Conda
-               include("Analysis/ImagingAnalysis/CellPose_port.jl")
+               include("Analysis/ImagingAnalysis/CellPose.jl")
                println("CellPose port loaded")
                export cellpose_model
           end
