@@ -1,24 +1,3 @@
-#These functions are used to do some pixel extraction and ROI analysis
-"""
-    pixel_splits(image_size::Tuple{Int, Int}, roi_size::Int) -> Tuple{Vector{Int}, Vector{Int}}
-
-Determines the pixel splitting indices for the image based on `roi_size`.
-"""
-function pixel_splits(image_size::Tuple{Int, Int}, roi_size::Int)
-    x_pixels, y_pixels = image_size
-    xs = collect(0:roi_size:x_pixels)
-    ys = collect(0:roi_size:y_pixels)
-
-    if xs[end] < x_pixels
-        push!(xs, x_pixels)
-    end
-    if ys[end] < y_pixels
-        push!(ys, y_pixels)
-    end
-
-    return (xs, ys)
-end
-
 #############################
 # 1. Baseline Correction
 #############################
@@ -27,10 +6,16 @@ end
     baseline_als(y; lam=1e7, p=0.25, niter=20)
 
 Asymmetric Least Squares baseline correction.
+# Parameters
+- `y::Vector{T}`: The input signal to be corrected, where `T` is a subtype of `Real`.
+- `lam::T=1e7`: The smoothing parameter (λ) that controls the smoothness of the baseline. A higher value enforces a smoother baseline by penalizing large differences between consecutive points. Typical values range from 10⁴ to 10⁹. Adjust `lam` based on the desired smoothness; larger values yield smoother baselines.
+- `p::T=0.25`: The asymmetry parameter that determines the weighting between positive and negative residuals. It should be in the range (0, 1). For signals with positive peaks, `p` is usually set between 0.001 and 0.1. A smaller `p` reduces the influence of positive deviations, making the baseline less sensitive to peaks.
+- `niter::Int=20`: The number of iterations for the algorithm to perform. Each iteration refines the baseline estimate. Typically, `niter` is set between 10 and 20. More iterations can lead to a more accurate baseline but will increase computation time.
 
+If the peaks are very sudden, p gives you the best chance of fixing it
 Uses a second–difference regularization (similar to Eilers & Boelens, 2005).
 """
-function baseline_als(y::Vector{T}; lam::T=1e7, p::T=0.25, niter::Int=20) where T<:Real
+function baseline_als(y::Vector{T}; lam::T=1e7, p::T=0.075, niter::Int=20) where T<:Real
     L = length(y)
     # Construct D as an L×(L–2) difference operator so that
     # (D*y)[i] = y[i] - 2y[i+1] + y[i+2]
@@ -92,18 +77,9 @@ Otherwise, interpolates linearly between `early_frame` and `late_frame`.
 - `late_frame`: End of the ignored stimulation window (0 to disable).
 """
 function baseline_ma(trace::Vector{T}; 
-    window::Int=40, 
-    early_frame::Int=0, 
-    late_frame::Int=0) where T<:Real
-    L = length(trace)
+    window::Int=3, 
+) where T<:Real
     ma_bl = moving_average(trace, window)  # Compute centered moving average
-
-    # If early_frame and late_frame are set (not 0), interpolate linearly
-    if early_frame > 0 && late_frame > 0
-        linear_fill = range(ma_bl[early_frame], stop=ma_bl[late_frame], length=late_frame-early_frame+1)
-        ma_bl[early_frame:late_frame] = collect(linear_fill)
-    end
-
     return ma_bl
 end
 
@@ -117,34 +93,22 @@ Perform overall baseline correction using ALS and centered Moving Average.
 Returns a baseline-corrected dF/F trace.
 """
 function baseline_trace(trace::Vector{T}; 
-    stim_frame::Int=0, 
-    ma_tail_start::Int=0, 
-    window::Int=40) where T<:Real
-
-    L = length(trace)
+    window::Int=15, #This is the window of the moving average for dF
+    kwargs...
+) where T<:Real
 
     # Normalize using pre-stimulus baseline if stim_frame is set
-    if stim_frame > 30  # Ensure valid range
-        baseline_divisor = mean(trace[stim_frame-30:stim_frame-5])
-    else
-        baseline_divisor = mean(trace)  # Default to global mean if no stimulus
-    end
+    baseline_divisor = mean(trace)  # Default to global mean if no stimulus
 
-    trace_adj = trace ./ baseline_divisor
+    F0 = trace ./ baseline_divisor
 
     # Apply Asymmetric Least Squares (ALS) smoothing
-    als_base = baseline_als(trace_adj)
-    baselined = trace_adj .- als_base
+    drift = baseline_als(F0; kwargs...)
+    dF = F0 .- drift
 
-    # Ignore ignored frames if stim_frame or ma_tail_start are 0
-    early_frame = stim_frame > 0 ? stim_frame - 10 : 0
-    late_frame = ma_tail_start > 0 ? ma_tail_start : 0
-
-    ma_base = baseline_ma(baselined; window=window, 
-        early_frame=early_frame, 
-        late_frame=late_frame)
+    dFoF = baseline_ma(dF; window=window)
 
     # Compute final dF/F trace
-    dFoF = baselined .- ma_base
+    #dFoF = baselined .- ma_base
     return dFoF
 end
