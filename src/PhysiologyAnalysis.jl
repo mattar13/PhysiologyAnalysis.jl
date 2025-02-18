@@ -77,10 +77,9 @@ export zProject, frameAverage
 export normalize, binarize
 export findROIcentroid
 
-#using ImageFiltering #Maybe remove image filtering 
-using SparseArrays
+using SparseArrays, OffsetArrays, ImageFiltering
 include("Analysis/ImagingAnalysis/DeltaFF.jl")
-export baseline_trace
+export baseline_trace, baseline_stack
 
 include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
 export findROIcentroids
