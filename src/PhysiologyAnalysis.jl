@@ -85,6 +85,10 @@ include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
 export findROIcentroids
 export pixel_splits
 
+using Interpolations
+include("Analysis/Stats.jl")
+export cor_xy
+
 homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
 
 calibration_path() = read("$(homepath)/Datasheets/calibration.txt", String)
