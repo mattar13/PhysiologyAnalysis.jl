@@ -134,3 +134,20 @@ function baseline_stack(stack::Matrix{T}; window = 15, kwargs...) where T<:Real
     dFoF = moving_average(dF; window = window)
     return dFoF
 end
+
+#These functions are the final functions that will be used in the analysis to open the actual data file
+function baseline_stack!(exp::Experiment; channel = -1, window = 15, kwargs...)
+    if channel == -1
+        for i in axes(exp, 3)
+            exp.data_array[:,:,i] = baseline_stack(exp.data_array[:,:,i], window = window, kwargs...)
+        end
+    else
+        exp.data_array[:,:,i] = baseline_stack(exp.data_array[:,:,channel], window = window, kwargs...)
+    end
+end
+
+function baseline_stack(exp::Experiment; channel = -1, window = 15, kwargs...)
+    copy_stack = deepcopy(exp)
+    baseline_stack!(copy_stack, channel = channel, window = window, kwargs...)
+    return copy_stack
+end
