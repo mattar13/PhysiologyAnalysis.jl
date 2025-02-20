@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.11.1"
+julia_version = "1.11.3"
 manifest_format = "2.0"
 project_hash = "8594e665714ca046c62330c3136761475c74eb39"
 
@@ -458,10 +458,10 @@ uuid = "5ae413db-bbd1-5e63-b57d-d24a61df00f5"
 version = "2.2.4+0"
 
 [[deps.ElectroPhysiology]]
-deps = ["CurveFit", "DSP", "Dates", "FileIO", "ImageMagick", "Images", "OffsetArrays", "Polynomials", "Requires", "Statistics", "TimeZones"]
-git-tree-sha1 = "deebe9cf9493039dfd5cb257ac88f95a65bf00b2"
+deps = ["CurveFit", "DSP", "Dates", "FileIO", "ImageMagick", "Images", "OffsetArrays", "Polynomials", "Requires", "SparseArrays", "Statistics", "TimeZones"]
+git-tree-sha1 = "1859e5155d4404b4d4e800856c8e90662692d7bc"
 uuid = "da7a9670-f599-43ac-b818-143f8bf87d45"
-version = "0.5.30"
+version = "0.5.31"
 
 [[deps.EnumX]]
 git-tree-sha1 = "bdb1942cd4c45e3c678fd11569d5cccd80976237"

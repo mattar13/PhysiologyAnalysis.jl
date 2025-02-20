@@ -5,32 +5,18 @@ using Statistics
 
 #%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
 
-fn = raw"F:\Data\Two Photon\2025-02-14-GRAB-DA\GRAB-DA2m-R1-R_da_puff_100um004.tif"
+fn = raw"G:\Data\Two Photon\2025-02-14-GRAB-DA\GRAB-DA2m-R1-R_da_puff_100um004.tif"
+ic_fn = raw"G:\Data\Patching\2025-02-14-da_puffs\25214001.abf"
 data2P = readImage(fn);
-ic_fn = raw"F:\Data\Patching\2025-02-14-da_puffs\25214001.abf"
-dataIC = readABF(ic_fn, flatten_episodic = true) #Open the IC data
-
-#Set the time offset
-start2P = data2P.HeaderDict["FileStartDateTime"]-Second(3.0) #The computer clocks are off by 3 seconds
-startIC = dataIC.HeaderDict["FileStartDateTime"]
-t_offset = Millisecond(startIC - start2P).value/1000 #This is the delay between me pressing the buttons
-dataIC.t .+= t_offset
+addStimulus!(data2P, ic_fn, "IN 2")
+time2P = data2P.t
 
 #deinterleave!(data2P) #This seperates the movies into two seperate movies
 img_frames = get_all_frames(data2P)
 img_stack = data2P.data_array[:,:,1]
 
-#%% Calculate the stack dFoF
-import PhysiologyAnalysis.baseline_stack
-
-dFoF = baseline_stack(data2P)
+dFoF = baseline_stack(data2P, window = 40)
 df_trace = project(dFoF, dims = (1,2))[1,1,:,1]
-
-time2P = data2P.t
-timeIC = dataIC.t
-ic_trace = dataIC.data_array[1,:,3]
-
-xcorr_xy = cor_xy(data2P.t, dF_trace, dataIC.t, dataIC.data_array[1,:,3])
 
 #%%
 using Pkg; Pkg.activate("test")
@@ -38,18 +24,23 @@ using GLMakie, PhysiologyPlotting
 fig = Figure()
 
 ax1 = Axis(fig[1, 1])
-lines!(ax1, time2P, df_trace, color = :blue)
-
-ax2 = Axis(fig[2, 1])
-lines!(ax2, timeIC, ic_trace, color = :magenta)
-linkxaxes!(ax1, ax2)
-
-ax3 = Axis(fig[1, 2])
-lines!(ax3, xcorr_xy, color = :blue)
+lines!(ax1, time2P, dFoF[200,:], color = :cyan)
+lines!(ax1, time2P, df_trace, color = :black)
+vlines!(ax1, getStimulusEndTime(data2P), color = :red)
 
 fig
-#%% Now work on the ROI sections
-#These parts are now from DeltaFF
+#%% Now work on the ROI fitting. 
+#We want to pull out a single section from the stimulus
 
-#Go through all pixels and calculate the dFoF
+idx = 3
+idx_start = round(Int64, getStimulusEndTime(data2P)[idx]/data2P.dt)
+idx_end = round(Int64, getStimulusStartTime(data2P)[idx+1]/data2P.dt)
+segment_t = time2P[idx_start:idx_end]
+segment_trace = df_trace[idx_start:idx_end]
 
+fit = fit_parametric(segment_trace, segment_t)
+y_fit = map(TIME-> single_stim_model(TIME, fit.param), segment_t)
+fig, ax = lines(segment_t, segment_trace, color = :cyan)
+lines!(ax, segment_t, y_fit, color = :black)
+
+fit.resid
