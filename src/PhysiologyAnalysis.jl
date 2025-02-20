@@ -82,6 +82,7 @@ export baseline_trace, baseline_stack
 
 include("Analysis/ImagingAnalysis/ParametricFit.jl")
 export single_stim_model
+export fit_parametric
 
 include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
 export findROIcentroids
