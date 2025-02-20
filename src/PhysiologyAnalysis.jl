@@ -10,8 +10,6 @@ import ElectroPhysiology: eachtrial, eachchannel
 import ElectroPhysiology: now, year, month, day, hour, minute, second
 import ElectroPhysiology: TWO_PHOTON
 import ElectroPhysiology: readABFInfo, getABF_datetime
-#= Packages used for fitting data ====================================#
-using LsqFit #Used for fitting amplification, Intensity Response, and Resistance Capacitance models
 
 #= Packages used for Analyzing data ==================================#
 import Polynomials as PN #used for fitting and stats
@@ -32,6 +30,7 @@ export plt
 #This package does 3 things: 
 
 #1) Fitting ============================================================================#
+using LsqFit
 include("Fitting/Models.jl")
 export HILL_MODEL, HILLfit, STFfit
 export AMP, AMPfit
@@ -80,6 +79,9 @@ export findROIcentroid
 using SparseArrays, OffsetArrays, ImageFiltering
 include("Analysis/ImagingAnalysis/DeltaFF.jl")
 export baseline_trace, baseline_stack
+
+include("Analysis/ImagingAnalysis/ParametricFit.jl")
+export single_stim_model
 
 include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
 export findROIcentroids
