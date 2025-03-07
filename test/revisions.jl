@@ -29,10 +29,11 @@ lines!(ax1, time2P, df_trace, color = :black)
 vlines!(ax1, getStimulusEndTime(data2P), color = :red)
 
 fig
+save(raw"G:\Projects\2024_SWCNT\Figures\FilteredTrace.png", fig)
 #%% Now work on the ROI fitting. 
 #We want to pull out a single section from the stimulus
 
-idx = 3
+idx = 2
 idx_start = round(Int64, getStimulusEndTime(data2P)[idx]/data2P.dt)
 idx_end = round(Int64, getStimulusStartTime(data2P)[idx+1]/data2P.dt)
 segment_t = time2P[idx_start:idx_end]
@@ -41,6 +42,8 @@ segment_trace = df_trace[idx_start:idx_end]
 fit = fit_parametric(segment_trace, segment_t)
 y_fit = map(TIME-> single_stim_model(TIME, fit.param), segment_t)
 fig, ax = lines(segment_t, segment_trace, color = :cyan)
-lines!(ax, segment_t, y_fit, color = :black)
-
-fit.resid
+lines!(ax, segment_t, y_fit, color = :black, label = "Fit")
+#xlabel!(ax, "Time (s)")
+#ylabel!(ax, "dF/F")
+#Legend()
+save(raw"G:\Projects\2024_SWCNT\Figures/ParametricFit.png", fig)
