@@ -33,7 +33,7 @@ lines!(ax1, time2P, df_trace, color = :black)
 vlines!(ax1, getStimulusEndTime(data2P), color = :red)
 
 fig
-
+save(raw"G:\Projects\2024_SWCNT\Figures\FilteredTrace.png", fig)
 #%% Now work on the ROI fitting. 
 #We want to pull out a single section from the stimulus
 
