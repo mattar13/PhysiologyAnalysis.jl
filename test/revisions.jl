@@ -5,8 +5,8 @@ using Statistics
 
 #%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
 
-fn = raw"G:\Data\Two Photon\2025-02-14-GRAB-DA\GRAB-DA2m-R1-R_da_puff_100um004.tif"
-ic_fn = raw"G:\Data\Patching\2025-02-14-da_puffs\25214001.abf"
+fn = raw"H:\Data\Two Photon\2025-02-14-GRAB-DA\GRAB-DA2m-R1-R_da_puff_100um004.tif"
+ic_fn = raw"H:\Data\Patching\2025-02-14-da_puffs\25214001.abf"
 data2P = readImage(fn);
 addStimulus!(data2P, ic_fn, "IN 2")
 time2P = data2P.t
