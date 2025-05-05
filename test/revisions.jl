@@ -4,20 +4,19 @@ using ElectroPhysiology, PhysiologyAnalysis
 using Statistics
 
 #%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
+fn = raw"H:\Data\Two Photon\2025-05-02-GRAB-DA-nirCAT-STR\grab-nircat-str-kpuff_3x012.tif"
+stim_fn = raw"H:\Data\Patching\2025-05-02-GRAB-DA-STR\25502017.abf"
 
-fn = raw"E:\Data\Two Photon\2025-02-14-GRAB-DA\GRAB-DA2m-R1-R_da_puff_100um004.tif"
-stim_fn = raw"E:\Data\Patching\2025-02-14-da_puffs\25214001.abf"
-
-#fn = raw"F:\Data\Two Photon\2025-02-26-GRAB-DA\grab-da-R1-R-nirCAT-70um_kcl_AP-NOMF-GABA009.tif"
-#stim_fn = raw"F:\Data\Patching\2025-02-26-da_puff\25226011.abf"
-
-fn = raw"H:\Data\Two Photon\2025-02-14-GRAB-DA\GRAB-DA2m-R1-R_da_puff_100um004.tif"
-ic_fn = raw"H:\Data\Patching\2025-02-14-da_puffs\25214001.abf"
 data2P = readImage(fn);
 addStimulus!(data2P, stim_fn, "IN 2", flatten_episodic = true)
 time2P = data2P.t
+deinterleave!(data2P) #This seperates the movies into two seperate movies
 
-#deinterleave!(data2P) #This seperates the movies into two seperate movies
+data2P.HeaderDict["FrameRate"]#This is the frame rate of the two photon data
+
+data2P.HeaderDict["yrng"] |> length
+
+#%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
 img_frames = get_all_frames(data2P)
 img_stack = data2P.data_array[:,:,1]
 

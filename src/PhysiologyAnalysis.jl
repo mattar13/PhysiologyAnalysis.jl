@@ -141,7 +141,7 @@ function __init__()
           using .PyCall
           @require Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d" begin
                using .Conda
-               include("Analysis/ImagingAnalysis/CellPose.jl")
+               include("Analysis/CellPose/CellPose.jl")
                println("CellPose port loaded")
                export cellpose_model
           end
