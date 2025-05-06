@@ -87,9 +87,6 @@ include("Analysis/NanoImgPro/ParametricFit.jl")
 export single_stim_model
 export fit_parametric
 
-include("Analysis/NanoImgPro/SegmentData.jl")
-export pixel_splits
-
 using Interpolations
 include("Analysis/Stats.jl")
 export cor_xy
