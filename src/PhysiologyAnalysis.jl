@@ -88,6 +88,7 @@ export fit_parametric
 
 include("Analysis/NanoImgPro/ROIProcess.jl")
 export baseline_trace
+export roi_processing
 
 using Interpolations
 include("Analysis/Stats.jl")
