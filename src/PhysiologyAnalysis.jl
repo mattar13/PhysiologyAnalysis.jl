@@ -81,11 +81,13 @@ export findROIcentroids
 
 using SparseArrays, OffsetArrays, ImageFiltering
 include("Analysis/NanoImgPro/BaselineData.jl")
-export baseline_trace, baseline_stack
 
 include("Analysis/NanoImgPro/ParametricFit.jl")
 export single_stim_model
 export fit_parametric
+
+include("Analysis/NanoImgPro/ROIProcess.jl")
+export baseline_trace
 
 using Interpolations
 include("Analysis/Stats.jl")
