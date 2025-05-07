@@ -89,11 +89,15 @@ export fit_parametric
 include("Analysis/NanoImgPro/ROIProcess.jl")
 export baseline_trace
 export roi_processing
-export get_significance, get_dFoF, get_fit_param
+export process_rois
 
 using Interpolations
 include("Analysis/Stats.jl")
 export cor_xy
+
+include("Analysis/NanoImgPro/ROITypes.jl")
+export ROITrace, ROIAnalysis
+export get_significant_rois, get_mean_response, get_roi_traces, get_dfof_traces, get_fit_parameters
 
 homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
 
