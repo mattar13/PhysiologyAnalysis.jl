@@ -14,6 +14,10 @@ function fit_parametric(t_data, y_data;
     p0 = [0.50, 100.0, 10.0, 20.0], ub = [1.0, 1000.0, 1000.0, 100.0], lb = [0.0, 0.0, 0.0, 10.0]
 )
     model(t_series, p) = map(TIME-> single_stim_model(TIME, p), t_series)
-    fit = curve_fit(model, t_data, y_data, p0, upper=ub, lower = lb)
-    return fit
+    try
+        fit = curve_fit(model, t_data, y_data, p0, upper=ub, lower = lb)
+        return fit.param
+    catch
+        return [NaN, NaN, NaN, NaN]
+    end
 end
