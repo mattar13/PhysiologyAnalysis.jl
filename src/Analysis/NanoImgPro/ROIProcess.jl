@@ -36,7 +36,7 @@ end
 """
 function roi_processing(data::Experiment{TWO_PHOTON, T}, stim_index; 
     roi_index = nothing, channel_index = nothing, 
-    delay_time = 20.0, window::Int=15, #This is the window of the moving average for dF
+    delay_time = 150.0, window::Int=15, #This is the window of the moving average for dF
     verbose = false, n_stds = 2.0, #This is the number of standard deviations to use for the thresholding
     kwargs...
 ) where T<:Real
@@ -133,6 +133,14 @@ function roi_processing(data::Experiment{TWO_PHOTON, T}, stim_index;
 end
 
 #Now write some easy extraction functions to get the data out of the dictionary
-function get_significance(data_dict::Dict{String, Any})
-    return data_dict["significance"]
+function get_significance(data_dict::Array{Dict{String, Any}})
+    map(dd->dd["significance"], data_dict)
+end
+
+function get_dFoF(data_dict::Array{Dict{String, Any}})
+    vcat(map(dd->dd["dFoF"], data_dict)'...)
+end
+
+function get_fit_param(data_dict::Array{Dict{String, Any}})
+    map(dd->dd["fit_param"], data_dict)
 end
