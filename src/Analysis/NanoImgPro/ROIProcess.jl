@@ -118,8 +118,8 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     end
     
     # Create and return ROIAnalysis object
-    return ROIAnalysis(
-        rois,
+    roi_analysis = ROIAnalysis(
+        rois,   
         collect(stim_indices),
         collect(channels);
         delay_time=delay_time,
@@ -128,4 +128,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         sig_window=sig_window,  # Add sig_window to analysis parameters
         kwargs...
     )
+    
+    data.HeaderDict["ROI_Analysis"] = roi_analysis # Store the analysis in the experiment's HeaderDict
+    return roi_analysis
 end
