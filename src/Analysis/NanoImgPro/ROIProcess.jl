@@ -105,6 +105,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                     stim_start_time,
                     stim_end_time,
                     channel_idx,
+                    stim_idx,  # Add stimulus index
                     fit_param,
                     is_significant
                 )
