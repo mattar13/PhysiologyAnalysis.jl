@@ -17,6 +17,9 @@ Returns a Figure object containing all plots.
 """
 function plot_roi_analysis(data::Experiment{TWO_PHOTON, T};
     stim_idx::Int=1, channel_idx::Union{Int,Nothing}=nothing) where {T <: Real}
+    
+    @assert haskey(data.HeaderDict, "ROI_Analysis") "Data must contain ROI analysis results in HeaderDict"
+
     analysis = data.HeaderDict["ROI_Analysis"]
 
     # Plot max projection as background
@@ -174,6 +177,9 @@ Returns a Figure object containing all plots.
 """
 function plot_roi_analysis_averaged(data::Experiment{TWO_PHOTON, T};
     channel_idx::Union{Int,Nothing}=nothing) where {T <: Real}
+    
+    @assert haskey(data.HeaderDict, "ROI_Analysis") "Data must contain ROI analysis results in HeaderDict"
+
     analysis = data.HeaderDict["ROI_Analysis"]
     # Plot max projection as background
     xlims = data.HeaderDict["xrng"]
