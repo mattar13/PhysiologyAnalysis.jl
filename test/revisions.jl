@@ -33,7 +33,7 @@ roi_analysis = process_rois(data2P;
 
 # Store the analysis in the experiment's HeaderDict
 # data2P.HeaderDict["ROI_Analysis"] = roi_analysis
-
+data2P.HeaderDict["ROI_Analysis"]
 # Get all significant ROIs and print summary
 sig_rois = get_significant_rois(roi_analysis)
 println("Found $(length(sig_rois)) significant ROIs")
@@ -42,7 +42,10 @@ println("Found $(length(sig_rois)) significant ROIs")
 fit_params = get_fit_parameters(roi_analysis)
 println("Mean amplitude of significant ROIs: ", mean(first.(fit_params)))
 
-fig = plot_roi_analysis(data2P, roi_analysis)
+fig = plot_roi_analysis(data2P, stim_idx = 3)
+display(fig)
+
+fig = plot_roi_analysis_averaged(data2P)
 display(fig)
 
 # Optionally save the figure
