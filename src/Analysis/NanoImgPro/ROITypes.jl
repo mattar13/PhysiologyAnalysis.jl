@@ -14,6 +14,7 @@ Fields:
 - `stim_start_time`: Start time of the stimulus (s)
 - `stim_end_time`: End time of the stimulus (s)
 - `channel`: Channel index
+- `stimulus_index`: Index of the stimulus this trace corresponds to
 - `fit_parameters`: Parameters from curve fitting [amplitude, tau_on, tau_off, delay]
 - `is_significant`: Whether the response is significant
 """
@@ -24,6 +25,7 @@ struct ROITrace
     stim_start_time::Float64
     stim_end_time::Float64
     channel::Int
+    stimulus_index::Int
     fit_parameters::Vector{Float64}
     is_significant::Bool
 end
