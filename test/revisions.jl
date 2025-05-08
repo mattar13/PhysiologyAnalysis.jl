@@ -24,7 +24,7 @@ pixel_splits_roi!(data2P, 8)
 #%% Process all ROIs for channel 2 and stimulus 2
 roi_analysis = process_rois(data2P; 
     channels=[1, 2],           # Only process channel 2
-    stim_indices=[3],      # Only process the second stimulus
+    stim_indices=[2,3],      # Only process the second stimulus
     delay_time=50.0,       # 50ms delay time for analysis
     sig_window=50.0,        # 50ms window to look for significant responses after stimulus
     window = 15,             # 15-point window for moving average
