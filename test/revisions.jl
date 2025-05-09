@@ -39,5 +39,8 @@ roi_analysis = process_rois(data2P;
     delay_time=50.0,       # 50ms delay time for analysis
     sig_window=50.0,        # 50ms window to look for significant responses after stimulus
     window = 15,             # 15-point window for moving average
-    n_stds = 5.0
+    n_stds = 5.0,
+    lam = 1e4,
+    assym = 0.075,
+    niter = 100
 )
