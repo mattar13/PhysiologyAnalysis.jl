@@ -95,6 +95,6 @@ function baseline_trace(trace::AbstractVector{T};
 
     dFoF = moving_average(dF; window = window)
     #Sometimes the dFoF is still not centered, so we need to center it
-    dFoF .-= dFoF[1] #This is a hack to center the dFoF
+    dFoF .-= mean(dFoF) #This is a hack to center the dFoF
     return dFoF
 end
