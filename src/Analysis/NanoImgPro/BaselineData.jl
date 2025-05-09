@@ -15,7 +15,7 @@ Asymmetric Least Squares baseline correction.
 If the peaks are very sudden, p gives you the best chance of fixing it
 Uses a second–difference regularization (similar to Eilers & Boelens, 2005).
 """
-function baseline_als(y::Vector{T}; lam::T=1e7, p::T=0.075, niter::Int=20) where T<:Real
+function baseline_als(y::Vector{T}; lam::T=1e4, p::T=0.075, niter::Int=100) where T<:Real
     L = length(y)
     # Construct D as an L×(L–2) difference operator so that
     # (D*y)[i] = y[i] - 2y[i+1] + y[i+2]
@@ -94,6 +94,7 @@ function baseline_trace(trace::AbstractVector{T};
     dF = F0 .- drift
 
     dFoF = moving_average(dF; window = window)
-
+    #Sometimes the dFoF is still not centered, so we need to center it
+    dFoF .-= dFoF[1] #This is a hack to center the dFoF
     return dFoF
 end
