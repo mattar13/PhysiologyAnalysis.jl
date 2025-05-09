@@ -15,7 +15,7 @@ Asymmetric Least Squares baseline correction.
 If the peaks are very sudden, p gives you the best chance of fixing it
 Uses a second–difference regularization (similar to Eilers & Boelens, 2005).
 """
-function baseline_als(y::Vector{T}; lam::T=1e4, p::T=0.075, niter::Int=100) where T<:Real
+function baseline_als(y::Vector{T}; lam::T=1e4, assym::T=0.075, niter::Int=100) where T<:Real
     L = length(y)
     # Construct D as an L×(L–2) difference operator so that
     # (D*y)[i] = y[i] - 2y[i+1] + y[i+2]
@@ -36,7 +36,7 @@ function baseline_als(y::Vector{T}; lam::T=1e4, p::T=0.075, niter::Int=100) wher
         Z = W + Dmat
         z .= Z \ (w .* y)
         # Update weights elementwise
-        w = [ y[i] > z[i] ? p : (y[i] < z[i] ? 1-p : 0.5 ) for i in 1:L ]
+        w = [ y[i] > z[i] ? assym : (y[i] < z[i] ? 1-p : 0.5 ) for i in 1:L ]
     end
     return z
 end

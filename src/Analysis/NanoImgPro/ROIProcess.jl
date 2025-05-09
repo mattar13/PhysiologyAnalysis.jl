@@ -32,7 +32,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     window::Int=15,
     n_stds=2.0,
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
-    lam::T=1e4, p::T=0.075, niter::Int=100,
+    lam::T=1e4, assym::T=0.075, niter::Int=100,
     kwargs...
 ) where T<:Real
     
@@ -76,7 +76,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 dFoF = baseline_trace(roi_trace; 
                     stim_frame=pre_stim_idx, 
                     window=window, 
-                    lam=lam, p=p, niter=niter,
+                    lam=lam, assym=assym, niter=niter,
                 )
                 t_series = collect(1:length(dFoF))*data.dt
                 
