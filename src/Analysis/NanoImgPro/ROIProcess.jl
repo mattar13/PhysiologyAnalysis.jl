@@ -32,6 +32,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     window::Int=15,
     n_stds=2.0,
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
+    lam::T=1e4, p::T=0.075, niter::Int=100,
     kwargs...
 ) where T<:Real
     
@@ -75,7 +76,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 dFoF = baseline_trace(roi_trace; 
                     stim_frame=pre_stim_idx, 
                     window=window, 
-                    kwargs...
+                    lam=lam, p=p, niter=niter,
                 )
                 t_series = collect(1:length(dFoF))*data.dt
                 
@@ -89,7 +90,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 p0 = [maximum(dFoF), 100.0, 10.0, delay_time]
                 ub = [maximum(dFoF)+1.0, 1000.0, 1000.0, delay_time+10.0]
                 
-                fit_param = fit_parametric(t_series, dFoF; lb=lb, p0=p0, ub=ub, kwargs...)
+                fit_param = fit_parametric(t_series, dFoF; lb=lb, p0=p0, ub=ub)
                 
                 # Check significance within specified time window
                 sig_window_idx = round(Int64, sig_window/data.dt)
