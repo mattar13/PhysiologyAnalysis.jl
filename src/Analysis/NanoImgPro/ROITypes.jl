@@ -126,3 +126,39 @@ function get_fit_parameters(analysis::ROIAnalysis, roi_id::Union{Int,Nothing}=no
     traces = filter(t -> t.channel == channel_idx, analysis.rois[roi_id])
     return traces[stim_idx].fit_parameters
 end 
+
+"""
+    get_significant_traces_by_channel(analysis)
+
+Return a vector of matrices, one per channel, each of size (n_ROIs, n_Datapoints).
+All traces are truncated to the global minimum length for consistency.
+"""
+function get_significant_traces_by_channel(analysis)
+    n_channels = length(analysis.channels)
+    traces_by_channel = Vector{Matrix{Float64}}(undef, n_channels)
+    min_length = typemax(Int)
+    # First, collect traces for each channel
+    traces_per_channel = [Vector{Vector{Float64}}() for _ in 1:n_channels]
+    for (_, traces) in analysis.rois
+        for trace in traces
+            if trace.is_significant
+                push!(traces_per_channel[trace.channel], trace.dfof)
+                min_length = min(min_length, length(trace.dfof))
+            end
+        end
+    end
+    # Now, build the matrices
+    for ch in 1:n_channels
+        n_rois = length(traces_per_channel[ch])
+        if n_rois == 0 || min_length == 0
+            traces_by_channel[ch] = zeros(0, 0)
+        else
+            mat = zeros(n_rois, min_length)
+            for i in 1:n_rois
+                mat[i, :] = traces_per_channel[ch][i][1:min_length]
+            end
+            traces_by_channel[ch] = mat
+        end
+    end
+    return traces_by_channel
+end 
