@@ -99,6 +99,11 @@ include("Analysis/NanoImgPro/ROITypes.jl")
 export ROITrace, ROIAnalysis
 export get_significant_rois, get_mean_response, get_roi_traces, get_dfof_traces, get_fit_parameters
 
+using Colors
+
+include("DataIO/open2PData.jl")
+export open2Pdata
+
 homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
 
 calibration_path() = read("$(homepath)/Datasheets/calibration.txt", String)
