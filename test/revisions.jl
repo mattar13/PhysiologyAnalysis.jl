@@ -5,16 +5,6 @@ using Statistics
 import ElectroPhysiology: Experiment, TWO_PHOTON
 #include("ROIVisualization.jl")
 
-import PhysiologyAnalysis: open2Pdata
-img_fn = raw"H:\Data\Two Photon\2025-05-02-GRAB-DA-nirCAT-STR\grab-nircat-str-kpuff_3x012.tif"
-stim_fn = raw"H:\Data\Patching\2025-05-02-GRAB-DA-STR\25502017.abf"
-
-data = open2Pdata(img_fn, 
-    ic_stim_filename = stim_fn, stimulus_name = "IN 2", 
-    stimulus_threshold = 0.5, spike_train = false,
-    split_channel = true, main_channel = :grn, post_event_time = 120.0)
-
-
 #%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
 #We should look through the available files and see which ones fit
 img_fn = raw"F:\Data\Two Photon\2025-05-02-GRAB-DA-nirCAT-STR\grab-nircat-str-20hz-100uA001.tif"
