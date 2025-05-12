@@ -2,7 +2,6 @@ using Dates
 using Revise
 using ElectroPhysiology, PhysiologyAnalysis
 using Statistics
-
 import ElectroPhysiology: Experiment, TWO_PHOTON
 #include("ROIVisualization.jl")
 
