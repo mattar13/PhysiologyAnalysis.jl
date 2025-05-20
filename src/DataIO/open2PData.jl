@@ -205,6 +205,7 @@ function open2Pdata(filename;
         end
     else
         println("Peak finding by using the digital stim in the IC stimulus instead")
+        addStimulus!(exp, ic_stim_filename, stimulus_name; flatten_episodic = true, stimulus_threshold = stimulus_threshold)
         dataIC = readABF(ic_stim_filename, flatten_episodic = true, stimulus_name = stimulus_name, stimulus_threshold = stimulus_threshold) #Open the IC data
         output["dataIC"] = dataIC
         start2P = exp.HeaderDict["FileStartDateTime"]-Second(3.0) #The computer clocks are off by 3 seconds
