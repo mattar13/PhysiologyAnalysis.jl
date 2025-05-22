@@ -89,6 +89,15 @@ function get_mean_response(analysis::ROIAnalysis, roi_id::Int, channel_idx::Int=
 end
 
 """
+    get_mean_response(analysis::ROIAnalysis, roi_ids::Vector{Int}, channel_idx::Int=1)
+
+Calculate the mean dF/F response across all stimuli for multiple ROIs and channel.
+"""
+function get_mean_response(analysis::ROIAnalysis, roi_ids::Vector{Int}, channel_idx::Int=1)
+    return [get_mean_response(analysis, roi_id, channel_idx) for roi_id in roi_ids]
+end
+
+"""
     get_roi_traces(analysis::ROIAnalysis, roi_id::Union{Int,Nothing}=nothing, stim_idx::Int=1, channel_idx::Int=1)
 
 Get raw traces for specified ROI(s), stimulus, and channel.
@@ -99,6 +108,15 @@ function get_roi_traces(analysis::ROIAnalysis, roi_id::Union{Int,Nothing}=nothin
     end
     traces = filter(t -> t.channel == channel_idx, analysis.rois[roi_id])
     return traces[stim_idx].raw_trace
+end
+
+"""
+    get_roi_traces(analysis::ROIAnalysis, roi_ids::Vector{Int}, stim_idx::Int=1, channel_idx::Int=1)
+
+Get raw traces for multiple ROIs, stimulus, and channel.
+"""
+function get_roi_traces(analysis::ROIAnalysis, roi_ids::Vector{Int}, stim_idx::Int=1, channel_idx::Int=1)
+    return [get_roi_traces(analysis, roi_id, stim_idx, channel_idx) for roi_id in roi_ids]
 end
 
 """
@@ -115,6 +133,15 @@ function get_dfof_traces(analysis::ROIAnalysis, roi_id::Union{Int,Nothing}=nothi
 end
 
 """
+    get_dfof_traces(analysis::ROIAnalysis, roi_ids::Vector{Int}, stim_idx::Int=1, channel_idx::Int=1)
+
+Get dF/F traces for multiple ROIs, stimulus, and channel.
+"""
+function get_dfof_traces(analysis::ROIAnalysis, roi_ids::Vector{Int}, stim_idx::Int=1, channel_idx::Int=1)
+    return [get_dfof_traces(analysis, roi_id, stim_idx, channel_idx) for roi_id in roi_ids]
+end
+
+"""
     get_fit_parameters(analysis::ROIAnalysis, roi_id::Union{Int,Nothing}=nothing, stim_idx::Int=1, channel_idx::Int=1)
 
 Get fit parameters for specified ROI(s), stimulus, and channel.
@@ -125,7 +152,16 @@ function get_fit_parameters(analysis::ROIAnalysis, roi_id::Union{Int,Nothing}=no
     end
     traces = filter(t -> t.channel == channel_idx, analysis.rois[roi_id])
     return traces[stim_idx].fit_parameters
-end 
+end
+
+"""
+    get_fit_parameters(analysis::ROIAnalysis, roi_ids::Vector{Int}, stim_idx::Int=1, channel_idx::Int=1)
+
+Get fit parameters for multiple ROIs, stimulus, and channel.
+"""
+function get_fit_parameters(analysis::ROIAnalysis, roi_ids::Vector{Int}, stim_idx::Int=1, channel_idx::Int=1)
+    return [get_fit_parameters(analysis, roi_id, stim_idx, channel_idx) for roi_id in roi_ids]
+end
 
 """
     get_significant_traces_by_channel(analysis)
@@ -161,4 +197,31 @@ function get_significant_traces_by_channel(analysis)
         end
     end
     return traces_by_channel
+end
+
+"""
+    get_significant_roi_pixels(analysis::ROIAnalysis, data::Experiment{TWO_PHOTON}; channel_idx::Int=1)
+
+Get the pixel coordinates for all significant ROIs in the original image.
+
+Parameters:
+- `analysis`: The ROIAnalysis object containing processed ROI data
+- `data`: The original Experiment object containing the ROI mask
+- `channel_idx`: Channel index to use for determining significant ROIs (default: 1)
+
+Returns:
+- Vector of linear indices for pixels in significant ROIs from the specified channel
+"""
+function get_significant_roi_pixels(analysis::ROIAnalysis, data::Experiment{TWO_PHOTON}; channel_idx::Int=1)
+    # Get significant ROIs for the specified channel
+    significant_rois = get_significant_rois(analysis, 1, channel_idx)
+    
+    # Get ROI mask from experiment
+    roi_mask = getROImask(data)
+    
+    # Find all pixels belonging to any significant ROI
+    pixel_coords = findall(roi_mask .∈ (significant_rois,))
+    
+    # Convert Cartesian indices to linear indices
+    return LinearIndices(roi_mask)[pixel_coords]
 end 
