@@ -37,5 +37,20 @@ roi_analysis = process_rois(experiment;
     niter = 100
 )
 
-roi_analysis
+roi_analysis |> typeof |> fieldnames
+roi_analysis.analysis_parameters["delay_time"]
+roi_analysis.analysis_parameters
 
+# Extract significant ROIs and fit them
+significant_rois = get_significant_rois(roi_analysis)
+println("Found $(length(significant_rois)) significant ROIs")
+
+process_significant_rois(roi_analysis)
+
+dff = mean(hcat(get_dfof_traces(roi_analysis, significant_rois)...), dims =2 )[:, 1]
+tseries = (1:length(dff)) .* experiment.dt
+lines(tseries, dff)
+
+roi_pixels = get_significant_roi_pixels(roi_analysis, experiment, channel_idx=2)
+
+experiment
