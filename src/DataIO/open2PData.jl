@@ -223,7 +223,7 @@ function open2Pdata(filename;
             spike_train_protocol = getStimulusProtocol(experiment)
             spike_train_group!(spike_train_protocol, 3.0)
         end
-        output["tstamps"] = t_stamps = map(sp -> sp[1][1] + t_offset, stim_protocol)
+        output["tstamps"] = t_stamps = getStimulusEndTime(experiment)
         output["pks"] = pks = round.(Int64, (t_stamps./experiment.dt))
         
         #output["pks"] = pks = round.(Int64, (t_episodes./experiment.dt))
