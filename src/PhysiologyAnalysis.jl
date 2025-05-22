@@ -90,6 +90,7 @@ include("Analysis/NanoImgPro/ROIProcess.jl")
 export baseline_trace
 export roi_processing
 export process_rois
+export process_significant_rois
 
 using Interpolations
 include("Analysis/Stats.jl")
@@ -98,6 +99,7 @@ export cor_xy
 include("Analysis/NanoImgPro/ROITypes.jl")
 export ROITrace, ROIAnalysis
 export get_significant_rois, get_mean_response, get_roi_traces, get_dfof_traces, get_fit_parameters
+export get_significant_roi_pixels
 
 using Colors
 
