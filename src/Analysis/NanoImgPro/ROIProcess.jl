@@ -136,3 +136,23 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     data.HeaderDict["ROI_Analysis"] = roi_analysis # Store the analysis in the experiment's HeaderDict
     return roi_analysis
 end
+
+"""
+    process_significant_rois(roi_analysis::ROIAnalysis)
+
+Extract dF/F traces from significant ROIs in an ROIAnalysis object.
+
+Parameters:
+- `roi_analysis`: The ROIAnalysis object containing processed ROI data
+
+Returns:
+- Array of dF/F traces from significant ROIs
+"""
+function process_significant_rois(roi_analysis::ROIAnalysis)
+    # Get significant ROIs
+    significant_rois = get_significant_rois(roi_analysis)
+    println("Found $(length(significant_rois)) significant ROIs")
+    
+    # Get dF/F traces directly using the significant ROI indices
+    return get_dfof_traces(roi_analysis, significant_rois)
+end
