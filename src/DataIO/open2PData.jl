@@ -33,9 +33,9 @@ function open2Pdata(filename;
     )
     #╔═╡Do this for the k-puff ca image
     output = Dict{String, Any}()
-    exp = readImage(filename);
+    experiment = readImage(filename);
     if split_channel
-        deinterleave!(exp) #This seperates the movies into two seperate movies
+        deinterleave!(experiment) #This seperates the movies into two seperate movies
     end
 
     #Make this a conditional
@@ -43,19 +43,19 @@ function open2Pdata(filename;
         t_begin = trunc_rng[1]
         t_end = trunc_rng[2]
         if isnothing(trunc_rng[2])
-            t_end = exp.t[end]
+            t_end = experiment.t[end]
         end
 
         if isnothing(trunc_rng[1])
-            t_begin = exp.t[1]
+            t_begin = experiment.t[1]
         end
-        truncate_data!(exp, t_begin = t_begin, t_end = t_end)
+        truncate_data!(experiment, t_begin = t_begin, t_end = t_end)
     end
-    output["experiment"] = exp
-    output["time"] = exp.t
-    output["xlims"] = xlims = exp.HeaderDict["xrng"]
-    output["ylims"] = ylims = exp.HeaderDict["xrng"]
-    output["dt"] = exp.dt
+    output["experiment"] = experiment
+    output["time"] = experiment.t
+    output["xlims"] = xlims = experiment.HeaderDict["xrng"]
+    output["ylims"] = ylims = experiment.HeaderDict["xrng"]
+    output["dt"] = experiment.dt
     output["dx"] = xlims[2]-xlims[1]
     output["dy"] = ylims[2]-ylims[1]
     println("Image loaded")
@@ -64,22 +64,22 @@ function open2Pdata(filename;
         
         #Create a 2D Gaussian filter (Kernel.gaussian(3))
         spatial_filter = Kernel.gaussian(2.0)  # Gaussian kernel size 3
-        imfilter!(exp, spatial_filter; channel = 2) #Apply a gaussian filter
+        #imfilter!(experiment, spatial_filter; channel = 2) #Apply a gaussian filter
 
         #Average 5 frames together as a rolling mean
-        mapdata!(mean, exp, 5, channel = 2)
+        mapdata!(mean, experiment, 5, channel = 2)
         println("Image filtered")
 
         #╔═╡Seperate out the image array 
-        output["img_arr"] = img_arr = get_all_frames(exp)
+        output["img_arr"] = img_arr = get_all_frames(experiment)
         #╔═╡Seperate the red and green channels
         output["red_zstack"] = red_zstack = img_arr[:,:,:,2]
         output["grn_zstack"] = grn_zstack = img_arr[:,:,:,1]
         output["composite_zstack"] = RGB{Float32}.(red_zstack, grn_zstack, zeros(size(red_zstack)...))
         
         #╔═╡Make the z projections
-        output["red_zproj"] = red_zproj = project(exp, dims = (3))[:,:,1,2]
-        output["grn_zproj"] = grn_zproj = project(exp, dims = (3))[:,:,1,1]
+        output["red_zproj"] = red_zproj = project(experiment, dims = (3))[:,:,1,2]
+        output["grn_zproj"] = grn_zproj = project(experiment, dims = (3))[:,:,1,1]
 
         output["red_img"] = red_img = red_zproj./maximum(red_zproj)*red_scale .* RGB{Float32}(1, 0, 0)
         output["grn_img"] = grn_img = grn_zproj./maximum(grn_zproj)*grn_scale .* RGB{Float32}(0, 1, 0)
@@ -87,8 +87,8 @@ function open2Pdata(filename;
         #save("$analysis_loc\\$(savename)\\img.tif", composite_zstack)
         println("Z projection")
 
-        output["red_trace"] = project(exp, dims = (1,2))[1,1,:,2]
-        output["grn_trace"] = project(exp, dims = (1,2))[1,1,:,1]
+        output["red_trace"] = project(experiment, dims = (1,2))[1,1,:,2]
+        output["grn_trace"] = project(experiment, dims = (1,2))[1,1,:,1]
         println("Z axis traces generated")
  
         # #Using the rolling mean method
@@ -116,27 +116,27 @@ function open2Pdata(filename;
     else
         #Create a 2D Gaussian filter (Kernel.gaussian(3))
         spatial_filter = Kernel.gaussian(2.0)  # Gaussian kernel size 3
-        imfilter!(exp, spatial_filter; channel = 1) #Apply a gaussian filter
+        imfilter!(experiment, spatial_filter; channel = 1) #Apply a gaussian filter
 
         #Average 5 frames together as a rolling mean
-        mapdata!(mean, exp, 5, channel = 1)
+        mapdata!(mean, experiment, 5, channel = 1)
         println("Image filtered")
 
         println("Z Stack channels extracted")
 
         if main_channel == :red
             #╔═╡Seperate out the image array and green and red zstacks
-            output["img_arr"] = output["red_zstack"] = red_zstack = img_arr = get_all_frames(exp)
+            output["img_arr"] = output["red_zstack"] = red_zstack = img_arr = get_all_frames(experiment)
             output["grn_zstack"] = zeros(size(red_zstack))
             output["composite_zstack"] = RGB{Float32}.(red_zstack, zeros(size(red_zstack)...), zeros(size(red_zstack)...))
 
-            output["red_zproj"] = red_zproj = project(exp, dims = (3))[:,:,1,1]
+            output["red_zproj"] = red_zproj = project(experiment, dims = (3))[:,:,1,1]
             output["grn_zproj"] = grn_zproj = zeros(size(red_zproj))
 
             output["red_img"] = output["composite_img"] = red_img = red_zproj./maximum(red_zproj)*red_scale .* RGB{Float32}(1, 0, 0)
             output["grn_img"] = grn_img = zeros(size(red_img))
 
-            output["red_trace"] = red_trace = project(exp, dims = (1,2))[1,1,:,1]
+            output["red_trace"] = red_trace = project(experiment, dims = (1,2))[1,1,:,1]
             output["grn_trace"] = grn_trace = zeros(size(red_trace))
 
             # #Using the rolling mean method
@@ -158,17 +158,17 @@ function open2Pdata(filename;
 
         elseif main_channel == :grn
              #╔═╡Seperate out the image array and green and red zstacks
-             output["img_arr"] = output["grn_zstack"] = grn_zstack = img_arr = get_all_frames(exp)
+             output["img_arr"] = output["grn_zstack"] = grn_zstack = img_arr = get_all_frames(experiment)
              output["red_zstack"] = zeros(size(grn_zstack))
              output["composite_zstack"] = RGB{Float32}.(grn_zstack, zeros(size(grn_zstack)...), zeros(size(grn_zstack)...))
  
-             output["grn_zproj"] = grn_zproj = project(exp, dims = (3))[:,:,1,1]
+             output["grn_zproj"] = grn_zproj = project(experiment, dims = (3))[:,:,1,1]
              output["red_zproj"] = red_zproj = zeros(size(grn_zproj))
  
              output["grn_img"] = output["composite_img"] = grn_img = grn_zproj./maximum(grn_zproj)*grn_scale .* RGB{Float32}(1, 0, 0)
              output["red_img"] = red_img = zeros(size(grn_img))
  
-             output["grn_trace"] = grn_trace = project(exp, dims = (1,2))[1,1,:,1]
+             output["grn_trace"] = grn_trace = project(experiment, dims = (1,2))[1,1,:,1]
              output["red_trace"] = red_trace = zeros(size(grn_trace))
  
             #  #Using the rolling mean method
@@ -205,31 +205,33 @@ function open2Pdata(filename;
         end
     else
         println("Peak finding by using the digital stim in the IC stimulus instead")
-        addStimulus!(exp, ic_stim_filename, stimulus_name; flatten_episodic = true, stimulus_threshold = stimulus_threshold)
+        addStimulus!(experiment, ic_stim_filename, stimulus_name; flatten_episodic = true, stimulus_threshold = stimulus_threshold)
         dataIC = readABF(ic_stim_filename, flatten_episodic = true, stimulus_name = stimulus_name, stimulus_threshold = stimulus_threshold) #Open the IC data
-        output["dataIC"] = dataIC
-        start2P = exp.HeaderDict["FileStartDateTime"]-Second(3.0) #The computer clocks are off by 3 seconds
+        start2P = experiment.HeaderDict["FileStartDateTime"]-Second(3.0) #The computer clocks are off by 3 seconds
         startIC = dataIC.HeaderDict["FileStartDateTime"]
-        t_offset = Millisecond(startIC - start2P).value/1000 #This is the delay between me pressing the buttons
-        if !isnothing(trunc_rng) 
-           t_offset -= trunc_rng[1]
-        end
-        dataIC.t .+= t_offset
+        t_offset = Millisecond(startIC - start2P).value/1000 
+        time_offset!(dataIC, t_offset)
         stim_protocol = getStimulusProtocol(dataIC)
+        spike_train_group!(stim_protocol, 3.0) #We only need to do this if there are spike trains
+        
+        output["dataIC"] = dataIC
+        ElectroPhysiology.convert_channel_to_stimulus!(experiment, dataIC, "IN 3")
+        
         if spike_train
             spike_train_group!(stim_protocol, 3.0) #We only need to do this if there are spike trains
-            spike_train_protocol = getStimulusProtocol(exp)
+            
+            spike_train_protocol = getStimulusProtocol(experiment)
             spike_train_group!(spike_train_protocol, 3.0)
         end
         output["tstamps"] = t_stamps = map(sp -> sp[1][1] + t_offset, stim_protocol)
-        output["pks"] = pks = round.(Int64, (t_stamps./exp.dt))
+        output["pks"] = pks = round.(Int64, (t_stamps./experiment.dt))
         
-        #output["pks"] = pks = round.(Int64, (t_episodes./exp.dt))
+        #output["pks"] = pks = round.(Int64, (t_episodes./experiment.dt))
         println(pks)
     end
 
-    pre_event_length = floor(Int64, pre_event_time/exp.dt)
-    post_event_length = floor(Int64, post_event_time/exp.dt)
+    pre_event_length = floor(Int64, pre_event_time/experiment.dt)
+    post_event_length = floor(Int64, post_event_time/experiment.dt)
     output["sect_time"] = new_t = LinRange(-pre_event_time, post_event_time, pre_event_length+post_event_length)
     red_sect_arr = zeros(length(new_t), length(pks))
     grn_sect_arr = zeros(length(new_t), length(pks))
