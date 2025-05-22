@@ -72,9 +72,9 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
 
                 roi_trace = mean(roi_frames, dims=(1))[1, stim_start_index:stim_end_index, channel_idx]
                 # Calculate dF/F and get time series
-                println(stim_start_index)
-                println(stim_end_index)
-                println(roi_trace |> size)
+                # println(stim_start_index)
+                # println(stim_end_index)
+                # println(roi_trace |> size)
                 pre_stim_idx = round(Int64, delay_time/data.dt)
                 dFoF = baseline_trace(roi_trace; 
                     stim_frame=pre_stim_idx, 
