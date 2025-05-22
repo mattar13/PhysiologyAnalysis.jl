@@ -22,22 +22,6 @@ ylims = data["ylims"]
 experiment = data["experiment"]
 dataIC = data["dataIC"]
 
-using Pkg; Pkg.activate("test")
-using GLMakie
-
-fig = Figure()
-ax1 = Axis(fig[1,1])
-ax2 = Axis(fig[2,1])
-mean_trace = mean(experiment.data_array[:,:,1], dims = 1)[1, :]
-lines!(ax1, experiment.t, mean_trace, color = :green, label = "GRAB-DA2m")
-vlines!(ax1, data["tstamps"], color = :red, linestyle = :dash, label = "Stimulus")
-vlines!(ax1, getStimulusStartTime(experiment), color = :black, linestyle = :dash, label = "Stimulus")
-vlines!(ax1, getStimulusEndTime(experiment), color = :black, linestyle = :dash, label = "Stimulus")
-lines!(ax2, dataIC.t, dataIC.data_array[1,:,3], color = :blue, label = "IC")
-linkxaxes!(ax1, ax2)
-fig
-
-
 # Split the image into 8x8 pixel ROIs
 pixel_splits_roi!(experiment, 16)
 # Process all ROIs for channel 2 and stimulus 2
@@ -52,3 +36,6 @@ roi_analysis = process_rois(experiment;
     assym = 0.075,
     niter = 100
 )
+
+roi_analysis
+
