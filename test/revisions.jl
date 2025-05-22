@@ -7,41 +7,26 @@ import ElectroPhysiology: Experiment, TWO_PHOTON
 
 #%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
 #We should look through the available files and see which ones fit
-img_fn = raw"H:\Data\Two Photon\2025-05-02-GRAB-DA-nirCAT-STR\grab-nircat-str-kpuff_3x012.tif"
-stim_fn = raw"H:\Data\Patching\2025-05-02-GRAB-DA-STR\25502017.abf"
+img_fn = raw"H:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b4_grabda-nircat-100uA_pulse012.tif"
+stim_fn = raw"H:\Data\Patching\2025-05-15-GRAB-DA-STR\25515016.abf"
 
 data = open2Pdata(img_fn, 
-    ic_stim_filename = stim_fn, stimulus_name = "IN 2", 
+    ic_stim_filename = stim_fn, stimulus_name = "IN 3", 
+    stimulus_threshold = 0.5, 
     split_channel = true, main_channel = :grn,
-    #stimulus_threshold = 0.5, spike_train = true,
+    spike_train = true,
     post_event_time = 120.0
 )
 xlims = data["xlims"]
 ylims = data["ylims"]
-getStimulusEndTime(data["experiment"])
+experiment = data["experiment"]
 
-data2P = readImage(img_fn);
-deinterleave!(data2P) #This seperates the movies into two seperate movies
-data2P
-spike_train = false
-
-if spike_train
-    #If we have a electrical stimulus we need to do the spike train analysis
-    addStimulus!(data2P, stim_fn, "IN 3", flatten_episodic = true, stimulus_threshold = 0.5)
-    stim_protocol = getStimulusProtocol(data2P)
-    println(stim_protocol)
-    spike_train_group!(stim_protocol, 3.0) 
-else
-    #Else we can just use the stimulus to get the time of the stimulus
-    addStimulus!(data2P, stim_fn, "IN 2", flatten_episodic = true)
-    time2P = data2P.t
-end
-
+all_stims = getStimulusEndTime(experiment)
 
 # Split the image into 8x8 pixel ROIs
-pixel_splits_roi!(data2P, 8)
+pixel_splits_roi!(experiment, 16)
 # Process all ROIs for channel 2 and stimulus 2
-roi_analysis = process_rois(data2P; 
+roi_analysis = process_rois(experiment; 
     channels=[1, 2],           # Only process channel 2
     stim_indices=nothing,      # Only process the second stimulus
     delay_time=50.0,       # 50ms delay time for analysis
