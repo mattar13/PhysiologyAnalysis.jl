@@ -218,6 +218,8 @@ function open2Pdata(filename;
         stim_protocol = getStimulusProtocol(dataIC)
         if spike_train
             spike_train_group!(stim_protocol, 3.0) #We only need to do this if there are spike trains
+            spike_train_protocol = getStimulusProtocol(exp)
+            spike_train_group!(spike_train_protocol, 3.0)
         end
         output["tstamps"] = t_stamps = map(sp -> sp[1][1] + t_offset, stim_protocol)
         output["pks"] = pks = round.(Int64, (t_stamps./exp.dt))
