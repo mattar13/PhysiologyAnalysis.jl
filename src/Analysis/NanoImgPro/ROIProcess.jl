@@ -34,10 +34,9 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     window::Int=15,
     n_stds=2.0,
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
-    analysis_window_before=100.0,  # Time window in s before stimulus to analyze
-    analysis_window_after=50.0,   # Time window in s after stimulus to analyze
+    analysis_window_before=0.0,  # Time window in s before stimulus to analyze
+    analysis_window_after=60.0,   # Time window in s after stimulus to analyze
     lam::T=1e4, assym::T=0.075, niter::Int=100,
-    save_window::Int=120, #Save this many s after the stimulus
     kwargs...
 ) where T<:Real
     
