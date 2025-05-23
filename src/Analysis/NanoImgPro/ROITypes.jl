@@ -124,7 +124,7 @@ end
 
 Get dF/F traces for specified ROI(s), stimulus, and channel.
 """
-function get_dfof_traces(analysis::ROIAnalysis, roi_id::Union{Int,Nothing}=nothing, stim_idx::Int=1, channel_idx::Int=1)
+function get_dfof_traces(analysis::ROIAnalysis, roi_id::Union{Int,Nothing}=nothing; stim_idx::Int=1, channel_idx::Int=1)
     if isnothing(roi_id)
         return [filter(t -> t.channel == channel_idx, traces)[stim_idx].dfof for traces in values(analysis.rois)]
     end
@@ -137,8 +137,8 @@ end
 
 Get dF/F traces for multiple ROIs, stimulus, and channel.
 """
-function get_dfof_traces(analysis::ROIAnalysis, roi_ids::Vector{Int}, stim_idx::Int=1, channel_idx::Int=1)
-    return [get_dfof_traces(analysis, roi_id, stim_idx, channel_idx) for roi_id in roi_ids]
+function get_dfof_traces(analysis::ROIAnalysis, roi_ids::Vector{Int}; stim_idx::Int=1, channel_idx::Int=1)
+    return [get_dfof_traces(analysis, roi_id; stim_idx = stim_idx, channel_idx = channel_idx) for roi_id in roi_ids]
 end
 
 """
