@@ -34,7 +34,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     window::Int=15,
     n_stds=2.0,
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
-    analysis_window_before=0.0,  # Time window in s before stimulus to analyze
+    analysis_window_before=20.0,  # Time window in s before stimulus to analyze
     analysis_window_after=60.0,   # Time window in s after stimulus to analyze
     lam::T=1e4, assym::T=0.075, niter::Int=100,
     kwargs...
@@ -62,7 +62,9 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             stim_time = all_stims[stim_idx]
             analysis_start = max(stim_time - analysis_window_before, 1.0)  # Convert ms to s
             analysis_end = min(stim_time + analysis_window_after, data.t[end])
-            
+            println(stim_time)
+            println(analysis_start)
+            println(analysis_end)
             # Convert times to indices
             analysis_start_index = round(Int64, analysis_start/data.dt)
             analysis_end_index = round(Int64, analysis_end/data.dt)
