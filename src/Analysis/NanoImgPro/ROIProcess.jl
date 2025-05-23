@@ -9,6 +9,8 @@ using ProgressMeter
         window::Int=15,
         n_stds=2.0,
         sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
+        analysis_window_before=100.0,  # Time window in ms before stimulus to analyze
+        analysis_window_after=50.0,   # Time window in ms after stimulus to analyze
         kwargs...
     ) where T<:Real
 
@@ -32,7 +34,10 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     window::Int=15,
     n_stds=2.0,
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
+    analysis_window_before=100.0,  # Time window in s before stimulus to analyze
+    analysis_window_after=50.0,   # Time window in s after stimulus to analyze
     lam::T=1e4, assym::T=0.075, niter::Int=100,
+    save_window::Int=120, #Save this many s after the stimulus
     kwargs...
 ) where T<:Real
     
@@ -42,7 +47,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     channels = isnothing(channels) ? (1:size(data, 3)) : channels
     roi_list = getROImask(data) |> unique |> sort
     roi_indices = isnothing(roi_indices) ? roi_list : roi_indices
-
+    
     rois = Dict{Int, Vector{ROITrace}}()
 
     # Create progress bar for ROIs
@@ -54,27 +59,25 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         
         # Process each stimulus
         for stim_idx in stim_indices
-            # Calculate stimulus time windows
-            stim_start_time = max(all_stims[stim_idx] - delay_time, 0.0)
-            stim_end_time = if stim_idx < length(all_stims)
-                min(all_stims[stim_idx+1], data.t[end])
-            else
-                data.t[end]
-            end
+            # Calculate fixed analysis window around stimulus
+            stim_time = all_stims[stim_idx]
+            analysis_start = max(stim_time - analysis_window_before, 1.0)  # Convert ms to s
+            analysis_end = min(stim_time + analysis_window_after, data.t[end])
             
-            stim_start_index = round(Int64, (stim_start_time+1)/data.dt)
-            stim_end_index = round(Int64, stim_end_time/data.dt)
+            # Convert times to indices
+            analysis_start_index = round(Int64, analysis_start/data.dt)
+            analysis_end_index = round(Int64, analysis_end/data.dt)
 
             # Process each channel
             for channel_idx in channels
                 # Extract ROI trace
                 roi_frames = getROIarr(data, roi_idx)
 
-                roi_trace = mean(roi_frames, dims=(1))[1, stim_start_index:stim_end_index, channel_idx]
+                roi_trace = mean(roi_frames, dims=(1))[1, analysis_start_index:analysis_end_index, channel_idx]
+                println(size(roi_trace))
+                println(analysis_start_index)
+                println(analysis_end_index)
                 # Calculate dF/F and get time series
-                # println(stim_start_index)
-                # println(stim_end_index)
-                # println(roi_trace |> size)
                 pre_stim_idx = round(Int64, delay_time/data.dt)
                 dFoF = baseline_trace(roi_trace; 
                     stim_frame=pre_stim_idx, 
@@ -106,10 +109,10 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                     roi_trace,
                     dFoF,
                     t_series,
-                    stim_start_time,
-                    stim_end_time,
+                    analysis_start,  # Changed from stim_start_time
+                    analysis_end,    # Changed from stim_end_time
                     channel_idx,
-                    stim_idx,  # Add stimulus index
+                    stim_idx,
                     fit_param,
                     is_significant
                 )
@@ -129,7 +132,9 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         delay_time=delay_time,
         window=window,
         n_stds=n_stds,
-        sig_window=sig_window,  # Add sig_window to analysis parameters
+        sig_window=sig_window,
+        analysis_window_before=analysis_window_before,  # Add new parameters
+        analysis_window_after=analysis_window_after,
         kwargs...
     )
     

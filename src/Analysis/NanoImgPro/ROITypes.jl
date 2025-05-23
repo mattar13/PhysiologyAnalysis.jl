@@ -55,12 +55,16 @@ function ROIAnalysis(rois::Dict{Int, Vector{ROITrace}},
     delay_time::Float64=50.0,
     window::Int=15,
     n_stds::Float64=2.0,
+    analysis_window_before::Float64=100.0,
+    analysis_window_after::Float64=50.0,
     kwargs...
 )
     analysis_parameters = Dict{Symbol, Any}(
         :delay_time => delay_time,
         :window => window,
-        :n_stds => n_stds
+        :n_stds => n_stds,
+        :analysis_window_before => analysis_window_before,
+        :analysis_window_after => analysis_window_after
     )
     # Add any additional parameters from kwargs
     merge!(analysis_parameters, Dict(Symbol(k)=>v for (k,v) in kwargs))
