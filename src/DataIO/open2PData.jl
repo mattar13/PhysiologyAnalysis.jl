@@ -215,7 +215,7 @@ function open2Pdata(filename;
         spike_train_group!(stim_protocol, 3.0) #We only need to do this if there are spike trains
         
         output["dataIC"] = dataIC
-        ElectroPhysiology.convert_channel_to_stimulus!(experiment, dataIC, "IN 3")
+        ElectroPhysiology.convert_channel_to_stimulus!(experiment, dataIC, stimulus_name)
         
         if spike_train
             spike_train_group!(stim_protocol, 3.0) #We only need to do this if there are spike trains
