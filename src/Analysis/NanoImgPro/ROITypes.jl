@@ -74,7 +74,7 @@ end
 
 Get indices of ROIs with significant responses for a given stimulus and channel.
 """
-function get_significant_rois(analysis::ROIAnalysis, channel_idx::Int=1)
+function get_significant_rois(analysis::ROIAnalysis; channel_idx::Int=1)
     return [id for (id, traces) in analysis.rois if any(t -> t.channel == channel_idx && t.is_significant, traces)]
 end
 
