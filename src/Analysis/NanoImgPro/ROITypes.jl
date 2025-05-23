@@ -214,7 +214,7 @@ Returns:
 """
 function get_significant_roi_pixels(analysis::ROIAnalysis, data::Experiment{TWO_PHOTON}; channel_idx::Int=1)
     # Get significant ROIs for the specified channel
-    significant_rois = get_significant_rois(analysis, 1, channel_idx)
+    significant_rois = get_significant_rois(analysis, channel_idx = channel_idx)
     
     # Get ROI mask from experiment
     roi_mask = getROImask(data)
