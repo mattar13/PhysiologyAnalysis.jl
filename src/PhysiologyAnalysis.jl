@@ -76,8 +76,8 @@ export zProject, frameAverage
 export normalize, binarize
 export findROIcentroid
 
-include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
-export findROIcentroids
+# include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
+# export findROIcentroids
 
 using SparseArrays, OffsetArrays, ImageFiltering
 include("Analysis/NanoImgPro/BaselineData.jl")
@@ -85,6 +85,12 @@ include("Analysis/NanoImgPro/BaselineData.jl")
 include("Analysis/NanoImgPro/ParametricFit.jl")
 export single_stim_model
 export fit_parametric
+
+include("Analysis/NanoImgPro/ROITypes.jl")
+export ROITrace, ROIAnalysis
+export get_significant_rois, get_mean_response, get_roi_traces, get_dfof_traces, get_fit_parameters
+export get_significant_roi_pixels
+
 
 include("Analysis/NanoImgPro/ROIProcess.jl")
 export baseline_trace
@@ -96,10 +102,6 @@ using Interpolations
 include("Analysis/Stats.jl")
 export cor_xy
 
-include("Analysis/NanoImgPro/ROITypes.jl")
-export ROITrace, ROIAnalysis
-export get_significant_rois, get_mean_response, get_roi_traces, get_dfof_traces, get_fit_parameters
-export get_significant_roi_pixels
 
 using Colors
 
