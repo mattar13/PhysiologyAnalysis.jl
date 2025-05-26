@@ -62,9 +62,9 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             stim_time = all_stims[stim_idx]
             analysis_start = max(stim_time - analysis_window_before, 1.0)  # Convert ms to s
             analysis_end = min(stim_time + analysis_window_after, data.t[end])
-            println(stim_time)
-            println(analysis_start)
-            println(analysis_end)
+            # println(stim_time)
+            # println(analysis_start)
+            # println(analysis_end)
             # Convert times to indices
             analysis_start_index = round(Int64, analysis_start/data.dt)
             analysis_end_index = round(Int64, analysis_end/data.dt)
