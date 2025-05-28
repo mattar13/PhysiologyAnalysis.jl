@@ -106,7 +106,7 @@ export cor_xy
 using Colors
 
 include("DataIO/open2PData.jl")
-export open2Pdata
+export open2Pdata, load_electric_data, load_puffing_data
 
 homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
 

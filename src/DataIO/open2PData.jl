@@ -263,3 +263,219 @@ function open2Pdata(filename;
     
     return output
 end
+
+
+#Load some convienance functions
+"""
+    load_and_process_data(img_fn, stim_fn; 
+        stimulus_name = "IN 3",
+        split_channel = true, 
+        main_channel = :grn, 
+        post_event_time = 120.0,
+        n_splits = 16,
+        n_stds = 5.0,
+        spike_train = true
+    )
+
+Core function for loading and processing 2-photon imaging data with automatic ROI analysis. This function is used
+by both `load_puffing_data` and `load_electric_data` to handle the common data processing pipeline.
+
+# Arguments
+- `img_fn`: Path to the 2-photon imaging data file
+- `stim_fn`: Path to the stimulus data file (typically an ABF file)
+
+# Keyword Arguments
+- `stimulus_name`: Name of the stimulus channel in the ABF file (default: "IN 3")
+- `split_channel`: Whether to split the image data into separate channels (default: true)
+- `main_channel`: Primary channel to analyze (:red or :grn) (default: :grn)
+- `post_event_time`: Time in seconds to analyze after each stimulus (default: 120.0)
+- `n_splits`: Number of splits for ROI analysis (default: 16)
+- `n_stds`: Number of standard deviations for ROI detection threshold (default: 5.0)
+- `spike_train`: Whether to process spike train data (default: true)
+
+# Returns
+A dictionary containing:
+- Processed image data
+- ROI analysis results
+- Stimulus timing information
+- Delta F/F traces
+- Peak detection results
+- Spike train information (if spike_train=true)
+
+# Example
+```julia
+data = load_and_process_data(
+    "path/to/image.tif",
+    "path/to/stimulus.abf",
+    stimulus_name = "IN 3",
+    post_event_time = 60.0,
+    n_splits = 32,
+    spike_train = true
+)
+```
+
+# Notes
+- This function is typically not called directly, but rather through the specialized functions
+  `load_puffing_data` or `load_electric_data`
+- The function performs ROI analysis using pixel splitting and standard deviation-based thresholding
+- All timing information is synchronized between the imaging and stimulus data
+"""
+function load_and_process_data(img_fn, stim_fn; 
+    stimulus_name = "IN 3",
+    split_channel = true, 
+    main_channel = :grn, 
+    post_event_time = 120.0,
+    n_splits = 16,
+    n_stds = 5.0,
+    spike_train = true
+)
+    println("Loading data from $(basename(img_fn))...")
+    
+    # Load the data
+    data = open2Pdata(img_fn, 
+        ic_stim_filename = stim_fn, 
+        stimulus_name = stimulus_name, 
+        spike_train = spike_train,
+        split_channel = split_channel, 
+        main_channel = main_channel,
+        stimulus_threshold = 0.5, 
+        post_event_time = post_event_time
+    )
+    
+    # Extract experiment and perform ROI analysis
+    exp = data["experiment"]
+    pixel_splits_roi!(exp, n_splits)
+    roi_analysis = process_rois(exp; n_stds = n_stds)
+    
+    # Add ROI analysis to the data dictionary
+    data["roi_analysis"] = roi_analysis
+    
+    println("Done loading and processing data")
+    return data
+end
+
+"""
+    load_puffing_data(img_fn, stim_fn; 
+        stimulus_name = "IN 2", 
+        split_channel = true,
+        main_channel = :grn, 
+        post_event_time = 120.0,
+        n_splits = 16,
+        n_stds = 5.0
+    )
+
+Load and process puffing data with automatic ROI analysis. This function is specifically designed for analyzing 
+puffing experiments where a stimulus is applied to trigger calcium release events.
+
+# Arguments
+- `img_fn`: Path to the 2-photon imaging data file
+- `stim_fn`: Path to the stimulus data file (typically an ABF file)
+
+# Keyword Arguments
+- `stimulus_name`: Name of the stimulus channel in the ABF file (default: "IN 2")
+- `split_channel`: Whether to split the image data into separate channels (default: true)
+- `main_channel`: Primary channel to analyze (:red or :grn) (default: :grn)
+- `post_event_time`: Time in seconds to analyze after each stimulus (default: 120.0)
+- `n_splits`: Number of splits for ROI analysis (default: 16)
+- `n_stds`: Number of standard deviations for ROI detection threshold (default: 5.0)
+
+# Returns
+A dictionary containing:
+- Processed image data
+- ROI analysis results
+- Stimulus timing information
+- Delta F/F traces
+- Peak detection results
+
+# Example
+```julia
+data = load_puffing_data(
+    "path/to/image.tif",
+    "path/to/stimulus.abf",
+    stimulus_name = "IN 2",
+    post_event_time = 60.0
+)
+```
+"""
+function load_puffing_data(img_fn, stim_fn; 
+    stimulus_name = "IN 2", 
+    split_channel = true,
+    main_channel = :grn, 
+    post_event_time = 120.0,
+    n_splits = 16,
+    n_stds = 5.0
+)
+    return load_and_process_data(img_fn, stim_fn;
+        stimulus_name = stimulus_name,
+        split_channel = split_channel,
+        main_channel = main_channel,
+        post_event_time = post_event_time,
+        n_splits = n_splits,
+        n_stds = n_stds,
+        spike_train = false
+    )
+end
+
+"""
+    load_electric_data(img_fn, stim_fn; 
+        stimulus_name = "IN 3", 
+        split_channel = true,
+        main_channel = :grn, 
+        post_event_time = 120.0,
+        n_splits = 16,
+        n_stds = 5.0
+    )
+
+Load and process electrical stimulation data with automatic ROI analysis. This function is specifically designed 
+for analyzing experiments where electrical stimulation is used to trigger responses.
+
+# Arguments
+- `img_fn`: Path to the 2-photon imaging data file
+- `stim_fn`: Path to the stimulus data file (typically an ABF file)
+
+# Keyword Arguments
+- `stimulus_name`: Name of the stimulus channel in the ABF file (default: "IN 3")
+- `split_channel`: Whether to split the image data into separate channels (default: true)
+- `main_channel`: Primary channel to analyze (:red or :grn) (default: :grn)
+- `post_event_time`: Time in seconds to analyze after each stimulus (default: 120.0)
+- `n_splits`: Number of splits for ROI analysis (default: 16)
+- `n_stds`: Number of standard deviations for ROI detection threshold (default: 5.0)
+
+# Returns
+A dictionary containing:
+- Processed image data
+- ROI analysis results
+- Stimulus timing information
+- Delta F/F traces
+- Peak detection results
+- Spike train information (if present)
+
+# Example
+```julia
+data = load_electric_data(
+    "path/to/image.tif",
+    "path/to/stimulus.abf",
+    stimulus_name = "IN 3",
+    post_event_time = 60.0,
+    n_splits = 32  # More splits for finer ROI analysis
+)
+```
+"""
+function load_electric_data(img_fn, stim_fn; 
+    stimulus_name = "IN 3", 
+    split_channel = true,
+    main_channel = :grn, 
+    post_event_time = 120.0,
+    n_splits = 16,
+    n_stds = 5.0
+)
+    return load_and_process_data(img_fn, stim_fn;
+        stimulus_name = stimulus_name,
+        split_channel = split_channel,
+        main_channel = main_channel,
+        post_event_time = post_event_time,
+        n_splits = n_splits,
+        n_stds = n_stds,
+        spike_train = true
+    )
+end 
