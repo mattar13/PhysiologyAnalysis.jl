@@ -30,7 +30,7 @@ function open2Pdata(filename;
         stimulus_name = "IN 2", stimulus_threshold = 0.5,
         spike_train = false, 
         grn_lam = 1e4, red_lam = 1e4, grn_window = 5, red_window = 5,
-        verbose = 1, # 1: basic progress, 2: timing info, 3: detailed info
+        verbose = 3, # 1: basic progress, 2: timing info, 3: detailed info
         negative_peaks = :warn # :nothing, :warn, or :error
     )
     start_time = time()
