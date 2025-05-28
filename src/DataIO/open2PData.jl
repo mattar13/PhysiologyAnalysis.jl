@@ -29,28 +29,51 @@ function open2Pdata(filename;
         ic_stim_filename = nothing, #New option if we want to specify a 2P stimulus dataset
         stimulus_name = "IN 2", stimulus_threshold = 0.5,
         spike_train = false, 
-        grn_lam = 1e4, red_lam = 1e4, grn_window = 5, red_window = 5
+        grn_lam = 1e4, red_lam = 1e4, grn_window = 5, red_window = 5,
+        verbose = 1, # 1: basic progress, 2: timing info, 3: detailed info
+        negative_peaks = :warn # :nothing, :warn, or :error
     )
-    #╔═╡Do this for the k-puff ca image
+    start_time = time()
     output = Dict{String, Any}()
-    experiment = readImage(filename);
-    if split_channel
-        deinterleave!(experiment) #This seperates the movies into two seperate movies
+    
+    # Helper function for verbose logging
+    function log_message(level, message, extra_info=nothing)
+        if verbose >= level
+            if level == 1
+                println(message)
+            elseif level == 2
+                elapsed = time() - start_time
+                println("[$elapsed s] $message")
+            elseif level == 3
+                elapsed = time() - start_time
+                println("[$elapsed s] $message")
+                if !isnothing(extra_info)
+                    println("   Details: $extra_info")
+                end
+            end
+        end
     end
 
-    #Make this a conditional
+    log_message(1, "Loading image...")
+    experiment = readImage(filename)
+    if split_channel
+        deinterleave!(experiment)
+        log_message(2, "Channels deinterleaved")
+    end
+
     if !isnothing(trunc_rng)
         t_begin = trunc_rng[1]
         t_end = trunc_rng[2]
         if isnothing(trunc_rng[2])
             t_end = experiment.t[end]
         end
-
         if isnothing(trunc_rng[1])
             t_begin = experiment.t[1]
         end
         truncate_data!(experiment, t_begin = t_begin, t_end = t_end)
+        log_message(2, "Data truncated", "Range: $t_begin to $t_end")
     end
+
     output["experiment"] = experiment
     output["time"] = experiment.t
     output["xlims"] = xlims = experiment.HeaderDict["xrng"]
@@ -58,69 +81,40 @@ function open2Pdata(filename;
     output["dt"] = experiment.dt
     output["dx"] = xlims[2]-xlims[1]
     output["dy"] = ylims[2]-ylims[1]
-    println("Image loaded")
+    log_message(1, "Image loaded")
    
     if split_channel
+        log_message(2, "Processing split channels")
         
-        #Create a 2D Gaussian filter (Kernel.gaussian(3))
-        spatial_filter = Kernel.gaussian(2.0)  # Gaussian kernel size 3
-        #imfilter!(experiment, spatial_filter; channel = 2) #Apply a gaussian filter
-
-        #Average 5 frames together as a rolling mean
-        mapdata!(mean, experiment, 5, channel = 2)
-        println("Image filtered")
-
-        #╔═╡Seperate out the image array 
         output["img_arr"] = img_arr = get_all_frames(experiment)
-        #╔═╡Seperate the red and green channels
         output["red_zstack"] = red_zstack = img_arr[:,:,:,2]
         output["grn_zstack"] = grn_zstack = img_arr[:,:,:,1]
         output["composite_zstack"] = RGB{Float32}.(red_zstack, grn_zstack, zeros(size(red_zstack)...))
         
-        #╔═╡Make the z projections
         output["red_zproj"] = red_zproj = project(experiment, dims = (3))[:,:,1,2]
         output["grn_zproj"] = grn_zproj = project(experiment, dims = (3))[:,:,1,1]
 
         output["red_img"] = red_img = red_zproj./maximum(red_zproj)*red_scale .* RGB{Float32}(1, 0, 0)
         output["grn_img"] = grn_img = grn_zproj./maximum(grn_zproj)*grn_scale .* RGB{Float32}(0, 1, 0)
         output["composite_img"] = grn_img + red_img
-        #save("$analysis_loc\\$(savename)\\img.tif", composite_zstack)
-        println("Z projection")
+        log_message(2, "Z projections completed")
 
         output["red_trace"] = project(experiment, dims = (1,2))[1,1,:,2]
         output["grn_trace"] = project(experiment, dims = (1,2))[1,1,:,1]
-        println("Z axis traces generated")
+        log_message(2, "Z axis traces generated")
  
-        # #Using the rolling mean method
-        # output["dff_red_zstack"] = dff_red_zstack = deltaF_F(red_zstack; voxel_z = 200, mode = :rolling_mean, boundary_mode = "symmetric")
-        # #Using the mean method
-        # output["dff_grn_zstack"] = dff_grn_zstack = deltaF_F(grn_zstack; mode = :mean)
-
-        # output["dff_red_comp_zstack"] = dff_red_comp_zstack = dff_red_zstack .* RGB{Float32}(1, 0, 0) 
-        # output["dff_grn_comp_zstack"] = dff_grn_comp_zstack = dff_grn_zstack .* RGB{Float32}(0, 1, 0)
-        # output["dff_composite_zstack"] = dff_grn_comp_zstack + dff_red_comp_zstack
-
-        # output["dff_red_zproj"] = dff_red_zproj = mean(dff_red_zstack, dims = 3)[:,:,1]
-        # output["dff_grn_zproj"] = dff_grn_zproj = mean(dff_grn_zstack, dims = 3)[:,:,1]
-
-        # output["dff_red_img"] = dff_red_img = dff_red_zproj .* RGB{Float32}(1, 0, 0)
-        # output["dff_grn_img"] = dff_grn_img = dff_grn_zproj .* RGB{Float32}(0, 1, 0)
-        # output["dff_composite_img"] = dff_grn_img + dff_red_img #Make this a 
-
-        # output["dff_red_trace"] = dff_red_trace = mean(dff_red_zstack, dims = (1,2))[1,1,:]
-        # output["dff_grn_trace"] = dff_grn_trace = mean(dff_grn_zstack, dims = (1,2))[1,1,:]
-
         output["dff_grn_trace"] = dff_grn_trace = PhysiologyAnalysis.baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, niter = 100)
         output["dff_red_trace"] = dff_red_trace = PhysiologyAnalysis.baseline_trace(output["red_trace"], window = red_window, lam = red_lam, niter = 100)
-        println("delta f/f images and traces extracted")
+        log_message(2, "Delta F/F traces calculated")
     else
+        log_message(2, "Processing single channel")
         #Create a 2D Gaussian filter (Kernel.gaussian(3))
-        spatial_filter = Kernel.gaussian(2.0)  # Gaussian kernel size 3
-        imfilter!(experiment, spatial_filter; channel = 1) #Apply a gaussian filter
+        # spatial_filter = Kernel.gaussian(2.0)  # Gaussian kernel size 3
+        # imfilter!(experiment, spatial_filter; channel = 1) #Apply a gaussian filter
 
-        #Average 5 frames together as a rolling mean
-        mapdata!(mean, experiment, 5, channel = 1)
-        println("Image filtered")
+        # #Average 5 frames together as a rolling mean
+        # mapdata!(mean, experiment, 5, channel = 1)
+        # println("Image filtered")
 
         println("Z Stack channels extracted")
 
@@ -138,19 +132,6 @@ function open2Pdata(filename;
 
             output["red_trace"] = red_trace = project(experiment, dims = (1,2))[1,1,:,1]
             output["grn_trace"] = grn_trace = zeros(size(red_trace))
-
-            # #Using the rolling mean method
-            # output["dff_red_zstack"] = dff_red_zstack = deltaF_F(red_zstack[:,:,:,1]; voxel_z = 200, mode = :rolling_mean, boundary_mode = "symmetric")
-            # output["dff_grn_zstack"] = dff_grn_zstack = zeros(size(dff_red_zstack))
-
-            # output["dff_red_comp_zstack"] = output["dff_composite_zstack"] = dff_red_comp_zstack = dff_red_zstack .* RGB{Float32}(1, 0, 0) 
-            # output["dff_grn_comp_zstack"] = dff_grn_comp_zstack = zeros(size(dff_red_comp_zstack))
-
-            # output["dff_red_zproj"] = dff_red_zproj = mean(dff_red_zstack, dims = 3)[:,:,1]
-            # output["dff_grn_zproj"] = dff_grn_zproj = zeros(size(dff_red_zproj))
-
-            # output["dff_red_img"] = output["dff_composite_img"] = dff_red_img = dff_red_zproj .* RGB{Float32}(1, 0, 0)
-            # output["dff_grn_img"] = dff_grn_img = zeros(size(dff_red_img))
 
             output["dff_red_trace"] = dff_red_trace = PhysiologyAnalysis.baseline_trace(output["red_trace"],  window = red_window, lam = red_lam, niter = 100)
             output["dff_grn_trace"] = dff_grn_trace = zeros(size(dff_red_trace))
@@ -171,19 +152,6 @@ function open2Pdata(filename;
              output["grn_trace"] = grn_trace = project(experiment, dims = (1,2))[1,1,:,1]
              output["red_trace"] = red_trace = zeros(size(grn_trace))
  
-            #  #Using the rolling mean method
-            #  output["dff_grn_zstack"] = dff_grn_zstack = deltaF_F(grn_zstack[:,:,:,1]; voxel_z = 200, mode = :rolling_mean, boundary_mode = "symmetric")
-            #  output["dff_red_zstack"] = dff_red_zstack = zeros(size(dff_grn_zstack))
- 
-            #  output["dff_grn_comp_zstack"] = output["dff_composite_zstack"] = dff_grn_comp_zstack = dff_grn_zstack .* RGB{Float32}(1, 0, 0) 
-            #  output["dff_red_comp_zstack"] = dff_red_comp_zstack = zeros(size(dff_grn_comp_zstack))
- 
-            #  output["dff_grn_zproj"] = dff_grn_zproj = mean(dff_grn_zstack, dims = 3)[:,:,1]
-            #  output["dff_red_zproj"] = dff_red_zproj = zeros(size(dff_grn_zproj))
- 
-            #  output["dff_grn_img"] = output["dff_composite_img"] = dff_grn_img = dff_grn_zproj .* RGB{Float32}(1, 0, 0)
-            #  output["dff_red_img"] = dff_red_img = zeros(size(dff_grn_img))
- 
              output["dff_grn_trace"] = dff_grn_trace = PhysiologyAnalysis.baseline_trace(output["grn_trace"],  window = grn_window, lam = grn_lam, niter = 100)
              output["dff_red_trace"] = dff_red_trace = zeros(size(dff_grn_trace))
         end
@@ -197,14 +165,26 @@ function open2Pdata(filename;
     #If we specify a 
     if isnothing(ic_stim_filename)
         if section_by == :green
-            println("Peak finding by green channel")
+            log_message(1, "Finding peaks in green channel")
             output["pks"], output["vals"] = pks, vals = findmaxima(dff_grn_trace, peak_width)
         elseif section_by == :red
-            println("Peak finding by red channel")
+            log_message(1, "Finding peaks in red channel")
             output["pks"], output["vals"] = pks, vals = findmaxima(dff_red_trace, peak_width)
         end
+        
+        # Handle negative peaks
+        if any(pks .< 0)
+            msg = "Found $(count(pks .< 0)) negative peaks"
+            if negative_peaks == :warn
+                @warn msg
+            elseif negative_peaks == :error
+                error(msg)
+            end
+        end
+        
+        log_message(3, "Peak finding completed", "Found $(length(pks)) peaks")
     else
-        println("Peak finding by using the digital stim in the IC stimulus instead")
+        log_message(1, "Using IC stimulus for peak detection")
         addStimulus!(experiment, ic_stim_filename, stimulus_name; flatten_episodic = true, stimulus_threshold = stimulus_threshold)
         dataIC = readABF(ic_stim_filename, flatten_episodic = true, stimulus_name = stimulus_name, stimulus_threshold = stimulus_threshold) #Open the IC data
         start2P = experiment.HeaderDict["FileStartDateTime"]-Second(3.0) #The computer clocks are off by 3 seconds
@@ -227,7 +207,16 @@ function open2Pdata(filename;
         output["pks"] = pks = round.(Int64, (t_stamps./experiment.dt))
         
         #output["pks"] = pks = round.(Int64, (t_episodes./experiment.dt))
-        println(pks)
+        # Handle negative peaks
+        log_message(3, "Peak finding completed", "Found $(length(pks)) peaks")
+        if any(pks .< 0)
+            msg = "Found $(count(pks .< 0)) negative peaks"
+            if negative_peaks == :warn
+                @warn msg
+            elseif negative_peaks == :error
+                error(msg)
+            end
+        end
     end
 
     pre_event_length = floor(Int64, pre_event_time/experiment.dt)
@@ -265,5 +254,12 @@ function open2Pdata(filename;
 
     #We need to clean empty rows
     println("Peak finding completed")
+
+    log_message(1, "Analysis completed")
+    if verbose >= 2
+        total_time = time() - start_time
+        println("Total processing time: $total_time seconds")
+    end
+    
     return output
 end
