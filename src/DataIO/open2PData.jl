@@ -31,7 +31,8 @@ function open2Pdata(filename;
         spike_train = false, 
         grn_lam = 1e4, red_lam = 1e4, grn_window = 5, red_window = 5,
         verbose = 3, # 1: basic progress, 2: timing info, 3: detailed info
-        negative_peaks = :warn # :nothing, :warn, or :error
+        negative_peaks = :warn, # :nothing, :warn, or :error
+        clock_offset = 3.0 # seconds
     )
     start_time = time()
     output = Dict{String, Any}()
@@ -187,7 +188,7 @@ function open2Pdata(filename;
         log_message(1, "Using IC stimulus for peak detection")
         addStimulus!(experiment, ic_stim_filename, stimulus_name; flatten_episodic = true, stimulus_threshold = stimulus_threshold)
         dataIC = readABF(ic_stim_filename, flatten_episodic = true, stimulus_name = stimulus_name, stimulus_threshold = stimulus_threshold) #Open the IC data
-        start2P = experiment.HeaderDict["FileStartDateTime"]-Second(3.0) #The computer clocks are off by 3 seconds
+        start2P = experiment.HeaderDict["FileStartDateTime"]-Second(clock_offset) #The computer clocks are off by 3 seconds
         startIC = dataIC.HeaderDict["FileStartDateTime"]
         t_offset = Millisecond(startIC - start2P).value/1000 
         time_offset!(dataIC, t_offset)
