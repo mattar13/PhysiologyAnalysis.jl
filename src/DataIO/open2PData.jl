@@ -20,6 +20,20 @@ This documentation should help you figure out what you have access to
 - "pks_vals" are the maxima peaks and valleys of the dff_green_trace
 - "grn_row_sums" is the sum of all green section rows
 - "grn_sect_arr" and "red_sect_arr" are the arrays formed as a result of the peakfinding
+- "sig_rois" contains arrays of significant ROIs for each channel
+- "sig_traces" is a 4D array with dimensions (rois, stims, datapoints, channels)
+- "sig_tseries" contains the time points for the traces
+
+For significant ROIs and their traces:
+- data["sig_rois"][channel_idx] gives you the significant ROIs for that channel
+- data["sig_traces"][roi_idx, stim_idx, :, channel_idx] gives you the trace for a specific ROI, stimulus, and channel
+- data["sig_tseries"][channel_idx] gives you the time points for all traces
+
+The sig_traces array is organized as follows:
+- First dimension: ROI index
+- Second dimension: Stimulus index
+- Third dimension: Time points
+- Fourth dimension: Channel index
 """
 function open2Pdata(filename;
         split_channel = true, main_channel = :red,
@@ -265,6 +279,49 @@ function open2Pdata(filename;
     return output
 end
 
+"""
+    convert_to_multidim_array(nested_array)
+
+Convert a nested array structure [channel_idx][stim_idx][roi_idx][datapoint] into a multidimensional array,
+padding shorter arrays with NaN values to ensure equal length.
+
+# Arguments
+- `nested_array`: A nested array structure where the innermost arrays may have different lengths
+
+# Returns
+- A 4D array with dimensions (roi_idx, stim_idx, max_datapoints, channel_idx)
+- The maximum length of datapoints found in any array
+"""
+function convert_to_multidim_array(nested_array)
+    # Find the maximum length of datapoint arrays
+    max_length = 0
+    for channel in nested_array
+        for stim in channel
+            for roi in stim
+                max_length = max(max_length, length(roi))
+            end
+        end
+    end
+    
+    # Get dimensions
+    n_channels = length(nested_array)
+    n_stims = length(first(nested_array))
+    n_rois = length(first(first(nested_array)))
+    
+    # Create the output array filled with NaNs
+    output = fill(NaN, (n_rois, n_stims, max_length, n_channels))
+    
+    # Fill the array with actual values
+    for (channel_idx, channel) in enumerate(nested_array)
+        for (stim_idx, stim) in enumerate(channel)
+            for (roi_idx, roi) in enumerate(stim)
+                output[roi_idx, stim_idx, 1:length(roi), channel_idx] = roi
+            end
+        end
+    end
+    
+    return output#, max_length
+end 
 
 #Load some convienance functions
 """
@@ -351,34 +408,39 @@ function load_and_process_data(img_fn, stim_fn;
     # Add ROI analysis to the data dictionary
     data["roi_analysis"] = roi_analysis
     
-    #Eventually I want to store this as a new Experiment object
     println("Getting significant ROIs")
-    data["sig_rois"] = []
-    data["sig_traces"] = []
-    data["sig_tseries"] = []
+    
+    # Collect all traces
+    all_traces = []
+    all_tseries = []
+    all_sig_rois = []
+    
     for channel_idx in axes(exp, 3)
-        println("Getting significant ROIs for channel $channel_idx")
+        println("Processing channel $channel_idx")
+        # First get significant ROIs for this channel
         sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
+        push!(all_sig_rois, sig_rois)
+        println("Found $(length(sig_rois)) significant ROIs")
         
-        # Collect all traces for all stimulus indexes for each ROI
-        sig_traces = []
-        for roi in sig_rois
-            roi_traces = filter(t -> t.channel == channel_idx, roi_analysis.rois[roi])
-            push!(sig_traces, [t.dfof for t in roi_traces])
+        channel_traces = []
+        for stim_idx in eachindex(data["pks"])
+            println("Processing stimulus $stim_idx")
+            # Get traces only for significant ROIs
+            traces = get_dfof_traces(roi_analysis, sig_rois, stim_idx = stim_idx, channel_idx = channel_idx)
+            if !isempty(traces)
+                push!(channel_traces, traces)
+                if isempty(all_tseries)
+                    push!(all_tseries, traces)  # Use traces array directly
+                end
+            end
         end
-        
-        # Get time series from first ROI (should be same for all)
-        if !isempty(sig_rois)
-            sig_tseries = filter(t -> t.channel == channel_idx, roi_analysis.rois[first(sig_rois)])[1].t_series
-        else
-            sig_tseries = Float64[]
-        end
-        
-        push!(data["sig_rois"], sig_rois)
-        push!(data["sig_traces"], sig_traces)
-        push!(data["sig_tseries"], sig_tseries)
+        push!(all_traces, channel_traces)
     end
 
+    data["sig_traces"] = all_traces
+    data["sig_tseries"] = all_tseries
+    data["sig_rois"] = all_sig_rois  # Store significant ROIs for each channel
+    
     println("Done loading and processing data")
     return data
 end
@@ -508,3 +570,4 @@ function load_electric_data(img_fn, stim_fn;
         spike_train = true
     )
 end 
+

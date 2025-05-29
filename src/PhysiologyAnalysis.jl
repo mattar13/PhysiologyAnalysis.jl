@@ -107,6 +107,7 @@ using Colors
 
 include("DataIO/open2PData.jl")
 export open2Pdata, load_electric_data, load_puffing_data
+export convert_to_multidim_array
 
 homepath = joinpath(splitpath(pathof(PhysiologyAnalysis))[1:end-1]...)
 
