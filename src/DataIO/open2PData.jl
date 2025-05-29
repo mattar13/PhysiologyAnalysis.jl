@@ -351,6 +351,7 @@ function load_and_process_data(img_fn, stim_fn;
     # Add ROI analysis to the data dictionary
     data["roi_analysis"] = roi_analysis
     
+    println("Getting significant ROIs")
     sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
     sig_traces = [filter(t -> t.channel == channel_idx && t.stimulus_index == stim_idx, roi_analysis.rois[roi])[1].dfof for roi in sig_rois]
     sig_tseries = filter(t -> t.channel == channel_idx && t.stimulus_index == stim_idx, roi_analysis.rois[first(sig_rois)])[1].t_series
