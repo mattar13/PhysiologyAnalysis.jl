@@ -60,24 +60,36 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         for stim_idx in stim_indices
             # Calculate fixed analysis window around stimulus
             stim_time = all_stims[stim_idx]
-            analysis_start = max(stim_time - analysis_window_before, 1.0)  # Convert ms to s
-            analysis_end = min(stim_time + analysis_window_after, data.t[end])
-            # println(stim_time)
-            # println(analysis_start)
-            # println(analysis_end)
-            # Convert times to indices
-            analysis_start_index = round(Int64, analysis_start/data.dt)
-            analysis_end_index = round(Int64, analysis_end/data.dt)
+            # Calculate the full analysis window (before and after)
+            analysis_start = stim_time - analysis_window_before  # Convert ms to s
+            analysis_end = stim_time + analysis_window_after
+            
+            # Calculate the actual data indices and NaN padding
+            start_idx = max(1, round(Int, analysis_start / data.dt))
+            end_idx = min(length(data.t), round(Int, analysis_end / data.dt))
+            
+            # Calculate how many NaNs we need at start and end
+            nans_before = max(0, round(Int, (analysis_window_before - (stim_time - data.t[1])) / data.dt))
+            nans_after = max(0, round(Int, ((data.t[end] - stim_time) - analysis_window_after) / data.dt))
+            
+            # Total window size should be fixed
+            total_window_size = round(Int, (analysis_window_before + analysis_window_after) / data.dt)
 
             # Process each channel
             for channel_idx in channels
                 # Extract ROI trace
                 roi_frames = getROIarr(data, roi_idx)
-
-                roi_trace = mean(roi_frames, dims=(1))[1, analysis_start_index:analysis_end_index, channel_idx]
-                # println(size(roi_trace))
-                # println(analysis_start_index)
-                # println(analysis_end_index)
+                
+                # Create a trace with NaNs for padding
+                roi_trace = fill(NaN, total_window_size)
+                
+                # Fill in the actual data where we have it
+                if end_idx >= start_idx  # Only if we have some valid data
+                    valid_length = end_idx - start_idx + 1
+                    roi_trace[nans_before + 1:nans_before + valid_length] = 
+                        mean(roi_frames, dims=(1))[1, start_idx:end_idx, channel_idx]
+                end
+                
                 # Calculate dF/F and get time series
                 pre_stim_idx = round(Int64, delay_time/data.dt)
                 dFoF = baseline_trace(roi_trace; 
