@@ -36,7 +36,8 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
     analysis_window_before=50.0,  # Time window in s before stimulus to analyze
     analysis_window_after=120.0,   # Time window in s after stimulus to analyze
-    lam::T=1e4, assym::T=0.075, niter::Int=100,
+    red_lam::T=1e4, red_assym::T=0.075, red_niter::Int=100,
+    grn_lam::T=1e4, grn_assym::T=0.075, grn_niter::Int=100,
     kwargs...
 ) where T<:Real
     
@@ -67,7 +68,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             # Calculate the actual data indices and NaN padding
             start_idx = max(1, round(Int, analysis_start / data.dt))
             end_idx = min(length(data.t), round(Int, analysis_end / data.dt))
-            println("Start index: $start_idx, End index: $end_idx")
+            #println("Start index: $start_idx, End index: $end_idx")
             
             # Calculate how many NaNs we need at start and end
             nans_before = max(0, round(Int, (analysis_window_before - (stim_time - data.t[1])) / data.dt))
@@ -94,11 +95,19 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 
                 # Calculate dF/F and get time series
                 pre_stim_idx = round(Int64, delay_time/data.dt)
-                dFoF = baseline_trace(roi_trace; 
-                    stim_frame=pre_stim_idx, 
-                    window=window, 
-                    lam=lam, assym=assym, niter=niter,
-                )
+                if channel_idx == 1
+                    dFoF = baseline_trace(roi_trace; 
+                        stim_frame=pre_stim_idx, 
+                        window=window, 
+                        lam=grn_lam, assym=grn_assym, niter=grn_niter,
+                    )
+                else
+                    dFoF = baseline_trace(roi_trace; 
+                        stim_frame=pre_stim_idx, 
+                        window=window, 
+                        lam=red_lam, assym=red_assym, niter=red_niter,
+                    )
+                end
                 t_series = collect(1:length(dFoF))*data.dt
                 
                 # Calculate significance
