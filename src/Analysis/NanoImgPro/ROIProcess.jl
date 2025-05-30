@@ -63,15 +63,16 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             # Calculate the full analysis window (before and after)
             analysis_start = stim_time - analysis_window_before  # Convert ms to s
             analysis_end = stim_time + analysis_window_after
-            
+            # println("Analysis window: $analysis_start to $analysis_end")
             # Calculate the actual data indices and NaN padding
             start_idx = max(1, round(Int, analysis_start / data.dt))
             end_idx = min(length(data.t), round(Int, analysis_end / data.dt))
+            println("Start index: $start_idx, End index: $end_idx")
             
             # Calculate how many NaNs we need at start and end
             nans_before = max(0, round(Int, (analysis_window_before - (stim_time - data.t[1])) / data.dt))
             nans_after = max(0, round(Int, ((data.t[end] - stim_time) - analysis_window_after) / data.dt))
-            
+            # println("Nans before: $nans_before")
             # Total window size should be fixed
             total_window_size = round(Int, (analysis_window_before + analysis_window_after) / data.dt)
 
@@ -81,13 +82,14 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 roi_frames = getROIarr(data, roi_idx)
                 
                 # Create a trace with NaNs for padding
-                roi_trace = fill(NaN, total_window_size)
+                roi_frames_mean = mean(roi_frames, dims=(1))[1, start_idx:end_idx, channel_idx]
+                first_value = roi_frames_mean[1]
+                roi_trace = fill(first_value, total_window_size)
                 
                 # Fill in the actual data where we have it
                 if end_idx >= start_idx  # Only if we have some valid data
                     valid_length = end_idx - start_idx + 1
-                    roi_trace[nans_before + 1:nans_before + valid_length] = 
-                        mean(roi_frames, dims=(1))[1, start_idx:end_idx, channel_idx]
+                    roi_trace[nans_before + 1:nans_before + valid_length] = roi_frames_mean
                 end
                 
                 # Calculate dF/F and get time series
