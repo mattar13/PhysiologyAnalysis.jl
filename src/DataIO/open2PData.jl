@@ -409,7 +409,11 @@ function load_and_process_data(img_fn, stim_fn;
     # Extract experiment and perform ROI analysis
     exp = data["experiment"]
     pixel_splits_roi!(exp, n_splits)
-    roi_analysis = process_rois(exp; n_stds = n_stds, analysis_window_before = pre_event_time, analysis_window_after = post_event_time)
+    roi_analysis = process_rois(exp; 
+        n_stds = n_stds, analysis_window_before = pre_event_time, analysis_window_after = post_event_time,
+        red_lam = red_lam, red_window = red_window,
+        grn_lam = grn_lam, grn_window = grn_window,
+    )
     
     # Add ROI analysis to the data dictionary
     data["roi_analysis"] = roi_analysis
