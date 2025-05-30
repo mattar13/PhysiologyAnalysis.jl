@@ -499,7 +499,7 @@ data = load_puffing_data(
 ```
 """
 function load_puffing_data(img_fn, stim_fn; 
-    trun_rng = nothing,
+    trunc_rng = nothing,
     stimulus_name = "IN 2", 
     split_channel = true,
     main_channel = :grn, 
@@ -510,7 +510,7 @@ function load_puffing_data(img_fn, stim_fn;
     grn_lam = 1e4, grn_window = 5,
 )
     return load_and_process_data(img_fn, stim_fn;
-        trun_rng = trun_rng,
+        trunc_rng = trunc_rng,
         stimulus_name = stimulus_name,
         split_channel = split_channel,
         main_channel = main_channel,
@@ -571,7 +571,7 @@ data = load_electric_data(
 ```
 """
 function load_electric_data(img_fn, stim_fn; 
-    trun_rng = nothing,
+    trunc_rng = nothing,
     stimulus_name = "IN 3", 
     split_channel = true,
     main_channel = :grn, 
@@ -582,7 +582,7 @@ function load_electric_data(img_fn, stim_fn;
     grn_lam = 1e4, grn_window = 5,
 )
     return load_and_process_data(img_fn, stim_fn;
-        trun_rng = trun_rng,
+        trunc_rng = trunc_rng,
         stimulus_name = stimulus_name,
         split_channel = split_channel,
         main_channel = main_channel,
