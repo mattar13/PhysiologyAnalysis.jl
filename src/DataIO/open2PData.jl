@@ -304,12 +304,12 @@ function convert_to_multidim_array(nested_array)
     for STIM in 1:n_stims
         for CHANNEL in 1:n_channels
             for ROI in 1:n_rois
-                println("STIM: $STIM, CHANNEL: $CHANNEL, ROI: $ROI")
+                # println("STIM: $STIM, CHANNEL: $CHANNEL, ROI: $ROI")
                 trace = hcat(nested_array[CHANNEL][STIM][ROI]...)
-                println(trace |> size)
+                # println(trace |> size)
                 #find an NaNs
                 nan_idx = findfirst(isnan.(trace))
-                println("NaN at $nan_idx")
+                # println("NaN at $nan_idx")
                 sig_traces[STIM, ROI, :, CHANNEL] = trace
             end
         end
