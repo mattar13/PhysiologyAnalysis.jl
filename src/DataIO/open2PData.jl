@@ -426,13 +426,13 @@ function load_and_process_data(img_fn, stim_fn;
         sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
     end
     for channel_idx in axes(exp, 3)
-        println("Processing channel $channel_idx")
+        #println("Processing channel $channel_idx")
         # First get significant ROIs for this channel
-        println("Found $(length(sig_rois)) significant ROIs")
+        #println("Found $(length(sig_rois)) significant ROIs")
         
         channel_traces = []
         for stim_idx in eachindex(data["pks"])
-            println("Processing stimulus $stim_idx")
+            #println("Processing stimulus $stim_idx")
             # Get traces only for significant ROIs
             traces = get_dfof_traces(roi_analysis, sig_rois, stim_idx = stim_idx, channel_idx = channel_idx)
             if !isempty(traces)
