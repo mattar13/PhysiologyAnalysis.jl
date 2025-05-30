@@ -422,12 +422,14 @@ function load_and_process_data(img_fn, stim_fn;
     all_tseries = []
     all_sig_rois = []
     
-    if main_channel == :grn
-        sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
-    else
-        sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
-    end
     for channel_idx in axes(exp, 3)
+        if main_channel == :grn
+            sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
+        elseif main_channel == :red 
+            sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
+        else
+            sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
+        end
         #println("Processing channel $channel_idx")
         # First get significant ROIs for this channel
         #println("Found $(length(sig_rois)) significant ROIs")
