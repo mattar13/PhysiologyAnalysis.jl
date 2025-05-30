@@ -40,7 +40,7 @@ function open2Pdata(filename;
         trunc_rng = nothing, pre_event_time = 20.0, post_event_time = 60.0, 
         red_scale = 1.5, grn_scale = 3.0, 
         section_by = :green, peak_width = 40, peak_min = 0.2, 
-        ic_stim_filename = nothing, #New option if we want to specify a 2P stimulus dataset
+        stim_filename = nothing, #New option if we want to specify a 2P stimulus dataset
         stimulus_name = "IN 2", stimulus_threshold = 0.5,
         spike_train = false, 
         grn_lam = 1e4, red_lam = 1e4, grn_window = 5, red_window = 5,
@@ -178,7 +178,7 @@ function open2Pdata(filename;
 
     #%% Do and plot wavefinding events
     #If we specify a 
-    if isnothing(ic_stim_filename)
+    if isnothing(stim_filename)
         if section_by == :green
             log_message(1, "Finding peaks in green channel")
             output["pks"], output["vals"] = pks, vals = findmaxima(dff_grn_trace, peak_width)
@@ -200,8 +200,8 @@ function open2Pdata(filename;
         log_message(3, "Peak finding completed", "Found $(length(pks)) peaks")
     else
         log_message(1, "Using IC stimulus for peak detection")
-        addStimulus!(experiment, ic_stim_filename, stimulus_name; flatten_episodic = true, stimulus_threshold = stimulus_threshold)
-        dataIC = readABF(ic_stim_filename, flatten_episodic = true, stimulus_name = stimulus_name, stimulus_threshold = stimulus_threshold) #Open the IC data
+        addStimulus!(experiment, stim_filename, stimulus_name; flatten_episodic = true, stimulus_threshold = stimulus_threshold)
+        dataIC = readABF(stim_filename, flatten_episodic = true, stimulus_name = stimulus_name, stimulus_threshold = stimulus_threshold) #Open the IC data
         start2P = experiment.HeaderDict["FileStartDateTime"]-Second(clock_offset) #The computer clocks are off by 3 seconds
         startIC = dataIC.HeaderDict["FileStartDateTime"]
         t_offset = Millisecond(startIC - start2P).value/1000 
@@ -382,28 +382,34 @@ function load_and_process_data(img_fn, stim_fn;
     stimulus_name = "IN 3",
     split_channel = true, 
     main_channel = :grn, 
-    post_event_time = 120.0,
+    pre_event_time = 50.0,
+    post_event_time = 60.0,
     n_splits = 16,
     n_stds = 5.0,
-    spike_train = true
+    spike_train = true,
+    red_lam = 1e4, red_window = 5,
+    grn_lam = 1e4, grn_window = 5,
 )
     println("Loading data from $(basename(img_fn))...")
     
     # Load the data
     data = open2Pdata(img_fn, 
-        ic_stim_filename = stim_fn, 
+        stim_filename = stim_fn, 
         stimulus_name = stimulus_name, 
         spike_train = spike_train,
         split_channel = split_channel, 
         main_channel = main_channel,
         stimulus_threshold = 0.5, 
-        post_event_time = post_event_time
+        post_event_time = post_event_time,
+        pre_event_time = pre_event_time,
+        red_lam = red_lam, red_window = red_window,
+        grn_lam = grn_lam, grn_window = grn_window,
     )
     
     # Extract experiment and perform ROI analysis
     exp = data["experiment"]
     pixel_splits_roi!(exp, n_splits)
-    roi_analysis = process_rois(exp; n_stds = n_stds)
+    roi_analysis = process_rois(exp; n_stds = n_stds, analysis_window_before = pre_event_time, analysis_window_after = post_event_time)
     
     # Add ROI analysis to the data dictionary
     data["roi_analysis"] = roi_analysis
@@ -415,11 +421,14 @@ function load_and_process_data(img_fn, stim_fn;
     all_tseries = []
     all_sig_rois = []
     
+    if main_channel == :grn
+        sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
+    else
+        sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
+    end
     for channel_idx in axes(exp, 3)
         println("Processing channel $channel_idx")
         # First get significant ROIs for this channel
-        sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
-        push!(all_sig_rois, sig_rois)
         println("Found $(length(sig_rois)) significant ROIs")
         
         channel_traces = []
@@ -494,7 +503,9 @@ function load_puffing_data(img_fn, stim_fn;
     main_channel = :grn, 
     post_event_time = 120.0,
     n_splits = 16,
-    n_stds = 5.0
+    n_stds = 5.0,
+    red_lam = 1e4, red_window = 5,
+    grn_lam = 1e4, grn_window = 5,
 )
     return load_and_process_data(img_fn, stim_fn;
         stimulus_name = stimulus_name,
@@ -503,7 +514,9 @@ function load_puffing_data(img_fn, stim_fn;
         post_event_time = post_event_time,
         n_splits = n_splits,
         n_stds = n_stds,
-        spike_train = false
+        spike_train = false,
+        red_lam = red_lam, red_window = red_window,
+        grn_lam = grn_lam, grn_window = grn_window,
     )
 end
 
@@ -514,7 +527,9 @@ end
         main_channel = :grn, 
         post_event_time = 120.0,
         n_splits = 16,
-        n_stds = 5.0
+        n_stds = 5.0,
+        red_lam = 1e4, red_window = 5,
+        grn_lam = 1e4, grn_window = 5,
     )
 
 Load and process electrical stimulation data with automatic ROI analysis. This function is specifically designed 
@@ -558,7 +573,9 @@ function load_electric_data(img_fn, stim_fn;
     main_channel = :grn, 
     post_event_time = 120.0,
     n_splits = 16,
-    n_stds = 5.0
+    n_stds = 5.0,
+    red_lam = 1e4, red_window = 5,
+    grn_lam = 1e4, grn_window = 5,
 )
     return load_and_process_data(img_fn, stim_fn;
         stimulus_name = stimulus_name,
@@ -567,7 +584,9 @@ function load_electric_data(img_fn, stim_fn;
         post_event_time = post_event_time,
         n_splits = n_splits,
         n_stds = n_stds,
-        spike_train = true
+        spike_train = true,
+        red_lam = red_lam, red_window = red_window,
+        grn_lam = grn_lam, grn_window = grn_window,
     )
 end 
 
