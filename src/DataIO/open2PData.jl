@@ -374,6 +374,7 @@ data = load_and_process_data(
 - All timing information is synchronized between the imaging and stimulus data
 """
 function load_and_process_data(img_fn, stim_fn; 
+    trunc_rng = nothing, 
     stimulus_name = "IN 3",
     split_channel = true, 
     main_channel = :grn, 
@@ -389,6 +390,7 @@ function load_and_process_data(img_fn, stim_fn;
     
     # Load the data
     data = open2Pdata(img_fn, 
+        trunc_rng = trunc_rng,
         stim_filename = stim_fn, 
         stimulus_name = stimulus_name, 
         spike_train = spike_train,
@@ -413,7 +415,7 @@ function load_and_process_data(img_fn, stim_fn;
     # Add ROI analysis to the data dictionary
     data["roi_analysis"] = roi_analysis
     
-    println("Getting significant ROIs")
+    #println("Getting significant ROIs")
     
     # Collect all traces
     all_traces = []
@@ -449,7 +451,7 @@ function load_and_process_data(img_fn, stim_fn;
     data["sig_tseries"] = all_tseries
     data["sig_rois"] = all_sig_rois  # Store significant ROIs for each channel
     data["mean_sig_trace"] = mean(data["sig_traces"], dims = (1, 2))[1,1,:,:]
-    println("Done loading and processing data")
+    #println("Done loading and processing data")
     return data
 end
 
@@ -497,6 +499,7 @@ data = load_puffing_data(
 ```
 """
 function load_puffing_data(img_fn, stim_fn; 
+    trun_rng = nothing,
     stimulus_name = "IN 2", 
     split_channel = true,
     main_channel = :grn, 
@@ -507,6 +510,7 @@ function load_puffing_data(img_fn, stim_fn;
     grn_lam = 1e4, grn_window = 5,
 )
     return load_and_process_data(img_fn, stim_fn;
+        trun_rng = trun_rng,
         stimulus_name = stimulus_name,
         split_channel = split_channel,
         main_channel = main_channel,
@@ -567,6 +571,7 @@ data = load_electric_data(
 ```
 """
 function load_electric_data(img_fn, stim_fn; 
+    trun_rng = nothing,
     stimulus_name = "IN 3", 
     split_channel = true,
     main_channel = :grn, 
@@ -577,6 +582,7 @@ function load_electric_data(img_fn, stim_fn;
     grn_lam = 1e4, grn_window = 5,
 )
     return load_and_process_data(img_fn, stim_fn;
+        trun_rng = trun_rng,
         stimulus_name = stimulus_name,
         split_channel = split_channel,
         main_channel = main_channel,
