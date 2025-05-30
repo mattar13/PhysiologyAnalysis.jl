@@ -294,33 +294,28 @@ padding shorter arrays with NaN values to ensure equal length.
 """
 function convert_to_multidim_array(nested_array)
     # Find the maximum length of datapoint arrays
-    max_length = 0
-    for channel in nested_array
-        for stim in channel
-            for roi in stim
-                max_length = max(max_length, length(roi))
-            end
-        end
-    end
-    
-    # Get dimensions
+    n_rois = length(nested_array[1][1])
+    n_stims = length(nested_array[1])
+    n_timepoints = length(nested_array[1][1][1])
     n_channels = length(nested_array)
-    n_stims = length(first(nested_array))
-    n_rois = length(first(first(nested_array)))
-    
-    # Create the output array filled with NaNs
-    output = fill(NaN, (n_rois, n_stims, max_length, n_channels))
-    
-    # Fill the array with actual values
-    for (channel_idx, channel) in enumerate(nested_array)
-        for (stim_idx, stim) in enumerate(channel)
-            for (roi_idx, roi) in enumerate(stim)
-                output[roi_idx, stim_idx, 1:length(roi), channel_idx] = roi
+
+    sig_traces = zeros(n_stims, n_rois, n_timepoints, n_channels)
+
+    for STIM in 1:n_stims
+        for CHANNEL in 1:n_channels
+            for ROI in 1:n_rois
+                println("STIM: $STIM, CHANNEL: $CHANNEL, ROI: $ROI")
+                trace = hcat(nested_array[CHANNEL][STIM][ROI]...)
+                println(trace |> size)
+                #find an NaNs
+                nan_idx = findfirst(isnan.(trace))
+                println("NaN at $nan_idx")
+                sig_traces[STIM, ROI, :, CHANNEL] = trace
             end
         end
     end
     
-    return output#, max_length
+    return sig_traces
 end 
 
 #Load some convienance functions
@@ -412,7 +407,7 @@ function load_and_process_data(img_fn, stim_fn;
     roi_analysis = process_rois(exp; 
         n_stds = n_stds, analysis_window_before = pre_event_time, analysis_window_after = post_event_time,
         red_lam = red_lam, red_window = red_window,
-        grn_lam = grn_lam, grn_window = grn_window,
+        grn_lam = grn_lam, grn_window = grn_window, 
     )
     
     # Add ROI analysis to the data dictionary
@@ -450,10 +445,10 @@ function load_and_process_data(img_fn, stim_fn;
         push!(all_traces, channel_traces)
     end
 
-    data["sig_traces"] = all_traces
+    data["sig_traces"] = convert_to_multidim_array(all_traces)
     data["sig_tseries"] = all_tseries
     data["sig_rois"] = all_sig_rois  # Store significant ROIs for each channel
-    
+    data["mean_sig_trace"] = mean(data["sig_traces"], dims = (1, 2))[1,1,:,:]
     println("Done loading and processing data")
     return data
 end
