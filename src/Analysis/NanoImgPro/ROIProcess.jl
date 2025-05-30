@@ -85,7 +85,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 # Create a trace with NaNs for padding
                 roi_frames_mean = mean(roi_frames, dims=(1))[1, start_idx:end_idx, channel_idx]
                 first_value = roi_frames_mean[1]
-                roi_trace = fill(first_value, total_window_size)
+                roi_trace = fill(NaN, total_window_size)
                 
                 # Fill in the actual data where we have it
                 if end_idx >= start_idx  # Only if we have some valid data
