@@ -407,7 +407,8 @@ function load_and_process_data(img_fn, stim_fn;
     exp = data["experiment"]
     pixel_splits_roi!(exp, n_splits)
     roi_analysis = process_rois(exp; 
-        n_stds = n_stds, analysis_window_before = pre_event_time, analysis_window_after = post_event_time,
+        n_stds = n_stds, 
+        analysis_window_before = pre_event_time, analysis_window_after = post_event_time,
         red_lam = red_lam, red_window = red_window,
         grn_lam = grn_lam, grn_window = grn_window, 
     )
@@ -428,6 +429,7 @@ function load_and_process_data(img_fn, stim_fn;
         elseif main_channel == :red 
             sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
         else
+            println("Not really implemented, need to fix")
             sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
         end
         #println("Processing channel $channel_idx")
