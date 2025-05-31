@@ -40,7 +40,6 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     grn_lam::T=1e4, grn_assym::T=0.075, grn_niter::Int=100,
     kwargs...
 ) where T<:Real
-    
     # Get all available indices if not specified
     all_stims = getStimulusEndTime(data)
     stim_indices = isnothing(stim_indices) ? (1:length(all_stims)) : stim_indices

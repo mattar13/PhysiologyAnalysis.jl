@@ -7,8 +7,17 @@ import ElectroPhysiology: Experiment, TWO_PHOTON
 
 #%% ╔═╡This task is for extraction of points, centroids, and ROIs using cellpose
 println("Loading the quinpirole baseline data...")
-img_fn = raw"F:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b6_grabda-nircat-300uA_pulse_QUIN016.tif"
-stim_fn = raw"F:\Data\Patching\2025-05-15-GRAB-DA-STR\25515026.abf"
+img_da_10mM_fn = raw"H:\Data\Two Photon\2025-05-19-nirCAT-STR-DPUFF\nirCAT_s2_10mM_mq010.tif"
+stim_da_10mM_fn = raw"H:\Data\Patching\2025-05-19-nirCAT-str\25519016.abf"
+data_da_10mM = load_puffing_data(img_da_10mM_fn, stim_da_10mM_fn, split_channel = false, main_channel = :grn)
 
-data_quin = load_electric_data(img_fn, stim_fn)
-all_rois = data_quin["mean_sig_trace"]
+
+
+mean_sig_traces_da_10mM = mean(data_da_10mM["sig_traces"], dims = 2)[:,1,:,:]
+mean_sig_trace_da_10mM = data_da_10mM["mean_sig_trace"]
+time_da_10mM = data_da_10mM["time"][1:size(mean_sig_trace_da_10mM, 1)]
+
+
+#Marla wants me to do a different baseline analysis. Lets work on some new ways to do this. Fitting an exponential to the baseline.
+
+
