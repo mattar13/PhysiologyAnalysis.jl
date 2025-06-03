@@ -42,8 +42,8 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     red_lam = 1e4, 
     grn_assym = 0.005,
     red_assym = 0.005,
-    grn_niter = 5,
-    red_niter = 5,
+    grn_niter = 20,
+    red_niter = 20,
 
     kwargs...
 ) where T<:Real
@@ -100,13 +100,13 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 # Calculate dF/F and get time series
                 pre_stim_idx = round(Int64, delay_time/data.dt)
                 if channel_idx == 1
-                    dFoF = baseline_trace(roi_trace; 
+                    _, dFoF = baseline_trace(roi_trace; 
                         stim_frame=pre_stim_idx, 
                         window=window, 
                         lam=grn_lam, assym=grn_assym, niter=grn_niter,
                     )
                 else
-                    dFoF = baseline_trace(roi_trace; 
+                    _, dFoF = baseline_trace(roi_trace; 
                         stim_frame=pre_stim_idx, 
                         window=window, 
                         lam=red_lam, assym=red_assym, niter=red_niter,
@@ -161,8 +161,8 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         window=window,
         n_stds=n_stds,
         sig_window=sig_window,
-        analysis_window_before=analysis_window_before,  # Add new parameters
-        analysis_window_after=analysis_window_after,
+        pre_event_time=pre_event_time,  # Add new parameters
+        post_event_time=post_event_time,
         kwargs...
     )
     
