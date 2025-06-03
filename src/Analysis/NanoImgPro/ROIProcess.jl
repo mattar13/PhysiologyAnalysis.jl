@@ -36,8 +36,13 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     window::Int=0, #We have moved away from this but keeping the option
     n_stds=2.0, #Number of standard deviations to use for significance calculation
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
-    analysis_window_before=50.0,  # Time window in s before stimulus to analyze
-    analysis_window_after=120.0,   # Time window in s after stimulus to analyze
+    pre_event_time=50.0,  # Time window in s before stimulus to analyze
+    post_event_time=120.0,   # Time window in s after stimulus to analyze
+    grn_lam = 1e4, 
+    red_lam = 1e4, 
+    grn_window = 5, 
+    red_window = 0,
+
     kwargs...
 ) where T<:Real
     # Get all available indices if not specified
@@ -61,18 +66,18 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             # Calculate fixed analysis window around stimulus
             stim_time = all_stims[stim_idx]
             # Calculate the full analysis window (before and after)
-            analysis_start = stim_time - analysis_window_before  # Convert ms to s
-            analysis_end = stim_time + analysis_window_after
+            analysis_start = stim_time - pre_event_time  # Convert ms to s
+            analysis_end = stim_time + post_event_time
             # println("Analysis window: $analysis_start to $analysis_end")
             # Calculate the actual data indices and NaN padding
             start_idx = max(1, round(Int, analysis_start / data.dt))
             end_idx = min(length(data.t), round(Int, analysis_end / data.dt))
             # println("Start idx to end idx: $(end_idx - start_idx)")
             # Calculate how many NaNs we need at start and end
-            nans_before = max(0, round(Int, (analysis_window_before - (stim_time - data.t[1])) / data.dt))
+            nans_before = max(0, round(Int, (pre_event_time - (stim_time - data.t[1])) / data.dt))
         #    println("Nans before: $nans_before")
             # Total window size should be fixed
-            total_window_size = round(Int, (analysis_window_before + analysis_window_after) / data.dt)
+            total_window_size = round(Int, (pre_event_time + post_event_time) / data.dt)
             # println("Total window size: $total_window_size")
             # Process each channel
             for channel_idx in channels

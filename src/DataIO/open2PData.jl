@@ -384,7 +384,7 @@ data = load_and_process_data(
 - All timing information is synchronized between the imaging and stimulus data
 """
 function load_and_process_data(img_fn, stim_fn; 
-    trunc_rng = nothing, 
+
     stimulus_name = "IN 3",
     stimulus_threshold = 0.5,
     spike_train = true,
@@ -392,6 +392,15 @@ function load_and_process_data(img_fn, stim_fn;
     #Region of interest parameters 
     n_splits = 16,
     n_stds = 5.0,
+
+    #Baselineing parameters
+    grn_lam = 1e4, 
+    red_lam = 1e4, 
+    grn_window = 5, 
+    red_window = 0,
+    trunc_rng = nothing, 
+    pre_event_time = 20.0, 
+    post_event_time = 60.0,
     kwargs...
 )
     println("Loading data from $(basename(img_fn))...")
@@ -402,6 +411,13 @@ function load_and_process_data(img_fn, stim_fn;
         stimulus_name = stimulus_name, 
         stimulus_threshold = stimulus_threshold, 
         spike_train = spike_train,
+        grn_lam = grn_lam, 
+        red_lam = red_lam, 
+        grn_window = grn_window, 
+        red_window = red_window,
+        trunc_rng = trunc_rng,
+        pre_event_time = pre_event_time,
+        post_event_time = post_event_time,
         kwargs...
     )
     
@@ -410,8 +426,12 @@ function load_and_process_data(img_fn, stim_fn;
     pixel_splits_roi!(exp, n_splits)
     roi_analysis = process_rois(exp; 
         n_stds = n_stds, 
-        analysis_window_before = pre_event_time, analysis_window_after = post_event_time,
-        kwargs...
+        pre_event_time = pre_event_time, 
+        post_event_time = post_event_time,
+        grn_lam = grn_lam, 
+        red_lam = red_lam, 
+        grn_window = grn_window, 
+        red_window = red_window,
     )
     
     # Add ROI analysis to the data dictionary
