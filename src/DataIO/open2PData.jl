@@ -388,16 +388,16 @@ data = load_and_process_data(
 - All timing information is synchronized between the imaging and stimulus data
 """
 function load_and_process_data(img_fn, stim_fn; 
-
     stimulus_name = "IN 3",
     stimulus_threshold = 0.5,
     spike_train = true,
-
+    
     #Region of interest parameters 
     n_splits = 16,
     n_stds = 5.0,
-
+    
     #Baselineing parameters
+    main_channel = :grn,
     grn_lam = 1e4, 
     red_lam = 1e4, 
     grn_window = 5, 
@@ -628,3 +628,17 @@ function load_electric_data(img_fn, stim_fn;
     )
 end 
 
+# # We can write a function to extract the spike triggered average of the dff traces
+# function spike_triggered_average(data::Dict{String, Any})
+#     println("Calculating spike triggered average of dff traces")
+#     # Get the dff traces
+#     if haskey(data, "pks")
+#         pks = data["pks"]
+
+#     dff_traces = data["sig_traces"]
+#     # Get the spike times
+#     spike_times = data["spike_times"]
+#     # Calculate the spike triggered average
+#     spike_triggered_average = mean(dff_traces, dims = 3)
+#     return spike_triggered_average
+# end
