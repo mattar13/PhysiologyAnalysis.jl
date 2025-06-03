@@ -141,8 +141,8 @@ function open2Pdata(filename;
         output["grn_trace"] = project(experiment, dims = (1,2))[1,1,:,1]
         log_message(2, "Z axis traces generated")
  
-        _, output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
-        _, output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
+        output["grn_drift"], output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
+        output["red_drift"], output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
         log_message(2, "Delta F/F traces calculated")
     else
         log_message(2, "Processing single channel")
@@ -162,8 +162,8 @@ function open2Pdata(filename;
             output["red_trace"] = red_trace = project(experiment, dims = (1,2))[1,1,:,1]
             output["grn_trace"] = grn_trace = zeros(size(red_trace))
 
-            _, output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
-            output["dff_grn_trace"] = dff_grn_trace = zeros(size(dff_red_trace))
+            output["red_drift"], output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
+            output["dff_grn_trace"] = output["grn_drift"] = dff_grn_trace = zeros(size(dff_red_trace))
 
 
         elseif main_channel == :grn
@@ -181,8 +181,8 @@ function open2Pdata(filename;
              output["grn_trace"] = grn_trace = project(experiment, dims = (1,2))[1,1,:,1]
              output["red_trace"] = red_trace = zeros(size(grn_trace))
  
-             _, output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
-             output["dff_red_trace"] = dff_red_trace = zeros(size(dff_grn_trace))
+             output["grn_drift"], output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
+             output["dff_red_trace"] = output["red_drift"] = dff_red_trace = zeros(size(dff_grn_trace))
         end
         println("Z axis traces generated")
 
