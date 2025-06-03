@@ -19,7 +19,7 @@ addStimulus!(experiment, stimulusProtocol)
 stim_ends = getStimulusEndTime(experiment)
 dt = experiment.dt
 
-#%% Make plots with the range of baseline parameters
+#%% ---------------------------- Make plots with the range of baseline parameters ----------------------------#
 fig = Figure(size = (1800, 600))
 
 # Lambda parameter plots
@@ -81,5 +81,29 @@ end
 Legend(gl_lambda[1:2, 2], ax1a, "Lambda Parameters", framevisible = false)
 Legend(gl_p[1:2, 2], ax1b, "Asymmetry Parameters", framevisible = false)
 Legend(gl_niter[1:2, 2], ax1c, "Iteration Parameters", framevisible = false)
+
+fig
+
+#%% ---------------------------- Run the baseline with the best parameters ----------------------------#
+fig = Figure(size = (1000, 500))
+
+ax1a = Axis(fig[1,1], title = "Baseline with varying λ", xlabel = "Time (s)", ylabel = "F0")
+ax2a = Axis(fig[2,1], xlabel = "Time (s)", ylabel = "dF/F")
+
+#Calculate the mean trace
+mean_trace = mean(experiment, dims = 1)[1,:,1]
+F0 = mean_trace./mean(mean_trace)
+
+# Plot original trace
+lines!(ax1a, experiment.t, F0, color = :black, label = "Original")
+
+# Plot baselines with different lambdas
+baseline, dfof = baseline_trace(mean_trace, lam = 1e4, assym = 0.005, niter = 20)
+lines!(ax1a, experiment.t, baseline, color = :red, label = "Drift")
+lines!(ax2a, experiment.t, dfof, color = :red, label = "dF/F")
+
+# Add legends to all axes
+Legend(fig[1,2], ax1a, "Baselining", framevisible = false)
+Legend(fig[2,2], ax2a, "dF/F Parameters", framevisible = false)
 
 fig
