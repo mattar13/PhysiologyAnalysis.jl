@@ -83,8 +83,9 @@ using SparseArrays, OffsetArrays, ImageFiltering
 include("Analysis/NanoImgPro/BaselineData.jl")
 
 include("Analysis/NanoImgPro/ParametricFit.jl")
-export single_stim_model
-export fit_parametric
+export single_stim_model, single_stim_model_drift
+export fit_parametric, fit_parametric_drift
+export iterative_linear_bridge
 
 include("Analysis/NanoImgPro/ROITypes.jl")
 export ROITrace, ROIAnalysis
@@ -101,7 +102,6 @@ export process_significant_rois
 using Interpolations
 include("Analysis/Stats.jl")
 export cor_xy
-
 
 using Colors
 
