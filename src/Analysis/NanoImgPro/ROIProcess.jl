@@ -27,17 +27,17 @@ Returns:
     ROIAnalysis object containing processed data for each ROI
 """
 function process_rois(data::Experiment{TWO_PHOTON, T}; 
-    stim_indices=nothing,
-    channels=nothing, 
-    roi_indices=nothing,
-    delay_time=50.0,
-    window::Int=15,
-    n_stds=2.0,
+    stim_indices=nothing, #Choose which stimlus to process
+    channels=nothing, #Choose which channel to process 
+    roi_indices=nothing, #Choose which ROIs to process
+
+    #The next parameters are used to calculate the dF/F and significance
+    delay_time=50.0, #Time delay in ms to use for baseline calculation
+    window::Int=0, #We have moved away from this but keeping the option
+    n_stds=2.0, #Number of standard deviations to use for significance calculation
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
     analysis_window_before=50.0,  # Time window in s before stimulus to analyze
     analysis_window_after=120.0,   # Time window in s after stimulus to analyze
-    red_lam::T=1e4, red_assym::T=0.075, red_niter::Int=100,
-    grn_lam::T=1e4, grn_assym::T=0.075, grn_niter::Int=100,
     kwargs...
 ) where T<:Real
     # Get all available indices if not specified
