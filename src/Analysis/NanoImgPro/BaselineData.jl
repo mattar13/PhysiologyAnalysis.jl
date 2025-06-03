@@ -76,8 +76,8 @@ Perform overall baseline correction using ALS and centered Moving Average.
 Returns a baseline-corrected dF/F trace.
 """
 function baseline_trace(trace::AbstractVector{T}; 
-    stim_frame = nothing, window::Int=15, #This is the window of the moving average for dF
-    kwargs...
+    stim_frame = nothing, window::Int=0, #This is the window of the moving average for dF
+    lam::T=1e5, assym::T=0.025, niter::Int=20
 ) where T<:Real
 
     # Normalize using pre-stimulus baseline if stim_frame is set
@@ -90,12 +90,14 @@ function baseline_trace(trace::AbstractVector{T};
     F0 = trace ./ baseline_divisor
 
     # Apply Asymmetric Least Squares (ALS) smoothing
-    drift = baseline_als(F0; kwargs...)
+    drift = baseline_als(F0; lam = lam, assym = assym, niter = niter)
     dF = F0 .- drift
 
-    dFoF = moving_average(dF; window = window)
+    if window > 1
+        dFoF = moving_average(dF; window = window)
+    else #We may not want to use moving average for small dff
+        dFoF = dF
+    end
     
-    #Sometimes the dFoF is still not centered, so we need to center it
-    dFoF .-= mean(dFoF) #This is a hack to center the dFoF
-    return dFoF
+    return drift, dFoF
 end
