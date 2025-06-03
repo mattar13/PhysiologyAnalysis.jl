@@ -36,18 +36,37 @@ The sig_traces array is organized as follows:
 - Fourth dimension: Channel index
 """
 function open2Pdata(filename;
-        split_channel = true, main_channel = :red,
-        trunc_rng = nothing, pre_event_time = 20.0, post_event_time = 60.0, 
-        red_scale = 1.5, grn_scale = 3.0, 
-        section_by = :green, peak_width = 40, peak_min = 0.2, 
-        stim_filename = nothing, #New option if we want to specify a 2P stimulus dataset
-        stimulus_name = "IN 2", stimulus_threshold = 0.5,
-        spike_train = false, 
-        grn_lam = 1e4, red_lam = 1e4, grn_window = 5, red_window = 5,
-        verbose = 3, # 1: basic progress, 2: timing info, 3: detailed info
-        negative_peaks = :warn, # :nothing, :warn, or :error
-        clock_offset = 3.0 # seconds
-    )
+    #Channel parameters
+    split_channel = true, 
+    main_channel = :red,
+
+    #Baselineing parameters
+    grn_lam = 1e4, 
+    red_lam = 1e4, 
+    grn_window = 5, 
+    red_window = 0,
+    trunc_rng = nothing, 
+    pre_event_time = 20.0, 
+    post_event_time = 60.0,
+
+    #Point to the stimulus file and adjust
+    stim_filename = nothing, #New option if we want to specify a 2P stimulus dataset
+    stimulus_name = "IN 2", 
+    stimulus_threshold = 0.5,
+    spike_train = false, 
+    clock_offset = 3.0, # seconds
+
+    #What are these again? 
+    red_scale = 1.5, 
+    grn_scale = 3.0, 
+    section_by = :green, 
+    peak_width = 40, 
+    peak_min = 0.2, 
+    
+    #Debugging and verbosity parameters
+    negative_peaks = :warn, # :nothing, :warn, or :error
+    verbose = 3, # 1: basic progress, 2: timing info, 3: detailed info
+)
     start_time = time()
     output = Dict{String, Any}()
     
@@ -118,20 +137,11 @@ function open2Pdata(filename;
         output["grn_trace"] = project(experiment, dims = (1,2))[1,1,:,1]
         log_message(2, "Z axis traces generated")
  
-        output["dff_grn_trace"] = dff_grn_trace = PhysiologyAnalysis.baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, niter = 100)
-        output["dff_red_trace"] = dff_red_trace = PhysiologyAnalysis.baseline_trace(output["red_trace"], window = red_window, lam = red_lam, niter = 100)
+        _, output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, niter = 100)
+        _, output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, niter = 100)
         log_message(2, "Delta F/F traces calculated")
     else
         log_message(2, "Processing single channel")
-        #Create a 2D Gaussian filter (Kernel.gaussian(3))
-        # spatial_filter = Kernel.gaussian(2.0)  # Gaussian kernel size 3
-        # imfilter!(experiment, spatial_filter; channel = 1) #Apply a gaussian filter
-
-        # #Average 5 frames together as a rolling mean
-        # mapdata!(mean, experiment, 5, channel = 1)
-        # println("Image filtered")
-
-        println("Z Stack channels extracted")
 
         if main_channel == :red
             #╔═╡Seperate out the image array and green and red zstacks
@@ -148,7 +158,7 @@ function open2Pdata(filename;
             output["red_trace"] = red_trace = project(experiment, dims = (1,2))[1,1,:,1]
             output["grn_trace"] = grn_trace = zeros(size(red_trace))
 
-            output["dff_red_trace"] = dff_red_trace = PhysiologyAnalysis.baseline_trace(output["red_trace"],  window = red_window, lam = red_lam, niter = 100)
+            _, output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, niter = 100)
             output["dff_grn_trace"] = dff_grn_trace = zeros(size(dff_red_trace))
 
 
@@ -167,7 +177,7 @@ function open2Pdata(filename;
              output["grn_trace"] = grn_trace = project(experiment, dims = (1,2))[1,1,:,1]
              output["red_trace"] = red_trace = zeros(size(grn_trace))
  
-             output["dff_grn_trace"] = dff_grn_trace = PhysiologyAnalysis.baseline_trace(output["grn_trace"],  window = grn_window, lam = grn_lam, niter = 100)
+             _, output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, niter = 100)
              output["dff_red_trace"] = dff_red_trace = zeros(size(dff_grn_trace))
         end
         println("Z axis traces generated")
@@ -376,31 +386,23 @@ data = load_and_process_data(
 function load_and_process_data(img_fn, stim_fn; 
     trunc_rng = nothing, 
     stimulus_name = "IN 3",
-    split_channel = true, 
-    main_channel = :grn, 
-    pre_event_time = 50.0,
-    post_event_time = 60.0,
+    stimulus_threshold = 0.5,
+    spike_train = true,
+
+    #Region of interest parameters 
     n_splits = 16,
     n_stds = 5.0,
-    spike_train = true,
-    red_lam = 1e4, red_window = 5,
-    grn_lam = 1e4, grn_window = 5,
+    kwargs...
 )
     println("Loading data from $(basename(img_fn))...")
     
     # Load the data
     data = open2Pdata(img_fn, 
-        trunc_rng = trunc_rng,
         stim_filename = stim_fn, 
         stimulus_name = stimulus_name, 
+        stimulus_threshold = stimulus_threshold, 
         spike_train = spike_train,
-        split_channel = split_channel, 
-        main_channel = main_channel,
-        stimulus_threshold = 0.5, 
-        post_event_time = post_event_time,
-        pre_event_time = pre_event_time,
-        red_lam = red_lam, red_window = red_window,
-        grn_lam = grn_lam, grn_window = grn_window,
+        kwargs...
     )
     
     # Extract experiment and perform ROI analysis
@@ -409,8 +411,7 @@ function load_and_process_data(img_fn, stim_fn;
     roi_analysis = process_rois(exp; 
         n_stds = n_stds, 
         analysis_window_before = pre_event_time, analysis_window_after = post_event_time,
-        red_lam = red_lam, red_window = red_window,
-        grn_lam = grn_lam, grn_window = grn_window, 
+        kwargs...
     )
     
     # Add ROI analysis to the data dictionary
