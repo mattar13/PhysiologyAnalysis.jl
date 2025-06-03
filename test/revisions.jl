@@ -45,3 +45,6 @@ fig
 
 #%% Now do the ROI analysis
 data = PhysiologyAnalysis.load_puffing_data(img_da_10mM_fn, stim_da_10mM_fn)
+
+data["pks"]
+data["grn_sect_arr"]
