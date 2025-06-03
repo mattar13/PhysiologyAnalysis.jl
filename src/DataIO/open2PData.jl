@@ -45,6 +45,8 @@ function open2Pdata(filename;
     red_lam = 1e4, 
     grn_window = 5, 
     red_window = 0,
+    grn_assym = 0.005,
+    red_assym = 0.005,
     trunc_rng = nothing, 
     pre_event_time = 20.0, 
     post_event_time = 60.0,
@@ -137,8 +139,8 @@ function open2Pdata(filename;
         output["grn_trace"] = project(experiment, dims = (1,2))[1,1,:,1]
         log_message(2, "Z axis traces generated")
  
-        _, output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, niter = 100)
-        _, output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, niter = 100)
+        _, output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
+        _, output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
         log_message(2, "Delta F/F traces calculated")
     else
         log_message(2, "Processing single channel")
@@ -158,7 +160,7 @@ function open2Pdata(filename;
             output["red_trace"] = red_trace = project(experiment, dims = (1,2))[1,1,:,1]
             output["grn_trace"] = grn_trace = zeros(size(red_trace))
 
-            _, output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, niter = 100)
+            _, output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
             output["dff_grn_trace"] = dff_grn_trace = zeros(size(dff_red_trace))
 
 
@@ -177,7 +179,7 @@ function open2Pdata(filename;
              output["grn_trace"] = grn_trace = project(experiment, dims = (1,2))[1,1,:,1]
              output["red_trace"] = red_trace = zeros(size(grn_trace))
  
-             _, output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, niter = 100)
+             _, output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
              output["dff_red_trace"] = dff_red_trace = zeros(size(dff_grn_trace))
         end
         println("Z axis traces generated")
@@ -406,7 +408,7 @@ function load_and_process_data(img_fn, stim_fn;
     println("Loading data from $(basename(img_fn))...")
     
     # Load the data
-    data = open2Pdata(img_fn, 
+    data = open2Pdata(img_fn; 
         stim_filename = stim_fn, 
         stimulus_name = stimulus_name, 
         stimulus_threshold = stimulus_threshold, 
