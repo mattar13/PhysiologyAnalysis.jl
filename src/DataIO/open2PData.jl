@@ -536,8 +536,10 @@ function load_puffing_data(img_fn, stim_fn;
     post_event_time = 120.0,
     n_splits = 16,
     n_stds = 5.0,
-    red_lam = 1e4, red_window = 5,
-    grn_lam = 1e4, grn_window = 5,
+    red_lam = 1e4, 
+    red_window = 0,
+    grn_lam = 1e4, 
+    grn_window = 0,
 )
     return load_and_process_data(img_fn, stim_fn;
         trunc_rng = trunc_rng,
@@ -549,8 +551,10 @@ function load_puffing_data(img_fn, stim_fn;
         n_splits = n_splits,
         n_stds = n_stds,
         spike_train = false,
-        red_lam = red_lam, red_window = red_window,
-        grn_lam = grn_lam, grn_window = grn_window,
+        red_lam = red_lam, 
+        red_window = red_window,
+        grn_lam = grn_lam, 
+        grn_window = grn_window,
     )
 end
 
@@ -610,8 +614,10 @@ function load_electric_data(img_fn, stim_fn;
     post_event_time = 120.0,
     n_splits = 16,
     n_stds = 5.0,
-    red_lam = 1e4, red_window = 5,
-    grn_lam = 1e4, grn_window = 5,
+    red_lam = 1e4, 
+    red_window = 0,
+    grn_lam = 1e4, 
+    grn_window = 0,
 )
     return load_and_process_data(img_fn, stim_fn;
         trunc_rng = trunc_rng,
