@@ -47,9 +47,11 @@ function open2Pdata(filename;
     red_window = 0,
     grn_assym = 0.005,
     red_assym = 0.005,
+    grn_niter = 20,
+    red_niter = 20,
     trunc_rng = nothing, 
-    pre_event_time = 20.0, 
-    post_event_time = 60.0,
+    pre_event_time = 50.0, 
+    post_event_time = 120.0,
 
     #Point to the stimulus file and adjust
     stim_filename = nothing, #New option if we want to specify a 2P stimulus dataset
@@ -401,8 +403,8 @@ function load_and_process_data(img_fn, stim_fn;
     grn_window = 5, 
     red_window = 0,
     trunc_rng = nothing, 
-    pre_event_time = 20.0, 
-    post_event_time = 60.0,
+    pre_event_time = 50.0, 
+    post_event_time = 120.0,
     kwargs...
 )
     println("Loading data from $(basename(img_fn))...")
@@ -531,7 +533,7 @@ function load_puffing_data(img_fn, stim_fn;
     split_channel = true,
     main_channel = :grn, 
     pre_event_time = 50.0,
-    post_event_time = 60.0,
+    post_event_time = 120.0,
     n_splits = 16,
     n_stds = 5.0,
     red_lam = 1e4, red_window = 5,
@@ -594,7 +596,7 @@ data = load_electric_data(
     "path/to/image.tif",
     "path/to/stimulus.abf",
     stimulus_name = "IN 3",
-    post_event_time = 60.0,
+    post_event_time = 120.0,
     n_splits = 32  # More splits for finer ROI analysis
 )
 ```
@@ -605,7 +607,7 @@ function load_electric_data(img_fn, stim_fn;
     split_channel = true,
     main_channel = :grn, 
     pre_event_time = 50.0,
-    post_event_time = 60.0,
+    post_event_time = 120.0,
     n_splits = 16,
     n_stds = 5.0,
     red_lam = 1e4, red_window = 5,
