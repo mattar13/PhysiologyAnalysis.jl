@@ -40,8 +40,10 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     post_event_time=120.0,   # Time window in s after stimulus to analyze
     grn_lam = 1e4, 
     red_lam = 1e4, 
-    grn_window = 5, 
-    red_window = 0,
+    grn_assym = 0.005,
+    red_assym = 0.005,
+    grn_niter = 5,
+    red_niter = 5,
 
     kwargs...
 ) where T<:Real
