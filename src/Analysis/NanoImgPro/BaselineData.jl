@@ -15,7 +15,9 @@ Asymmetric Least Squares baseline correction.
 If the peaks are very sudden, p gives you the best chance of fixing it
 Uses a second–difference regularization (similar to Eilers & Boelens, 2005).
 """
-function baseline_als(y::Vector{T}; lam::T=1e4, assym::T=0.075, niter::Int=100) where T<:Real
+function baseline_als(y::Vector{T}; 
+    lam::T=1e4, assym::T=0.005, niter::Int=20
+) where T<:Real
     L = length(y)
     # Construct D as an L×(L–2) difference operator so that
     # (D*y)[i] = y[i] - 2y[i+1] + y[i+2]
@@ -77,7 +79,7 @@ Returns a baseline-corrected dF/F trace.
 """
 function baseline_trace(trace::AbstractVector{T}; 
     stim_frame = nothing, window::Int=0, #This is the window of the moving average for dF
-    lam::T=1e5, assym::T=0.025, niter::Int=20
+    kwargs...
 ) where T<:Real
 
     # Normalize using pre-stimulus baseline if stim_frame is set
@@ -90,7 +92,7 @@ function baseline_trace(trace::AbstractVector{T};
     F0 = trace ./ baseline_divisor
 
     # Apply Asymmetric Least Squares (ALS) smoothing
-    drift = baseline_als(F0; lam = lam, assym = assym, niter = niter)
+    drift = baseline_als(F0; kwargs...)
     dF = F0 .- drift
 
     if window > 1
