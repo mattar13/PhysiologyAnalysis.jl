@@ -38,6 +38,8 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
     pre_event_time=50.0,  # Time window in s before stimulus to analyze
     post_event_time=120.0,   # Time window in s after stimulus to analyze
+    grn_spike_reduction = :median,
+    red_spike_reduction = :median,
     grn_lam = 1e4, 
     red_lam = 1e4, 
     grn_assym = 0.005,
@@ -103,12 +105,14 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                     _, dFoF = baseline_trace(roi_trace; 
                         stim_frame=pre_stim_idx, 
                         window=window, 
+                        spike_reduction=grn_spike_reduction,
                         lam=grn_lam, assym=grn_assym, niter=grn_niter,
                     )
                 else
                     _, dFoF = baseline_trace(roi_trace; 
                         stim_frame=pre_stim_idx, 
                         window=window, 
+                        spike_reduction=red_spike_reduction,
                         lam=red_lam, assym=red_assym, niter=red_niter,
                     )
                 end
