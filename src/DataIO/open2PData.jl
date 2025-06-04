@@ -397,7 +397,8 @@ function load_and_process_data(img_fn, stim_fn;
     #Region of interest parameters 
     n_splits = 16,
     n_stds = 5.0,
-    
+    analyze_rois = nothing, #If nothing, significant ROIs are found automatically
+
     #Baselineing parameters
     main_channel = :grn,
     grn_lam = 1e4, 
@@ -457,11 +458,13 @@ function load_and_process_data(img_fn, stim_fn;
     all_sig_rois = []
     
     for channel_idx in axes(exp, 3)
-        if main_channel == :grn
+        if analyze_rois
+            sig_rois = all_sig_rois = analyze_rois
+        elseif main_channel == :grn
             sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
         elseif main_channel == :red 
             sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
-        else
+        else 
             println("Not really implemented, need to fix")
             sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
         end
