@@ -547,7 +547,7 @@ function load_puffing_data(img_fn, stim_fn;
     red_lam = 1e4, 
     red_window = 5,
     grn_lam = 1e4, 
-    grn_window = 0,
+    grn_window = 5,
 )
     return load_and_process_data(img_fn, stim_fn;
         trunc_rng = trunc_rng,
@@ -625,7 +625,7 @@ function load_electric_data(img_fn, stim_fn;
     red_lam = 1e4, 
     red_window = 5,
     grn_lam = 1e4, 
-    grn_window = 0,
+    grn_window = 5,
 )
     return load_and_process_data(img_fn, stim_fn;
         trunc_rng = trunc_rng,
