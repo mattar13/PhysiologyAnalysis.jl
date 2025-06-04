@@ -69,6 +69,29 @@ function moving_average(a::Vector{T}; window::Int = 15) where T<:Real
 end
 
 """
+Compute a centered moving median with a given window size.
+
+- `window`: Number of points to use for the median calculation.
+- Returns a vector of the same length as `a`, with the moving median centered.
+"""
+function median_filter(a::Vector{T}; window::Int = 15) where T<:Real
+    L = length(a)
+    half_window = div(window, 2)  # Centering the window
+    result = zeros(T, L)
+
+    # Compute moving median in a centered manner
+    for i in 1:L
+        left = max(i - half_window, 1)
+        right = min(i + half_window, L)
+        result[i] = median(a[left:right])
+    end
+
+    return result
+end
+
+#Make a median filter
+
+"""
 Perform overall baseline correction using ALS and centered Moving Average.
 
 - `stim_frame=0`: Disables stimulus-based normalization.
@@ -79,6 +102,7 @@ Returns a baseline-corrected dF/F trace.
 """
 function baseline_trace(trace::AbstractVector{T}; 
     stim_frame = nothing, window::Int=0, #This is the window of the moving average for dF
+    spike_reduction = :moving_average,
     kwargs...
 ) where T<:Real
 
@@ -90,16 +114,23 @@ function baseline_trace(trace::AbstractVector{T};
         baseline_divisor = mean(trace[1:stim_frame])
     end
     F0 = trace ./ baseline_divisor
-
-    # Apply Asymmetric Least Squares (ALS) smoothing
-    drift = baseline_als(F0; kwargs...)
-    dF = F0 .- drift
-
+    
+    #Try adding this here to remove sharp spikes
     if window > 1
-        dFoF = moving_average(dF; window = window)
+        if spike_reduction == :moving_average
+            println("Using moving average to remove sharp spikes")
+            dF0 = moving_average(F0; window = window)
+        elseif spike_reduction == :median
+            println("Using median to remove sharp spikes")
+            dF0 = median_filter(F0; window = window)
+        end
     else #We may not want to use moving average for small dff
-        dFoF = dF
+        dF0 = F0
     end
+    # Apply Asymmetric Least Squares (ALS) smoothing
+    drift = baseline_als(dF0; kwargs...)
+    dFoF = F0 .- drift
+
     
     return drift, dFoF
 end
