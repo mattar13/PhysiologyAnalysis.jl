@@ -43,8 +43,8 @@ function open2Pdata(filename;
     #Baselineing parameters
     grn_lam = 1e4, 
     red_lam = 1e4, 
-    grn_window = 5, 
-    red_window = 5,
+    grn_window = 200, 
+    red_window = 200,
     grn_assym = 0.005,
     red_assym = 0.005,
     grn_niter = 20,
@@ -545,9 +545,9 @@ function load_puffing_data(img_fn, stim_fn;
     n_splits = 16,
     n_stds = 5.0,
     red_lam = 1e4, 
-    red_window = 5,
+    red_window = 200,
     grn_lam = 1e4, 
-    grn_window = 5,
+    grn_window = 200,
 )
     return load_and_process_data(img_fn, stim_fn;
         trunc_rng = trunc_rng,
@@ -623,9 +623,9 @@ function load_electric_data(img_fn, stim_fn;
     n_splits = 16,
     n_stds = 5.0,
     red_lam = 1e4, 
-    red_window = 5,
+    red_window = 200,
     grn_lam = 1e4, 
-    grn_window = 5,
+    grn_window = 200,
 )
     return load_and_process_data(img_fn, stim_fn;
         trunc_rng = trunc_rng,
