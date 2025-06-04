@@ -44,11 +44,13 @@ function open2Pdata(filename;
     grn_lam = 1e4, 
     red_lam = 1e4, 
     grn_window = 5, 
-    red_window = 0,
+    red_window = 5,
     grn_assym = 0.005,
     red_assym = 0.005,
     grn_niter = 20,
     red_niter = 20,
+    grn_spike_reduction = :median,
+    red_spike_reduction = :median,
     trunc_rng = nothing, 
     pre_event_time = 50.0, 
     post_event_time = 120.0,
@@ -141,8 +143,8 @@ function open2Pdata(filename;
         output["grn_trace"] = project(experiment, dims = (1,2))[1,1,:,1]
         log_message(2, "Z axis traces generated")
  
-        output["grn_drift"], output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
-        output["red_drift"], output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
+        output["grn_drift"], output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], spike_reduction = grn_spike_reduction, window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
+        output["red_drift"], output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], spike_reduction = red_spike_reduction, window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
         log_message(2, "Delta F/F traces calculated")
     else
         log_message(2, "Processing single channel")
@@ -162,7 +164,7 @@ function open2Pdata(filename;
             output["red_trace"] = red_trace = project(experiment, dims = (1,2))[1,1,:,1]
             output["grn_trace"] = grn_trace = zeros(size(red_trace))
 
-            output["red_drift"], output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
+            output["red_drift"], output["dff_red_trace"] = _, dff_red_trace = baseline_trace(output["red_trace"], spike_reduction = red_spike_reduction, window = red_window, lam = red_lam, assym = red_assym, niter = red_niter)
             output["dff_grn_trace"] = output["grn_drift"] = dff_grn_trace = zeros(size(dff_red_trace))
 
 
@@ -181,7 +183,7 @@ function open2Pdata(filename;
              output["grn_trace"] = grn_trace = project(experiment, dims = (1,2))[1,1,:,1]
              output["red_trace"] = red_trace = zeros(size(grn_trace))
  
-             output["grn_drift"], output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
+             output["grn_drift"], output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], spike_reduction = grn_spike_reduction, window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
              output["dff_red_trace"] = output["red_drift"] = dff_red_trace = zeros(size(dff_grn_trace))
         end
         println("Z axis traces generated")
@@ -401,7 +403,9 @@ function load_and_process_data(img_fn, stim_fn;
     grn_lam = 1e4, 
     red_lam = 1e4, 
     grn_window = 5, 
-    red_window = 0,
+    red_window = 5,
+    grn_spike_reduction = :median,
+    red_spike_reduction = :median,
     trunc_rng = nothing, 
     pre_event_time = 50.0, 
     post_event_time = 120.0,
@@ -419,6 +423,8 @@ function load_and_process_data(img_fn, stim_fn;
         red_lam = red_lam, 
         grn_window = grn_window, 
         red_window = red_window,
+        grn_spike_reduction = grn_spike_reduction,
+        red_spike_reduction = red_spike_reduction,
         trunc_rng = trunc_rng,
         pre_event_time = pre_event_time,
         post_event_time = post_event_time,
@@ -436,6 +442,8 @@ function load_and_process_data(img_fn, stim_fn;
         red_lam = red_lam, 
         grn_window = grn_window, 
         red_window = red_window,
+        grn_spike_reduction = grn_spike_reduction,
+        red_spike_reduction = red_spike_reduction,
     )
     
     # Add ROI analysis to the data dictionary
@@ -537,7 +545,7 @@ function load_puffing_data(img_fn, stim_fn;
     n_splits = 16,
     n_stds = 5.0,
     red_lam = 1e4, 
-    red_window = 0,
+    red_window = 5,
     grn_lam = 1e4, 
     grn_window = 0,
 )
@@ -615,7 +623,7 @@ function load_electric_data(img_fn, stim_fn;
     n_splits = 16,
     n_stds = 5.0,
     red_lam = 1e4, 
-    red_window = 0,
+    red_window = 5,
     grn_lam = 1e4, 
     grn_window = 0,
 )
