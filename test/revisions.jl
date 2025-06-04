@@ -9,8 +9,8 @@ using GLMakie, PhysiologyPlotting
 
 #%% ╔═╡Found an issue. With really crazy spikes, the baseline correction is not working.
 println("Loading the quinpirole baseline data...")
-img_fn = raw"H:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b6_grabda-nircat-300uA_pulse_QUIN016.tif"
-stim_fn = raw"H:\Data\Patching\2025-05-15-GRAB-DA-STR\25515026.abf"
+img_fn = raw"H:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b4_grabda-nircat-100uA_pulse012.tif"
+stim_fn = raw"H:\Data\Patching\2025-05-15-GRAB-DA-STR\25515016.abf"
 
 # img_fn = raw"H:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b6_grabda-nircat-300uA_pulse016.tif"
 # stim_fn = raw"H:\Data\Patching\2025-05-15-GRAB-DA-STR\25515025.abf"
@@ -27,9 +27,9 @@ data = open2Pdata(img_fn,
     post_event_time = 60.0, 
     red_spike_reduction = :median,
     grn_spike_reduction = :median,
-    red_window = 5,
+    red_window = 100,
     grn_window = 5,
-    red_lam = 1e3,
+    red_lam = 1e4,
     red_assym = 0.005,
     verbose = 3, # 1: basic progress, 2: timing info, 3: detailed info
 )
