@@ -397,7 +397,7 @@ function load_and_process_data(img_fn, stim_fn;
     #Region of interest parameters 
     n_splits = 16,
     n_stds = 5.0,
-    analyze_rois = nothing, #If nothing, significant ROIs are found automatically
+    selected_rois = nothing, #If nothing, significant ROIs are found automatically
 
     #Baselineing parameters
     main_channel = :grn,
@@ -458,8 +458,8 @@ function load_and_process_data(img_fn, stim_fn;
     all_sig_rois = []
     
     for channel_idx in axes(exp, 3)
-        if analyze_rois
-            sig_rois = all_sig_rois = analyze_rois
+        if !isnothing(selected_rois)
+            sig_rois = all_sig_rois = selected_rois
         elseif main_channel == :grn
             sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
         elseif main_channel == :red 
@@ -551,6 +551,7 @@ function load_puffing_data(img_fn, stim_fn;
     red_window = 200,
     grn_lam = 1e4, 
     grn_window = 200,
+    selected_rois = nothing,
 )
     return load_and_process_data(img_fn, stim_fn;
         trunc_rng = trunc_rng,
@@ -566,6 +567,7 @@ function load_puffing_data(img_fn, stim_fn;
         red_window = red_window,
         grn_lam = grn_lam, 
         grn_window = grn_window,
+        selected_rois = selected_rois,
     )
 end
 
@@ -629,6 +631,7 @@ function load_electric_data(img_fn, stim_fn;
     red_window = 200,
     grn_lam = 1e4, 
     grn_window = 200,
+    selected_rois = nothing,
 )
     return load_and_process_data(img_fn, stim_fn;
         trunc_rng = trunc_rng,
@@ -642,6 +645,7 @@ function load_electric_data(img_fn, stim_fn;
         spike_train = true,
         red_lam = red_lam, red_window = red_window,
         grn_lam = grn_lam, grn_window = grn_window,
+        selected_rois = selected_rois,
     )
 end 
 
