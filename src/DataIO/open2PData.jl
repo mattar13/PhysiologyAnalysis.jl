@@ -5,26 +5,29 @@ function get_section_array(dff_arr, pre_event_length, post_event_length, pks)
     for (i, pk) in enumerate(pks)
         #println(pk-pre_event_length)
         if pk-pre_event_length < 0
-            idx_start = 1   
-            offset = pre_event_length - pk + 1
-            println("Offset: $offset")
+            idx_start = 1
+            offset_pre = pre_event_length - pk + 1
+            # println("Offset pre: $offset_pre")
         else
             idx_start = round(Int64, pk-pre_event_length)
-            offset = 0
+            offset_pre = 0
         end
         
-        #println(pk+post_event_length)
+        # println(pk+post_event_length)
         if pk+post_event_length > length(dff_arr)
-            idx_end = length(dff_grn_trace) 
+            idx_end = length(dff_arr) 
+            offset_end = post_event_length+pk-1 - idx_end
+            # println("Offset end: $offset_end")
         else
             idx_end = round(Int64, pk+post_event_length-1)
+            offset_end = 0
         end
         
         idx_rng = idx_start:idx_end
         #println(idx_rng)
 
         sect = dff_arr[idx_rng]
-        sect_arr[offset+1:end, i] = sect
+        sect_arr[offset_pre+1:end-offset_end, i] = sect
     end
     return sect_arr
 end
@@ -284,46 +287,48 @@ function open2Pdata(filename;
     pre_event_length = floor(Int64, pre_event_time/experiment.dt)
     post_event_length = floor(Int64, post_event_time/experiment.dt)
     output["sect_time"] = new_t = LinRange(-pre_event_time, post_event_time, pre_event_length+post_event_length)
-    red_sect_arr = zeros(length(new_t), length(pks))
-    grn_sect_arr = zeros(length(new_t), length(pks))
-    for (i, pk) in enumerate(pks)
-        #println(pk-pre_event_length)
-        if pk-pre_event_length < 0
-            idx_start = 1
-            offset_pre = pre_event_length - pk + 1
-            # println("Offset pre: $offset_pre")
-        else
-            idx_start = round(Int64, pk-pre_event_length)
-            offset_pre = 0
-        end
+    # red_sect_arr = zeros(length(new_t), length(pks))
+    # grn_sect_arr = zeros(length(new_t), length(pks))
+    # for (i, pk) in enumerate(pks)
+    #     #println(pk-pre_event_length)
+    #     if pk-pre_event_length < 0
+    #         idx_start = 1
+    #         offset_pre = pre_event_length - pk + 1
+    #         # println("Offset pre: $offset_pre")
+    #     else
+    #         idx_start = round(Int64, pk-pre_event_length)
+    #         offset_pre = 0
+    #     end
         
-        # println(pk+post_event_length)
-        if pk+post_event_length > length(dff_red_trace)
-            idx_end = length(dff_grn_trace) 
-            offset_end = post_event_length+pk-1 - idx_end
-            # println("Offset end: $offset_end")
-        else
-            idx_end = round(Int64, pk+post_event_length-1)
-            offset_end = 0
-        end
+    #     # println(pk+post_event_length)
+    #     if pk+post_event_length > length(dff_red_trace)
+    #         idx_end = length(dff_grn_trace) 
+    #         offset_end = post_event_length+pk-1 - idx_end
+    #         # println("Offset end: $offset_end")
+    #     else
+    #         idx_end = round(Int64, pk+post_event_length-1)
+    #         offset_end = 0
+    #     end
         
-        idx_rng = idx_start:idx_end
+    #     idx_rng = idx_start:idx_end
 
-        grn_sect = dff_grn_trace[idx_rng]
-        red_sect = dff_red_trace[idx_rng]
-        # println("Red section size: $(size(red_sect))")
-        # println("Red section array size: $(size(red_sect_arr))")
-        # println("Difference: $(size(red_sect_arr, 1)-size(red_sect, 1))")
-        # # println("Offset pre: $(offset_pre+1)")
-        # # println("Offset end: $(offset_end)")
-        # println("Index: $(i)")
-        red_sect_arr[offset_pre+1:end-offset_end, i] = red_sect
-        grn_sect_arr[offset_pre+1:end-offset_end, i] = grn_sect
-    end
+    #     grn_sect = dff_grn_trace[idx_rng]
+    #     red_sect = dff_red_trace[idx_rng]
+    #     # println("Red section size: $(size(red_sect))")
+    #     # println("Red section array size: $(size(red_sect_arr))")
+    #     # println("Difference: $(size(red_sect_arr, 1)-size(red_sect, 1))")
+    #     # # println("Offset pre: $(offset_pre+1)")
+    #     # # println("Offset end: $(offset_end)")
+    #     # println("Index: $(i)")
+    #     red_sect_arr[offset_pre+1:end-offset_end, i] = red_sect
+    #     grn_sect_arr[offset_pre+1:end-offset_end, i] = grn_sect
+    # end
+    # output["grn_sect_arr"] = grn_sect_arr# = grn_sect_arr[:, findall(grn_row_sums .!= 0.0)]
+    # output["red_sect_arr"] = red_sect_arr# = red_sect_arr[:, findall(red_row_sums .!= 0.0)]
+    output["grn_sect_arr"] = grn_sect_arr = get_section_array(dff_grn_trace, pre_event_length, post_event_length, pks)
+    output["red_sect_arr"] = red_sect_arr = get_section_array(dff_red_trace, pre_event_length, post_event_length, pks)
     output["grn_row_sums"] = grn_row_sums = sum(grn_sect_arr, dims = 1)[1,:]
     output["red_row_sums"] = red_row_sums = sum(red_sect_arr, dims = 1)[1,:]
-    output["grn_sect_arr"] = grn_sect_arr# = grn_sect_arr[:, findall(grn_row_sums .!= 0.0)]
-    output["red_sect_arr"] = red_sect_arr# = red_sect_arr[:, findall(red_row_sums .!= 0.0)]
 
     #We need to clean empty rows
     println("Peak finding completed")
@@ -502,45 +507,62 @@ function load_and_process_data(img_fn, stim_fn;
         all_tseries = []
         all_sig_rois = []
         
-        for channel_idx in axes(exp, 3)
-            if !isnothing(selected_rois)
-                sig_rois = all_sig_rois = selected_rois
-            elseif main_channel == :grn
-                sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
-            elseif main_channel == :red 
-                sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
-            else 
-                println("Not really implemented, need to fix")
-                sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
-            end
-            #println("Processing channel $channel_idx")
-            # First get significant ROIs for this channel
-            #println("Found $(length(sig_rois)) significant ROIs")
-            
-            channel_traces = []
-            for stim_idx in eachindex(data["pks"])
-                #println("Processing stimulus $stim_idx")
-                # Get traces only for significant ROIs
-                println("length of sig_rois: $(length(sig_rois))")
-                traces = get_dfof_traces(roi_analysis, sig_rois, stim_idx = stim_idx, channel_idx = channel_idx)
-                if !isempty(traces)
-                    push!(channel_traces, traces)
-                    if isempty(all_tseries)
-                        push!(all_tseries, traces)  # Use traces array directly
-                    end
-                end
-            end
-            push!(all_traces, channel_traces)
+        if !isnothing(selected_rois)
+            sig_rois = all_sig_rois = selected_rois
+        elseif main_channel == :grn
+            sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
+        elseif main_channel == :red 
+            sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
+        else 
+            println("Not really implemented, need to fix")
         end
 
-        data["sig_traces"] = convert_to_multidim_array(all_traces)
-        data["sig_tseries"] = all_tseries
-        data["sig_rois"] = all_sig_rois  # Store significant ROIs for each channel
-        data["mean_sig_trace"] = mean(data["sig_traces"], dims = (1, 2))[1,1,:,:]
+        #We may not use this anymore. It gives weird results
+        # for channel_idx in axes(exp, 3)
+        #     # if isnothing(sig_rois)
+        #     #     println("Not really implemented, need to fix")
+        #     #     sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
+        #     # end
+        #     #println("Processing channel $channel_idx")
+        #     # First get significant ROIs for this channel
+        #     #println("Found $(length(sig_rois)) significant ROIs")
+            
+        #     channel_traces = []
+        #     for stim_idx in eachindex(data["pks"])
+        #         #println("Processing stimulus $stim_idx")
+        #         # Get traces only for significant ROIs
+        #         println("length of sig_rois: $(length(sig_rois))")
+        #         traces = get_dfof_traces(roi_analysis, sig_rois, stim_idx = stim_idx, channel_idx = channel_idx)
+        #         if !isempty(traces)
+        #             push!(channel_traces, traces)
+        #             if isempty(all_tseries)
+        #                 push!(all_tseries, traces)  # Use traces array directly
+        #             end
+        #         end
+        #     end
+        #     push!(all_traces, channel_traces)
+        # end
+
+        # data["sig_section"] = convert_to_multidim_array(all_traces)
+        # data["sig_tseries"] = all_tseries
+        # data["sig_rois"] = all_sig_rois  # Store significant ROIs for each channel
+        # data["mean_sig_section"] = mean(data["sig_section"], dims = (1, 2))[1,1,:,:]
         
         #println("Done loading and processing data")
         # println("Getting significant ROIs")
-        
+        #Lets section the array with only the significant ROIs
+        pre_event_length = floor(Int64, pre_event_time/data["experiment"].dt)
+        post_event_length = floor(Int64, post_event_time/data["experiment"].dt)
+        data["sig_rois"] = all_sig_rois
+        data["sig_traces"] = sig_traces = mean(data["experiment"].data_array[all_sig_rois, :, :], dims = 1)[1,:,:]
+        data["red_sig_traces"] = red_sig_traces = sig_traces[:,1]
+        data["grn_sig_traces"] = grn_sig_traces = sig_traces[:,2]
+        data["dff_grn_sig_traces"] = _, dff_grn_sig_trace = baseline_trace(grn_sig_traces, window = grn_window)
+        data["dff_red_sig_traces"] = _, dff_red_sig_trace = baseline_trace(red_sig_traces, window = red_window)
+        data["dff_grn_sig_sections"] = get_section_array(dff_grn_sig_trace, pre_event_length, post_event_length, data["pks"])
+        data["dff_red_sig_sections"] = get_section_array(dff_red_sig_trace, pre_event_length, post_event_length, data["pks"])
+        data["dff_grn_sig_sections_mean"] = mean(data["dff_grn_sig_sections"], dims = 1)[1,:]
+        data["dff_red_sig_sections_mean"] = mean(data["dff_red_sig_sections"], dims = 1)[1,:]
     end
     return data
 end
