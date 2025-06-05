@@ -327,8 +327,8 @@ function open2Pdata(filename;
     # output["red_sect_arr"] = red_sect_arr# = red_sect_arr[:, findall(red_row_sums .!= 0.0)]
     output["dff_grn_sect_arr"] = dff_grn_sect_arr = get_section_array(dff_grn_trace, pre_event_length, post_event_length, pks)
     output["dff_red_sect_arr"] = dff_red_sect_arr = get_section_array(dff_red_trace, pre_event_length, post_event_length, pks)
-    output["dff_grn_row_sums"] = grn_row_sums = sum(grn_sect_arr, dims = 1)[1,:]
-    output["dff_red_row_sums"] = red_row_sums = sum(red_sect_arr, dims = 1)[1,:]
+    output["dff_grn_row_sums"] = dff_grn_row_sums = sum(dff_grn_sect_arr, dims = 1)[1,:]
+    output["dff_red_row_sums"] = dff_red_row_sums = sum(dff_red_sect_arr, dims = 1)[1,:]
 
     output["grn_sect_arr"] = grn_sect_arr = get_section_array(grn_trace, pre_event_length, post_event_length, pks)
     output["red_sect_arr"] = red_sect_arr = get_section_array(red_trace, pre_event_length, post_event_length, pks)
