@@ -565,15 +565,15 @@ function load_and_process_data(img_fn, stim_fn;
         data["red_sig_traces"] = red_sig_traces = sig_traces[:,2]
         data["grn_sig_sect_arr"] = get_section_array(grn_sig_traces, pre_event_length, post_event_length, data["pks"])
         data["red_sig_sect_arr"] = get_section_array(red_sig_traces, pre_event_length, post_event_length, data["pks"])
-        data["grn_sig_sections_mean"] = mean(data["grn_sig_sections"], dims = 2)[:,1]
-        data["red_sig_sections_mean"] = mean(data["red_sig_sections"], dims = 2)[:,1]
+        data["grn_sig_sect_mean"] = mean(data["grn_sig_sect_arr"], dims = 2)[:,1]
+        data["red_sig_sect_mean"] = mean(data["red_sig_sect_arr"], dims = 2)[:,1]
         
         data["dff_grn_sig_traces"] = _, dff_grn_sig_trace = baseline_trace(grn_sig_traces, window = grn_window)
         data["dff_red_sig_traces"] = _, dff_red_sig_trace = baseline_trace(red_sig_traces, window = red_window)
         data["dff_grn_sig_sect_arr"] = get_section_array(dff_grn_sig_trace, pre_event_length, post_event_length, data["pks"])
         data["dff_red_sig_sect_arr"] = get_section_array(dff_red_sig_trace, pre_event_length, post_event_length, data["pks"])
-        data["dff_grn_sig_sect_mean"] = mean(data["dff_grn_sig_sections"], dims = 2)[:,1]
-        data["dff_red_sig_sect_mean"] = mean(data["dff_red_sig_sections"], dims = 2)[:,1]
+        data["dff_grn_sig_sect_mean"] = mean(data["dff_grn_sig_sect_arr"], dims = 2)[:,1]
+        data["dff_red_sig_sect_mean"] = mean(data["dff_red_sig_sect_arr"], dims = 2)[:,1]
     end
     return data
 end
