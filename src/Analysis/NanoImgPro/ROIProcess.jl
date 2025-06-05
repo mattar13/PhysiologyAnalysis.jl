@@ -115,6 +115,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                         spike_reduction=grn_spike_reduction,
                         lam=grn_lam, assym=grn_assym, niter=grn_niter,
                     )
+                    dFoF_MA = moving_average(dFoF; window=window)
                 else
                     _, dFoF = baseline_trace(roi_trace; 
                         #stim_frame=pre_stim_idx, 
@@ -122,12 +123,14 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                         spike_reduction=red_spike_reduction,
                         lam=red_lam, assym=red_assym, niter=red_niter,
                     )
+                    #A post moving average may make it a bit easier to fit
+                    dFoF_MA = moving_average(dFoF; window=window)
                 end
                 t_series = collect(1:length(dFoF))*data.dt
                 
                 # Calculate significance
                 delay_idx = round(Int64, delay_time/data.dt)
-                base_region = dFoF[1:delay_idx]
+                base_region = dFoF_MA[1:delay_idx]
                 pos_sig_threshold = mean(base_region) + n_stds*std(base_region)
                 
                 # Fit parametric model
@@ -140,7 +143,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 # Check significance within specified time window
                 sig_window_idx = round(Int64, sig_window/data.dt)
                 sig_end_idx = min(delay_idx + sig_window_idx, length(dFoF))
-                max_post_stim = maximum(dFoF[delay_idx:sig_end_idx])
+                max_post_stim = maximum(dFoF_MA[delay_idx:sig_end_idx])
                 is_significant = max_post_stim > pos_sig_threshold
                 
                 # Create ROITrace object

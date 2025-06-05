@@ -101,7 +101,7 @@ Perform overall baseline correction using ALS and centered Moving Average.
 Returns a baseline-corrected dF/F trace.
 """
 function baseline_trace(trace::AbstractVector{T}; 
-    stim_frame = nothing, window::Int=0, #This is the window of the moving average for dF
+    stim_frame = nothing, window::Int=200, #This is the window of the moving average for dF
     spike_reduction = :median,
     kwargs...
 ) where T<:Real
