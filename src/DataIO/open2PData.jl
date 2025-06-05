@@ -571,7 +571,7 @@ function load_and_process_data(img_fn, stim_fn;
     end
     return data
 end
-
+print("FIXED Blas")
 """
     load_puffing_data(img_fn, stim_fn; 
         stimulus_name = "IN 2", 
