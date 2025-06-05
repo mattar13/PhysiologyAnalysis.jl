@@ -555,8 +555,8 @@ function load_and_process_data(img_fn, stim_fn;
         post_event_length = floor(Int64, post_event_time/data["experiment"].dt)
         data["sig_rois"] = all_sig_rois
         data["sig_traces"] = sig_traces = mean(data["experiment"].data_array[all_sig_rois, :, :], dims = 1)[1,:,:]
-        data["red_sig_traces"] = red_sig_traces = sig_traces[:,1]
-        data["grn_sig_traces"] = grn_sig_traces = sig_traces[:,2]
+        data["grn_sig_traces"] = grn_sig_traces = sig_traces[:,1]
+        data["red_sig_traces"] = red_sig_traces = sig_traces[:,2]
         data["dff_grn_sig_traces"] = _, dff_grn_sig_trace = baseline_trace(grn_sig_traces, window = grn_window)
         data["dff_red_sig_traces"] = _, dff_red_sig_trace = baseline_trace(red_sig_traces, window = red_window)
         data["dff_grn_sig_sections"] = get_section_array(dff_grn_sig_trace, pre_event_length, post_event_length, data["pks"])
