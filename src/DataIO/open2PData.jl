@@ -1,3 +1,34 @@
+
+function get_section_array(dff_arr, pre_event_length, post_event_length, pks)
+    # Convert roi_pixels to Cartesian coordinates and draw contours
+    sect_arr = zeros(pre_event_length+post_event_length, length(pks))
+    for (i, pk) in enumerate(pks)
+        #println(pk-pre_event_length)
+        if pk-pre_event_length < 0
+            idx_start = 1   
+            offset = pre_event_length - pk + 1
+            println("Offset: $offset")
+        else
+            idx_start = round(Int64, pk-pre_event_length)
+            offset = 0
+        end
+        
+        #println(pk+post_event_length)
+        if pk+post_event_length > length(dff_arr)
+            idx_end = length(dff_grn_trace) 
+        else
+            idx_end = round(Int64, pk+post_event_length-1)
+        end
+        
+        idx_rng = idx_start:idx_end
+        #println(idx_rng)
+
+        sect = dff_arr[idx_rng]
+        sect_arr[offset+1:end, i] = sect
+    end
+    return sect_arr
+end
+
 """
 This documentation should help you figure out what you have access to
 
@@ -259,27 +290,35 @@ function open2Pdata(filename;
         #println(pk-pre_event_length)
         if pk-pre_event_length < 0
             idx_start = 1
-            offset = pre_event_length - pk + 1
-            println("Offset: $offset")
+            offset_pre = pre_event_length - pk + 1
+            # println("Offset pre: $offset_pre")
         else
             idx_start = round(Int64, pk-pre_event_length)
-            offset = 0
+            offset_pre = 0
         end
         
-        #println(pk+post_event_length)
+        # println(pk+post_event_length)
         if pk+post_event_length > length(dff_red_trace)
             idx_end = length(dff_grn_trace) 
+            offset_end = post_event_length+pk-1 - idx_end
+            # println("Offset end: $offset_end")
         else
             idx_end = round(Int64, pk+post_event_length-1)
+            offset_end = 0
         end
         
         idx_rng = idx_start:idx_end
-        #println(idx_rng)
 
         grn_sect = dff_grn_trace[idx_rng]
         red_sect = dff_red_trace[idx_rng]
-        red_sect_arr[offset+1:end, i] = red_sect
-        grn_sect_arr[offset+1:end, i] = grn_sect
+        # println("Red section size: $(size(red_sect))")
+        # println("Red section array size: $(size(red_sect_arr))")
+        # println("Difference: $(size(red_sect_arr, 1)-size(red_sect, 1))")
+        # # println("Offset pre: $(offset_pre+1)")
+        # # println("Offset end: $(offset_end)")
+        # println("Index: $(i)")
+        red_sect_arr[offset_pre+1:end-offset_end, i] = red_sect
+        grn_sect_arr[offset_pre+1:end-offset_end, i] = grn_sect
     end
     output["grn_row_sums"] = grn_row_sums = sum(grn_sect_arr, dims = 1)[1,:]
     output["red_row_sums"] = red_row_sums = sum(red_sect_arr, dims = 1)[1,:]
@@ -339,6 +378,7 @@ function convert_to_multidim_array(nested_array)
     
     return sig_traces
 end 
+
 
 #Load some convienance functions
 """
@@ -497,10 +537,11 @@ function load_and_process_data(img_fn, stim_fn;
         data["sig_tseries"] = all_tseries
         data["sig_rois"] = all_sig_rois  # Store significant ROIs for each channel
         data["mean_sig_trace"] = mean(data["sig_traces"], dims = (1, 2))[1,1,:,:]
+        
         #println("Done loading and processing data")
+        # println("Getting significant ROIs")
+        
     end
-    #println("Getting significant ROIs")
-    
     return data
 end
 
