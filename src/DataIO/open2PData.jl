@@ -561,8 +561,8 @@ function load_and_process_data(img_fn, stim_fn;
         data["dff_red_sig_traces"] = _, dff_red_sig_trace = baseline_trace(red_sig_traces, window = red_window)
         data["dff_grn_sig_sections"] = get_section_array(dff_grn_sig_trace, pre_event_length, post_event_length, data["pks"])
         data["dff_red_sig_sections"] = get_section_array(dff_red_sig_trace, pre_event_length, post_event_length, data["pks"])
-        data["dff_grn_sig_sections_mean"] = mean(data["dff_grn_sig_sections"], dims = 1)[1,:]
-        data["dff_red_sig_sections_mean"] = mean(data["dff_red_sig_sections"], dims = 1)[1,:]
+        data["dff_grn_sig_sections_mean"] = mean(data["dff_grn_sig_sections"], dims = 2)[:,1]
+        data["dff_red_sig_sections_mean"] = mean(data["dff_red_sig_sections"], dims = 2)[:,1]
     end
     return data
 end
