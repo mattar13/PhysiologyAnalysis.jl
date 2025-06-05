@@ -9,7 +9,7 @@ import ElectroPhysiology: Experiment, TWO_PHOTON
 
 #%% ╔═╡Found an issue. With really crazy spikes, the baseline correction is not working.
 println("Loading the quinpirole baseline data...")
-img_fn = raw"F:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b6_grabda-nircat-300uA_pulse016.tif"
-stim_fn = raw"F:\Data\Patching\2025-05-15-GRAB-DA-STR\25515025.abf"
-
-data_quin_base = load_electric_data(img_fn, stim_fn, pre_event_time = 20.0, post_event_time = 60.0, main_channel = :grn)
+main_channel = :red
+img_fn3 = raw"F:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b5_grabda-nircat-300uA_pulse014.tif"
+stim_fn3 = raw"F:\Data\Patching\2025-05-15-GRAB-DA-STR\25515021.abf"
+data_quin_base3 = load_electric_data(img_fn3, stim_fn3, main_channel = main_channel, trunc_rng = (0.0, 300.0))
