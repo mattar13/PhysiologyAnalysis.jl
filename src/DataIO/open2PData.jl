@@ -259,8 +259,11 @@ function open2Pdata(filename;
         #println(pk-pre_event_length)
         if pk-pre_event_length < 0
             idx_start = 1
+            offset = pre_event_length - pk + 1
+            println("Offset: $offset")
         else
             idx_start = round(Int64, pk-pre_event_length)
+            offset = 0
         end
         
         #println(pk+post_event_length)
@@ -275,8 +278,8 @@ function open2Pdata(filename;
 
         grn_sect = dff_grn_trace[idx_rng]
         red_sect = dff_red_trace[idx_rng]
-        red_sect_arr[1:length(red_sect), i] = red_sect
-        grn_sect_arr[1:length(grn_sect), i] = grn_sect
+        red_sect_arr[offset+1:end, i] = red_sect
+        grn_sect_arr[offset+1:end, i] = grn_sect
     end
     output["grn_row_sums"] = grn_row_sums = sum(grn_sect_arr, dims = 1)[1,:]
     output["red_row_sums"] = red_row_sums = sum(red_sect_arr, dims = 1)[1,:]
