@@ -46,7 +46,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     red_assym = 0.005,
     grn_niter = 20,
     red_niter = 20,
-
+    post_moving_average = false,
     kwargs...
 ) where T<:Real
 
@@ -115,7 +115,11 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                         spike_reduction=grn_spike_reduction,
                         lam=grn_lam, assym=grn_assym, niter=grn_niter,
                     )
-                    #dFoF_MA = moving_average(dFoF; window=window)
+                    if post_moving_average
+                        dFoF_MA = moving_average(dFoF; window=window)
+                    else
+                        dFoF_MA = dFoF
+                    end
                 else
                     _, dFoF = baseline_trace(roi_trace; 
                         stim_frame=pre_stim_idx, 
@@ -124,7 +128,12 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                         lam=red_lam, assym=red_assym, niter=red_niter,
                     )
                     #A post moving average may make it a bit easier to fit
-                    #dFoF_MA = moving_average(dFoF; window=window)
+                    if post_moving_average
+                        dFoF_MA = moving_average(dFoF; window=window)
+                    else
+                        dFoF_MA = dFoF
+                    end
+
                 end
                 t_series = collect(1:length(dFoF))*data.dt
                 
