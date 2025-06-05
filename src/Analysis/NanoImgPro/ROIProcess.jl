@@ -110,7 +110,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 pre_stim_idx = round(Int64, delay_time/data.dt)
                 if channel_idx == 1
                     _, dFoF = baseline_trace(roi_trace; 
-                        #stim_frame=pre_stim_idx, 
+                        stim_frame=pre_stim_idx, 
                         window=window, 
                         spike_reduction=grn_spike_reduction,
                         lam=grn_lam, assym=grn_assym, niter=grn_niter,
@@ -118,7 +118,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                     dFoF_MA = moving_average(dFoF; window=window)
                 else
                     _, dFoF = baseline_trace(roi_trace; 
-                        #stim_frame=pre_stim_idx, 
+                        stim_frame=pre_stim_idx, 
                         window=window, 
                         spike_reduction=red_spike_reduction,
                         lam=red_lam, assym=red_assym, niter=red_niter,
