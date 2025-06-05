@@ -173,8 +173,8 @@ function open2Pdata(filename;
         output["composite_img"] = grn_img + red_img
         log_message(2, "Z projections completed")
 
-        output["red_trace"] = project(experiment, dims = (1,2))[1,1,:,2]
-        output["grn_trace"] = project(experiment, dims = (1,2))[1,1,:,1]
+        output["red_trace"] = red_trace = project(experiment, dims = (1,2))[1,1,:,2]
+        output["grn_trace"] = grn_trace = project(experiment, dims = (1,2))[1,1,:,1]
         log_message(2, "Z axis traces generated")
  
         output["grn_drift"], output["dff_grn_trace"] = _, dff_grn_trace = baseline_trace(output["grn_trace"], spike_reduction = grn_spike_reduction, window = grn_window, lam = grn_lam, assym = grn_assym, niter = grn_niter)
