@@ -310,10 +310,13 @@ padding shorter arrays with NaN values to ensure equal length.
 """
 function convert_to_multidim_array(nested_array)
     # Find the maximum length of datapoint arrays
-    n_rois = length(nested_array[1][1])
-    n_stims = length(nested_array[1])
-    n_timepoints = length(nested_array[1][1][1])
+    # println(length(nested_array))
+    # println(length(nested_array[1]))
+    # println(length(nested_array[1][1]))
     n_channels = length(nested_array)
+    n_stims = length(nested_array[1])
+    n_rois = length(nested_array[1][1])
+    n_timepoints = length(nested_array[1][1][1])
 
     sig_traces = zeros(n_stims, n_rois, n_timepoints, n_channels)
 
@@ -475,6 +478,7 @@ function load_and_process_data(img_fn, stim_fn;
             for stim_idx in eachindex(data["pks"])
                 #println("Processing stimulus $stim_idx")
                 # Get traces only for significant ROIs
+                println("length of sig_rois: $(length(sig_rois))")
                 traces = get_dfof_traces(roi_analysis, sig_rois, stim_idx = stim_idx, channel_idx = channel_idx)
                 if !isempty(traces)
                     push!(channel_traces, traces)
