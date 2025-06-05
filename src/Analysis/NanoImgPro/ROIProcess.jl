@@ -33,7 +33,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
 
     #The next parameters are used to calculate the dF/F and significance
     delay_time=50.0, #Time delay in ms to use for baseline calculation
-    window::Int=0, #We have moved away from this but keeping the option
+    window::Int=200, #We have moved away from this but keeping the option
     n_stds=2.0, #Number of standard deviations to use for significance calculation
     sig_window=50.0,  # Time window in ms to look for significant responses after stimulus
     pre_event_time=50.0,  # Time window in s before stimulus to analyze
@@ -49,6 +49,11 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
 
     kwargs...
 ) where T<:Real
+
+    if delay_time > pre_event_time
+        println("Delay time must be greater than pre-event time, setting delay time to pre-event time")
+        delay_time = pre_event_time
+    end
     # Get all available indices if not specified
     all_stims = getStimulusEndTime(data)
     stim_indices = isnothing(stim_indices) ? (1:length(all_stims)) : stim_indices
@@ -70,8 +75,9 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             # Calculate fixed analysis window around stimulus
             stim_time = all_stims[stim_idx]
             # Calculate the full analysis window (before and after)
-            analysis_start = stim_time - pre_event_time  # Convert ms to s
+            analysis_start = stim_time - pre_event_time + 1 # Convert ms to s
             analysis_end = stim_time + post_event_time
+            # println("Stim time: $stim_time")
             # println("Analysis window: $analysis_start to $analysis_end")
             # Calculate the actual data indices and NaN padding
             start_idx = max(1, round(Int, analysis_start / data.dt))
@@ -79,10 +85,11 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             # println("Start idx to end idx: $(end_idx - start_idx)")
             # Calculate how many NaNs we need at start and end
             nans_before = max(0, round(Int, (pre_event_time - (stim_time - data.t[1])) / data.dt))
-        #    println("Nans before: $nans_before")
+            # println("Nans before: $nans_before")
             # Total window size should be fixed
             total_window_size = round(Int, (pre_event_time + post_event_time) / data.dt)
             # println("Total window size: $total_window_size")
+
             # Process each channel
             for channel_idx in channels
                 # Extract ROI trace
@@ -92,7 +99,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 roi_frames_mean = mean(roi_frames, dims=(1))[1, start_idx:end_idx, channel_idx]
                 first_value = roi_frames_mean[1]
                 roi_trace = fill(first_value, total_window_size+1)
-                # println("ROI trace length: $(length(roi_frames_mean))")
+                # println("ROI trace length: $(length(roi_frames_mean)) \n")
                 
                 # Fill in the actual data where we have it
                 if end_idx >= start_idx  # Only if we have some valid data
@@ -103,14 +110,14 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 pre_stim_idx = round(Int64, delay_time/data.dt)
                 if channel_idx == 1
                     _, dFoF = baseline_trace(roi_trace; 
-                        stim_frame=pre_stim_idx, 
+                        #stim_frame=pre_stim_idx, 
                         window=window, 
                         spike_reduction=grn_spike_reduction,
                         lam=grn_lam, assym=grn_assym, niter=grn_niter,
                     )
                 else
                     _, dFoF = baseline_trace(roi_trace; 
-                        stim_frame=pre_stim_idx, 
+                        #stim_frame=pre_stim_idx, 
                         window=window, 
                         spike_reduction=red_spike_reduction,
                         lam=red_lam, assym=red_assym, niter=red_niter,
