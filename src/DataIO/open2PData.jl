@@ -398,7 +398,7 @@ function load_and_process_data(img_fn, stim_fn;
     n_splits = 16,
     n_stds = 5.0,
     selected_rois = nothing, #If nothing, significant ROIs are found automatically
-
+    find_rois = true,
     #Baselineing parameters
     main_channel = :grn,
     grn_lam = 1e4, 
@@ -434,64 +434,66 @@ function load_and_process_data(img_fn, stim_fn;
     
     # Extract experiment and perform ROI analysis
     exp = data["experiment"]
-    pixel_splits_roi!(exp, n_splits)
-    roi_analysis = process_rois(exp; 
-        n_stds = n_stds, 
-        pre_event_time = pre_event_time, 
-        post_event_time = post_event_time,
-        grn_lam = grn_lam, 
-        red_lam = red_lam, 
-        grn_window = grn_window, 
-        red_window = red_window,
-        grn_spike_reduction = grn_spike_reduction,
-        red_spike_reduction = red_spike_reduction,
-    )
-    
-    # Add ROI analysis to the data dictionary
-    data["roi_analysis"] = roi_analysis
-    
-    #println("Getting significant ROIs")
-    
-    # Collect all traces
-    all_traces = []
-    all_tseries = []
-    all_sig_rois = []
-    
-    for channel_idx in axes(exp, 3)
-        if !isnothing(selected_rois)
-            sig_rois = all_sig_rois = selected_rois
-        elseif main_channel == :grn
-            sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
-        elseif main_channel == :red 
-            sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
-        else 
-            println("Not really implemented, need to fix")
-            sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
-        end
-        #println("Processing channel $channel_idx")
-        # First get significant ROIs for this channel
-        #println("Found $(length(sig_rois)) significant ROIs")
+    if find_rois
+        pixel_splits_roi!(exp, n_splits)
+            roi_analysis = process_rois(exp; 
+            n_stds = n_stds, 
+            pre_event_time = pre_event_time, 
+            post_event_time = post_event_time,
+            grn_lam = grn_lam, 
+            red_lam = red_lam, 
+            grn_window = grn_window, 
+            red_window = red_window,
+            grn_spike_reduction = grn_spike_reduction,
+            red_spike_reduction = red_spike_reduction,
+        )
         
-        channel_traces = []
-        for stim_idx in eachindex(data["pks"])
-            #println("Processing stimulus $stim_idx")
-            # Get traces only for significant ROIs
-            traces = get_dfof_traces(roi_analysis, sig_rois, stim_idx = stim_idx, channel_idx = channel_idx)
-            if !isempty(traces)
-                push!(channel_traces, traces)
-                if isempty(all_tseries)
-                    push!(all_tseries, traces)  # Use traces array directly
+        # Add ROI analysis to the data dictionary
+        data["roi_analysis"] = roi_analysis
+
+            # Collect all traces
+        all_traces = []
+        all_tseries = []
+        all_sig_rois = []
+        
+        for channel_idx in axes(exp, 3)
+            if !isnothing(selected_rois)
+                sig_rois = all_sig_rois = selected_rois
+            elseif main_channel == :grn
+                sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 1)
+            elseif main_channel == :red 
+                sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = 2)
+            else 
+                println("Not really implemented, need to fix")
+                sig_rois = all_sig_rois = get_significant_rois(roi_analysis, channel_idx = channel_idx)
+            end
+            #println("Processing channel $channel_idx")
+            # First get significant ROIs for this channel
+            #println("Found $(length(sig_rois)) significant ROIs")
+            
+            channel_traces = []
+            for stim_idx in eachindex(data["pks"])
+                #println("Processing stimulus $stim_idx")
+                # Get traces only for significant ROIs
+                traces = get_dfof_traces(roi_analysis, sig_rois, stim_idx = stim_idx, channel_idx = channel_idx)
+                if !isempty(traces)
+                    push!(channel_traces, traces)
+                    if isempty(all_tseries)
+                        push!(all_tseries, traces)  # Use traces array directly
+                    end
                 end
             end
+            push!(all_traces, channel_traces)
         end
-        push!(all_traces, channel_traces)
-    end
 
-    data["sig_traces"] = convert_to_multidim_array(all_traces)
-    data["sig_tseries"] = all_tseries
-    data["sig_rois"] = all_sig_rois  # Store significant ROIs for each channel
-    data["mean_sig_trace"] = mean(data["sig_traces"], dims = (1, 2))[1,1,:,:]
-    #println("Done loading and processing data")
+        data["sig_traces"] = convert_to_multidim_array(all_traces)
+        data["sig_tseries"] = all_tseries
+        data["sig_rois"] = all_sig_rois  # Store significant ROIs for each channel
+        data["mean_sig_trace"] = mean(data["sig_traces"], dims = (1, 2))[1,1,:,:]
+        #println("Done loading and processing data")
+    end
+    #println("Getting significant ROIs")
+    
     return data
 end
 
