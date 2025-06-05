@@ -118,10 +118,10 @@ function baseline_trace(trace::AbstractVector{T};
     #Try adding this here to remove sharp spikes
     if window > 1
         if spike_reduction == :moving_average
-            println("Using moving average to remove sharp spikes")
+            # println("Using moving average to remove sharp spikes")
             dF0 = moving_average(F0; window = window)
         elseif spike_reduction == :median
-            println("Using median to remove sharp spikes")
+            # println("Using median to remove sharp spikes")
             dF0 = median_filter(F0; window = window)
         end
     else #We may not want to use moving average for small dff
