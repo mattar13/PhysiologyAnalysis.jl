@@ -1,3 +1,11 @@
+struct ImageProcessingConfig
+    ROI_size::Int64
+
+
+
+
+end
+
 """
 Types for representing ROI analysis results from two-photon imaging data.
 """

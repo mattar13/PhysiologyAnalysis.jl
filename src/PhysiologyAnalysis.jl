@@ -80,20 +80,20 @@ export findROIcentroid
 # export findROIcentroids
 
 using SparseArrays, OffsetArrays, ImageFiltering
-include("Analysis/NanoImgPro/BaselineData.jl")
+include("Analysis/ROIAnalysis/BaselineData.jl")
 
-include("Analysis/NanoImgPro/ParametricFit.jl")
+include("Analysis/ROIAnalysis/ParametricFit.jl")
 export single_stim_model, single_stim_model_drift
 export fit_parametric, fit_parametric_drift
 export iterative_linear_bridge
 
-include("Analysis/NanoImgPro/ROITypes.jl")
+include("Analysis/ROIAnalysis/ROITypes.jl")
 export ROITrace, ROIAnalysis
 export get_significant_rois, get_mean_response, get_roi_traces, get_dfof_traces, get_fit_parameters
 export get_significant_roi_pixels
 
 
-include("Analysis/NanoImgPro/ROIProcess.jl")
+include("Analysis/ROIAnalysis/ROIProcess.jl")
 export baseline_trace
 export roi_processing
 export process_rois

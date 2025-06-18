@@ -10,6 +10,17 @@ import ElectroPhysiology: Experiment, TWO_PHOTON
 #%% ╔═╡Found an issue. With really crazy spikes, the baseline correction is not working.
 println("Loading the quinpirole baseline data...")
 main_channel = :red
-img_fn3 = raw"F:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b5_grabda-nircat-300uA_pulse014.tif"
-stim_fn3 = raw"F:\Data\Patching\2025-05-15-GRAB-DA-STR\25515021.abf"
-data_quin_base3 = load_electric_data(img_fn3, stim_fn3, main_channel = main_channel, trunc_rng = (0.0, 300.0))
+img_fn3 = raw"G:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b5_grabda-nircat-300uA_pulse014.tif"
+stim_fn3 = raw"G:\Data\Patching\2025-05-15-GRAB-DA-STR\25515021.abf"
+
+data_img = readImage(img_fn3)
+stimulus = readABF(stim_fn3)
+
+#%% We want to store the ROIs in a object
+pixel_splits_roi!(data_img, 10)
+make_circle_roi!(data_img, 1, 100, 100, 10)
+getROIarr(data_img, 1)
+
+#make a ROI that is a circle
+#Pull out the framerate of the data
+getSampleFreq(data_img)
