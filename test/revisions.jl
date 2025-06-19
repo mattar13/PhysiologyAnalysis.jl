@@ -17,7 +17,7 @@ stim_fn3 = raw"G:\Data\Patching\2025-05-15-GRAB-DA-STR\25515021.abf"
 
 data_img = readImage(img_fn3)
 deinterleave!(data_img)
-truncate_data!(data_img, t_begin = 0.0, t_end = 500.0)
+truncate_data!(data_img, t_begin = 0.0, t_end = 300.0)
 stimulus = readABF(stim_fn3, stimulus_name = "IN 3", stimulus_threshold = 0.5, flatten_episodic = true)
 spike_train_group!(stimulus, 1.0)
 addStimulus!(data_img, stimulus, "IN 3")
@@ -47,11 +47,13 @@ sig_rois, dFoF_traces = process_rois(data_img, stim_frame = stim_end_idxs[2])
 mask_xy = round.(Int64, sqrt(size(sig_rois,1))) 
 heatmap(reshape(sig_rois, mask_xy, mask_xy))
 
+dFoF_traces
+
 #%% We want to store the ROIs in a object
-#make_circular_roi!(data_img, (75, 75), 75)
+make_circular_roi!(data_img, (75, 75), 75)
 
 t_rng = data_img.t[1]:data_img.dt:data_img.t[end]
-roi_trace = mean(getROIarr(data_img, 50), dims = 1)[1,:, 2]
+roi_trace = mean(getROIarr(data_img, 1), dims = 1)[1,:, 2]
 
 roi_FILT = baseline_trace(roi_trace, 
     window = 40, 
