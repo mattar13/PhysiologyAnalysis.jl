@@ -16,7 +16,7 @@ If the peaks are very sudden, p gives you the best chance of fixing it
 Uses a second–difference regularization (similar to Eilers & Boelens, 2005).
 """
 function baseline_als(y::Vector{T}; 
-    lam::T=1e4, assym::T=0.005, niter::Int=20
+    lam::T=1e7, assym::T=0.25, niter::Int=20
 ) where T<:Real
     L = length(y)
     # Construct D as an L×(L–2) difference operator so that
@@ -89,7 +89,32 @@ function median_filter(a::Vector{T}; window::Int = 15) where T<:Real
     return result
 end
 
-#Make a median filter
+"""
+    linear_fill!(a, start, stop)
+
+Linearly interpolate the entries of `a` from index `start` to `stop`, inclusive,
+so that `a[start]` and `a[stop]` remain fixed and all in-between points lie 
+on the straight line between them.
+
+This version:
+  • works on any AbstractVector of real numbers,
+  • uses a `LinRange` under the hood for clarity,
+  • only writes the slice once.
+"""
+function linear_fill(a::AbstractVector{<:Real}, start::Integer, stop::Integer)
+    @assert 1 ≤ start < stop ≤ length(a) "start and stop must satisfy 1 ≤ start < stop ≤ length(a)"
+    # compute a range of exactly (stop-start+1) points
+    vals = LinRange(a[start], a[stop], stop - start + 1)
+    return vals
+end
+
+function linear_fill!(a::AbstractVector{<:Real}, start::Integer, stop::Integer)
+    @assert 1 ≤ start < stop ≤ length(a) "start and stop must satisfy 1 ≤ start < stop ≤ length(a)"
+    # compute a range of exactly (stop-start+1) points
+    vals = LinRange(a[start], a[stop], stop - start + 1)
+    a[start:stop] .= vals
+    return a
+end
 
 """
 Perform overall baseline correction using ALS and centered Moving Average.
@@ -101,36 +126,32 @@ Perform overall baseline correction using ALS and centered Moving Average.
 Returns a baseline-corrected dF/F trace.
 """
 function baseline_trace(trace::AbstractVector{T}; 
-    stim_frame = nothing, window::Int=200, #This is the window of the moving average for dF
-    spike_reduction = :median,
+    window::Int = 20,
+    baseline_divisor_start = 1, baseline_divisor_end = nothing,
+    linear_fill_start = nothing, linear_fill_end = nothing,
     kwargs...
 ) where T<:Real
 
     # Normalize using pre-stimulus baseline if stim_frame is set
-    if isnothing(stim_frame)
-        baseline_divisor = mean(trace)  # Default to global mean if no stimulus
-    else
-        # Calculate the mean of the trace before the stimulus frame
-        baseline_divisor = mean(trace[1:stim_frame])
+    if isnothing(baseline_divisor_end)
+        baseline_divisor_end = length(trace)    
     end
+    # Calculate the mean of the trace before the stimulus frame
+    baseline_divisor = mean(trace[baseline_divisor_start:baseline_divisor_end])
+    
     F0 = trace ./ baseline_divisor
     
-    #Try adding this here to remove sharp spikes
-    if window > 1
-        if spike_reduction == :moving_average
-            # println("Using moving average to remove sharp spikes")
-            dF0 = moving_average(F0; window = window)
-        elseif spike_reduction == :median
-            # println("Using median to remove sharp spikes")
-            dF0 = median_filter(F0; window = window)
-        end
-    else #We may not want to use moving average for small dff
-        dF0 = F0
-    end
     # Apply Asymmetric Least Squares (ALS) smoothing
-    drift = baseline_als(dF0; kwargs...)
-    dFoF = F0 .- drift
+    drift = baseline_als(F0; kwargs...)
+    baselined_trace = F0 .- drift
 
+    #dFoF = moving_average(baselined_trace; window = window)
+    #Enter in linear_fill in the sections where we need to
+    ma = moving_average(baselined_trace; window = window)
+    if !isnothing(linear_fill_start) && !isnothing(linear_fill_end)
+        linear_fill!(ma, linear_fill_start, linear_fill_end)
+    end
+    dFoF = baselined_trace - ma
     
-    return drift, dFoF
+    return dFoF
 end

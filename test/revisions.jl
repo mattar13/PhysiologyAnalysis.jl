@@ -4,6 +4,8 @@ using ElectroPhysiology
 using PhysiologyAnalysis
 using Statistics
 import ElectroPhysiology: Experiment, TWO_PHOTON
+import ElectroPhysiology: make_circular_roi!
+using Plots
 # using Pkg; Pkg.activate("test")
 # using GLMakie, PhysiologyPlotting
 
@@ -14,13 +16,47 @@ img_fn3 = raw"G:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b5_grabda-nircat-300uA_p
 stim_fn3 = raw"G:\Data\Patching\2025-05-15-GRAB-DA-STR\25515021.abf"
 
 data_img = readImage(img_fn3)
+deinterleave!(data_img)
+truncate_data!(data_img, t_begin = 0.0, t_end = 500.0)
 stimulus = readABF(stim_fn3)
 
-#%% We want to store the ROIs in a object
-pixel_splits_roi!(data_img, 10)
-make_circle_roi!(data_img, 1, 100, 100, 10)
-getROIarr(data_img, 1)
+function plot_baseline_trace(trace::AbstractVector{T}; 
+    window::Int = 20,
+    baseline_divisor_start = 1, baseline_divisor_end = nothing,
+    linear_fill_start = nothing, linear_fill_end = nothing,
+    kwargs...
+) where T<:Real
+    dFoF = baseline_trace(trace; window = window, baseline_divisor_start = baseline_divisor_start, baseline_divisor_end = baseline_divisor_end, linear_fill_start = linear_fill_start, linear_fill_end = linear_fill_end, kwargs...)
+    p1 = plot(trace, label = "Raw")
+    vline!(p1, [baseline_divisor_start, baseline_divisor_end], color = :red, label = "Baseline Divisor")
+    vline!(p1, [linear_fill_start, linear_fill_end], color = :blue, label = "Linear Fill")
+    p2 = plot(dFoF, label = "Filtered")
+    plot(p1, p2, layout = (2, 1))
+end
 
-#make a ROI that is a circle
-#Pull out the framerate of the data
-getSampleFreq(data_img)
+#%% Lets build the pixel splits function again (using minimal AI)
+pixel_splits_roi!(data_img, 10)
+mask = getROImask(data_img)
+
+
+
+
+
+#%% We want to store the ROIs in a object
+make_circular_roi!(data_img, (75, 75), 75)
+heatmap(getROImask(data_img))
+
+roi_trace = mean(getROIarr(data_img, 1), dims = 1)[1,:, 2]
+
+roi_FILT = baseline_trace(roi_trace, 
+    window = 50, 
+    baseline_divisor_start = 1, baseline_divisor_end = 120,
+    linear_fill_start = 120, linear_fill_end = 180
+)
+
+p1 = plot(roi_trace, label = "Raw")
+p2 = plot(roi_FILT, label = "Filtered")
+plot(p1, p2, layout = (2, 1))
+
+#%%
+
