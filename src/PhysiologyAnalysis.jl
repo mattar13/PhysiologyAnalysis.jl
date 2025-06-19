@@ -81,6 +81,7 @@ export findROIcentroid
 
 using SparseArrays, OffsetArrays, ImageFiltering
 include("Analysis/ROIAnalysis/BaselineData.jl")
+export linear_fill, baseline_trace
 
 include("Analysis/ROIAnalysis/ParametricFit.jl")
 export single_stim_model, single_stim_model_drift
@@ -94,7 +95,6 @@ export get_significant_roi_pixels
 
 
 include("Analysis/ROIAnalysis/ROIProcess.jl")
-export baseline_trace
 export roi_processing
 export process_rois
 export process_significant_rois
