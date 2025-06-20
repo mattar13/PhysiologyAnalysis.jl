@@ -6,10 +6,10 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
 
     #Baseline correction parameters
     window::Int=40,
-    baseline_divisor_start = 2,
-    baseline_divisor_end = nothing,
-    linear_fill_start = nothing,
-    linear_fill_end = nothing,
+    baseline_divisor_start = 20,
+    baseline_divisor_end = 5,
+    linear_fill_start = 5,
+    linear_fill_end = 50,
     
     #ROI parameters
     pos_sig_level = 2.0,
@@ -39,11 +39,13 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         roi_trace = mean(roi_arr, dims = 1)[1,:, channel]
         #Adjust this a bit to get a better
         dFoF = baseline_trace(roi_trace, 
+            stim_frame = stim_frame,
             window = window, 
             baseline_divisor_start = baseline_divisor_start, 
             baseline_divisor_end = baseline_divisor_end, 
             linear_fill_start = linear_fill_start, 
-            linear_fill_end = linear_fill_end)
+            linear_fill_end = linear_fill_end
+        )
 
         #These are the parameters for the signal threshold
         sig_std = std(dFoF[sig_threshold_std_start:stim_frame-sig_threshold_std_end])
@@ -68,11 +70,11 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             sig_rois[roi_idx] = true
         end
 
-
-        dFoF_traces[roi_idx, :] = dFoF
+        println(size(dFoF))
+        #dFoF_traces[roi_idx, :] = dFoF
     
     end
 
-    return sig_rois, dFoF_traces
+    return sig_rois
 
 end
