@@ -37,8 +37,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         t_stim = getStimulusEndTime(data)[stim_idx]
         stim_frame = round(Int, t_stim ./ data.dt)
     end
-    println("Stim frame: $stim_frame")
-    
+
     for roi_idx in roi_indices
         if roi_idx == 0
             println("Skipping ROI $roi_idx")
