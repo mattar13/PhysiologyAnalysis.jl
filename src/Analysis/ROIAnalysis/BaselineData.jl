@@ -1,4 +1,4 @@
-#############################
+ #############################
 # 1. Baseline Correction
 #############################
 
@@ -127,7 +127,8 @@ Returns a baseline-corrected dF/F trace.
 """
 function baseline_trace(trace::AbstractVector{T}; 
     window::Int = 20,
-    baseline_divisor_start = 1, baseline_divisor_end = nothing,
+    stim_frame = 0,
+    baseline_divisor_start = 20, baseline_divisor_end = 5,
     linear_fill_start = nothing, linear_fill_end = nothing,
     kwargs...
 ) where T<:Real
@@ -137,7 +138,7 @@ function baseline_trace(trace::AbstractVector{T};
         baseline_divisor_end = length(trace)    
     end
     # Calculate the mean of the trace before the stimulus frame
-    baseline_divisor = mean(trace[baseline_divisor_start:baseline_divisor_end])
+    baseline_divisor = mean(trace[stim_frame - baseline_divisor_start:stim_frame - baseline_divisor_end])
     
     F0 = trace ./ baseline_divisor
     
@@ -149,7 +150,7 @@ function baseline_trace(trace::AbstractVector{T};
     #Enter in linear_fill in the sections where we need to
     ma = moving_average(baselined_trace; window = window)
     if !isnothing(linear_fill_start) && !isnothing(linear_fill_end)
-        linear_fill!(ma, linear_fill_start, linear_fill_end)
+        linear_fill!(ma, stim_frame - linear_fill_start, stim_frame + linear_fill_end)
     end
     dFoF = baselined_trace - ma
     
