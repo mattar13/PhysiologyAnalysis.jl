@@ -43,26 +43,59 @@ pixel_splits_roi!(data_img, 8)
 mask = getROImask(data_img)
 stim_end_times = getStimulusEndTime(data_img)
 stim_end_idxs = round.(Int, stim_end_times ./ data_img.dt)
+
 sig_rois, dFoF_traces = process_rois(data_img, stim_frame = stim_end_idxs[2])
-mask_xy = round.(Int64, sqrt(size(sig_rois,1))) 
-heatmap(reshape(sig_rois, mask_xy, mask_xy))
-
-dFoF_traces
-
-#%% We want to store the ROIs in a object
-make_circular_roi!(data_img, (75, 75), 75)
-
 t_rng = data_img.t[1]:data_img.dt:data_img.t[end]
 roi_trace = mean(getROIarr(data_img, 1), dims = 1)[1,:, 2]
 
-roi_FILT = baseline_trace(roi_trace, 
-    window = 40, 
-    baseline_divisor_start = 1, baseline_divisor_end = 120,
-    linear_fill_start = 120, linear_fill_end = 180
+sig_mask = reshape(sig_rois, sqrt(length(sig_rois)) |> Int64, sqrt(length(sig_rois)) |> Int64)
+heatmap(sig_mask)
+
+window::Int=40
+baseline_divisor_start = 2
+baseline_divisor_end = nothing
+linear_fill_start = nothing
+linear_fill_end = nothing
+
+dFoF = baseline_trace(roi_trace, 
+    window = window, 
+    baseline_divisor_start = baseline_divisor_start, 
+    baseline_divisor_end = baseline_divisor_end, 
+    linear_fill_start = linear_fill_start, 
+    linear_fill_end = linear_fill_end
 )
 
+
+#%% Plot everything
+pos_sig_level = 2.0
+neg_sig_level = 3.0
+stim_frame = stim_end_idxs[2]
+sig_threshold_std_start = 1
+sig_threshold_std_end = 5
+sig_threshold_mean_start = 12
+sig_threshold_mean_end = 2
+argmax_threshold_end = 25
+max_dfof_end = 5
+min_dfof_end = 100
+
+#These are the parameters for the signal threshold
+sig_std = std(dFoF[sig_threshold_std_start:stim_frame-sig_threshold_std_end])
+sig_mean = mean(dFoF[stim_frame-sig_threshold_mean_start: stim_frame-sig_threshold_mean_end])
+#println("sig_mean: $sig_mean, sig_std: $sig_std")
+
+#Calculate the threshold for the signal
+sig_threshold = sig_mean + sig_std * pos_sig_level
+neg_threshold = sig_mean - sig_std * neg_sig_level
+
+trace_argmax = argmax(dFoF[stim_frame:stim_frame+argmax_threshold_end]) + stim_frame
+        
+max_dfof = mean(dFoF[trace_argmax:trace_argmax+max_dfof_end])
+min_dfof = minimum(dFoF[stim_frame:stim_frame+min_dfof_end])
+over_max = max_dfof > sig_threshold
+over_min = min_dfof > neg_threshold
+
 p1 = plot(t_rng, roi_trace, label = "Raw")
-p2 = plot(t_rng, roi_FILT, label = "Filtered")
+p2 = plot(t_rng, dFoF, label = "Filtered")
 vline!(p2, getStimulusEndTime(data_img), color = :red, label = "Stimulus")
 plot(p1, p2, layout = (2, 1))
 
