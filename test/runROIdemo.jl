@@ -21,7 +21,7 @@ window = 40
 baseline_divisor_start = 20
 baseline_divisor_end = 0
 linear_fill_start = 5
-linear_fill_end = 50
+linear_fill_end = 100
 
 pos_sig_level = 2.0
 neg_sig_level = 3.0
@@ -31,15 +31,12 @@ sig_threshold_std_end = 5
 sig_threshold_mean_start = 12
 sig_threshold_mean_end = 2
 argmax_threshold_end = 25
-max_dfof_end = 5
+max_dfof_end = 25
 min_dfof_end = 100
 
 #===============================================#
 #%%Load the data
 #===============================================#
-
-println("Loading the quinpirole baseline data...")
-main_channel = :red
 img_fn3 = raw"F:\Data\Two Photon\2025-05-15-GRAB-DA_STR\b5_grabda-nircat-300uA_pulse014.tif"
 stim_fn3 = raw"F:\Data\Patching\2025-05-15-GRAB-DA-STR\25515021.abf"
 
@@ -62,7 +59,6 @@ vspan!(p0, [trunc_start, trunc_end], color = :blue, label = "Truncation Range", 
 #===============================================#
 #%%Conduct the baseline correction
 #===============================================#
-
 stim_2 = truncate_data(data_img, trunc_start, trunc_end)
 t_stim = getStimulusEndTime(stim_2)[1]
 stim_frame = round(Int, t_stim ./ stim_2.dt)
@@ -119,4 +115,14 @@ hline!(p2, [max_dfof, min_dfof], color = :orange, label = "Max/Min DF/F", alpha 
 vspan!(p2, [t_min_dfof_start, t_min_dfof_end], color = :blue, label = "Min DF/F", alpha = 0.2)
 vspan!(p2, [t_max_dfof_start, t_max_dfof_end], color = :green, label = "Max DF/F", alpha = 0.2)
 
-plot(p0, p1, p2, layout = (3, 1))
+plt_sig_find = plot(p0, p1, p2, layout = (3, 1))
+
+#===============================================#
+#%%Find the ROIs
+#===============================================#
+
+
+
+
+
+
