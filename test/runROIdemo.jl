@@ -6,33 +6,45 @@ using Statistics
 import ElectroPhysiology: Experiment, TWO_PHOTON
 import ElectroPhysiology: make_circular_roi!
 using GLMakie
+using JSON
 # using Pkg; Pkg.activate("test")
 # using GLMakie, PhysiologyPlotting
 
 #===============================================#
-#%%Define the parameters for the ROI significance finding
+#%%Load parameters from JSON file
 #===============================================#
 
-stimulus_idx = 2
-trunc_before_stim = 50
-trunc_after_stim = 100
+# Load parameters from the JSON file
+json_path = raw"C:\Users\Matt\JuliaDev\ElectroPhysiologyWorkspace\DataAnalysis\SWCNT_Datasets\Manuscript Figures\parameters.json"
+json_string = read(json_path, String)
+parameters = JSON.parse(json_string)
 
-window = 40
-baseline_divisor_start = 40
-baseline_divisor_end = 0
-linear_fill_start = 20
-linear_fill_end = 75
+# Extract parameters by category
+trunc_params = parameters["truncation"]
+baseline_params = parameters["baselining"]
+roi_params = parameters["roi_processing"]
 
-pos_sig_level = 1.0
-neg_sig_level = 3.0
+# Assign parameters to variables for backward compatibility
+stimulus_idx = trunc_params["stimulus_idx"]
+trunc_before_stim = trunc_params["trunc_before_stim"]
+trunc_after_stim = trunc_params["trunc_after_stim"]
 
-sig_threshold_std_start = 1
-sig_threshold_std_end = 5
-sig_threshold_mean_start = 12
-sig_threshold_mean_end = 2
-argmax_threshold_end = 25
-max_dfof_end = 25
-min_dfof_end = 100
+window = baseline_params["window"]
+baseline_divisor_start = baseline_params["baseline_divisor_start"]
+baseline_divisor_end = baseline_params["baseline_divisor_end"]
+linear_fill_start = baseline_params["linear_fill_start"]
+linear_fill_end = baseline_params["linear_fill_end"]
+
+pos_sig_level = roi_params["pos_sig_level"]
+neg_sig_level = roi_params["neg_sig_level"]
+
+sig_threshold_std_start = roi_params["sig_threshold_std_start"]
+sig_threshold_std_end = roi_params["sig_threshold_std_end"]
+sig_threshold_mean_start = roi_params["sig_threshold_mean_start"]
+sig_threshold_mean_end = roi_params["sig_threshold_mean_end"]
+argmax_threshold_end = roi_params["argmax_threshold_end"]
+max_dfof_end = roi_params["max_dfof_end"]
+min_dfof_end = roi_params["min_dfof_end"]
 
 #===============================================#
 #Load the data
