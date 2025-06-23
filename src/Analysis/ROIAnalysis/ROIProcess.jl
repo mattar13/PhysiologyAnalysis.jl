@@ -75,7 +75,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         over_max = max_dfof > sig_threshold
         over_min = min_dfof > neg_threshold
         if over_max && over_min
-            println("ROI $roi_idx is significant")
+            #println("ROI $roi_idx is significant")
             sig_rois[roi_idx] = true
         end
 
@@ -83,7 +83,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     end
     data.HeaderDict["sig_rois_mask_segment"] = sig_rois
     data.HeaderDict["sig_rois_idxs"] = findall(sig_rois)
-    println(data.HeaderDict["sig_rois_idxs"])
+    #println(data.HeaderDict["sig_rois_idxs"])
     return sig_rois
 
 end
