@@ -144,7 +144,7 @@ function open2Pdata(filename;
         if isnothing(trunc_rng[1])
             t_begin = experiment.t[1]
         end
-        truncate_data!(experiment, t_begin = t_begin, t_end = t_end)
+        truncate_data!(experiment, t_begin, t_end)
         log_message(2, "Data truncated", "Range: $t_begin to $t_end")
     end
 
