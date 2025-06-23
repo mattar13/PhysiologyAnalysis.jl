@@ -9,7 +9,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     baseline_divisor_start = 20,
     baseline_divisor_end = 5,
     linear_fill_start = 5,
-    linear_fill_end = 50,
+    linear_fill_end = 100,
     
     #ROI parameters
     pos_sig_level = 2.0,
@@ -23,7 +23,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     sig_threshold_mean_start = 12,
     sig_threshold_mean_end = 2,
     argmax_threshold_end = 25,
-    max_dfof_end = 5,
+    max_dfof_end = 25,
     min_dfof_end = 100,
 
 ) where T<:Real
