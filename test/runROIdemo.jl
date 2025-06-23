@@ -59,24 +59,23 @@ vspan!(p0, [trunc_start, trunc_end], color = :blue, label = "Truncation Range", 
 #===============================================#
 #%%Conduct the baseline correction
 #===============================================#
-stim_2 = truncate_data(data_img, trunc_start, trunc_end)
-t_stim = getStimulusEndTime(stim_2)[1]
-stim_frame = round(Int, t_stim ./ stim_2.dt)
-ir_img = mean(stim_2.data_array[:,:,2], dims = 1)[1,:]
+pixel_ROI_data = truncate_data(data_img, trunc_start, trunc_end)
+circular_ROI_data = copy(pixel_ROI_data)
+t_stim = getStimulusEndTime(pixel_ROI_data)[1]
+stim_frame = round(Int, t_stim ./ pixel_ROI_data.dt)
+ir_img = mean(pixel_ROI_data.data_array[:,:,2], dims = 1)[1,:]
 
-p1 = plot(stim_2.t, ir_img, legend = :topright)
-vline!(p1, getStimulusEndTime(stim_2), color = :green, label = "Stimulus")
-
-#Plot the baseline divisior section
+p1 = plot(pixel_ROI_data.t, ir_img, legend = :topright)
+vline!(p1, getStimulusEndTime(pixel_ROI_data), color = :green, label = "Stimulus")
 
 #Plot the baseline divisor section
-t_baseline_start = stim_2.t[stim_frame - baseline_divisor_start]
-t_baseline_end = stim_2.t[stim_frame - baseline_divisor_end]
+t_baseline_start = pixel_ROI_data.t[stim_frame - baseline_divisor_start]
+t_baseline_end = pixel_ROI_data.t[stim_frame - baseline_divisor_end]
 vspan!(p1, [t_baseline_start, t_baseline_end], color = :red, label = "Baseline Divisor", alpha = 0.2)
 
 #Plot the linear fill section
-t_linear_fill_start = stim_2.t[stim_frame - linear_fill_start]
-t_linear_fill_end = stim_2.t[stim_frame + linear_fill_end]
+t_linear_fill_start = pixel_ROI_data.t[stim_frame - linear_fill_start]
+t_linear_fill_end = pixel_ROI_data.t[stim_frame + linear_fill_end]
 vspan!(p1, [t_linear_fill_start, t_linear_fill_end], color = :blue, label = "Linear Fill", alpha = 0.2)
 
 dFoF = baseline_trace(ir_img;
@@ -93,7 +92,7 @@ p1
 #%%Find the signal threshold
 #===============================================#
 
-p2 = plot(stim_2.t, dFoF)
+p2 = plot(pixel_ROI_data.t, dFoF)
 vline!(p2, [t_stim], color = :green, label = "Stimulus")
 sig_std = std(dFoF[sig_threshold_std_start:stim_frame-sig_threshold_std_end])
 sig_mean = mean(dFoF[stim_frame-sig_threshold_mean_start: stim_frame-sig_threshold_mean_end])
@@ -102,11 +101,11 @@ neg_threshold = sig_mean - sig_std * neg_sig_level
 hline!(p2, [sig_threshold, neg_threshold], color = :red, label = "Signal Threshold", alpha = 0.2)
 
 #
-t_min_dfof_start = stim_2.t[stim_frame]
-t_min_dfof_end = stim_2.t[stim_frame + min_dfof_end]
+t_min_dfof_start = pixel_ROI_data.t[stim_frame]
+t_min_dfof_end = pixel_ROI_data.t[stim_frame + min_dfof_end]
 trace_argmax = argmax(dFoF[stim_frame:stim_frame+argmax_threshold_end]) + stim_frame
-t_max_dfof_start = stim_2.t[trace_argmax]
-t_max_dfof_end = stim_2.t[trace_argmax + max_dfof_end]
+t_max_dfof_start = pixel_ROI_data.t[trace_argmax]
+t_max_dfof_end = pixel_ROI_data.t[trace_argmax + max_dfof_end]
 
 max_dfof = mean(dFoF[trace_argmax:trace_argmax+max_dfof_end])
 min_dfof = minimum(dFoF[stim_frame:stim_frame+min_dfof_end])
@@ -121,8 +120,18 @@ plt_sig_find = plot(p0, p1, p2, layout = (3, 1))
 #%%Find the ROIs
 #===============================================#
 
+pixel_splits_roi!(pixel_ROI_data, 8)
+roi_indices = getROImask(pixel_ROI_data) |> unique
+sig_rois = process_rois(pixel_ROI_data, stim_idx =   1)
 
+pixel_ROI_data.HeaderDict["sig_rois_idxs"]
+pixel_ROI_data.HeaderDict["sig_rois_mask_segment"]
+sig_arr = getROIarr(pixel_ROI_data, pixel_ROI_data.HeaderDict["sig_rois_idxs"])
+sig_arr_zproj = mean(sig_arr, dims = 1)[1,:,:]
+sig_mask = reshape(sig_rois, sqrt(length(sig_rois)) |> Int64, sqrt(length(sig_rois)) |> Int64)
 
+hm = heatmap(rotl90(sig_mask), aspect_ratio = 1, c = :viridis)
+p1 = plot(sig_arr_zproj[:,1])
+p2 = plot(sig_arr_zproj[:,2])
 
-
-
+plot(hm, hm, p1, p2, layout = (2,2))

@@ -26,35 +26,16 @@ main_t_stim = getStimulusEndTime(data_img)[stimulus_idx]
 trunc_start = main_t_stim - 40
 trunc_end = main_t_stim + 120
 
-stim_2 = truncate_data(data_img, trunc_start, trunc_end)
-t_stim = getStimulusEndTime(stim_2)[1]
-stim_frame = round(Int, t_stim ./ stim_2.dt)
 
-pixel_splits_roi!(stim_2, 8)
-roi_indices = getROImask(stim_2) |> unique
-sig_rois = process_rois(stim_2, 
-    stim_frame = stim_frame,
-    window = 40,
-    baseline_divisor_start = 20,
-    baseline_divisor_end = 5,
-    linear_fill_start = 5,
-    linear_fill_end = 100,
+pixel_ROI_data = truncate_data(data_img, trunc_start, trunc_end)
+circular_ROI_data = copy(pixel_ROI_data)
+pixel_splits_roi!(pixel_ROI_data, 8)
+roi_indices = getROImask(pixel_ROI_data) |> unique
+sig_rois = process_rois(pixel_ROI_data, stim_idx =   1)
 
-    pos_sig_level = 2.0,
-    neg_sig_level = 3.0,
-
-    sig_threshold_std_start = 1,
-    sig_threshold_std_end = 5,
-    sig_threshold_mean_start = 12,
-    sig_threshold_mean_end = 2,
-    argmax_threshold_end = 100,
-    max_dfof_end = 5,
-    min_dfof_end = 100
-)
-
-stim_2.HeaderDict["sig_rois_idxs"]
-stim_2.HeaderDict["sig_rois_mask_segment"]
-sig_arr = getROIarr(stim_2, stim_2.HeaderDict["sig_rois_idxs"])
+pixel_ROI_data.HeaderDict["sig_rois_idxs"]
+pixel_ROI_data.HeaderDict["sig_rois_mask_segment"]
+sig_arr = getROIarr(pixel_ROI_data, pixel_ROI_data.HeaderDict["sig_rois_idxs"])
 sig_arr_zproj = mean(sig_arr, dims = 1)[1,:,:]
 sig_mask = reshape(sig_rois, sqrt(length(sig_rois)) |> Int64, sqrt(length(sig_rois)) |> Int64)
 heatmap(rotl90(sig_mask), aspect_ratio = 1)
@@ -67,4 +48,15 @@ plot(p1, p2, layout = (2,1))
 
 #%%
 #Now lets draw a circular ROI and do the same calculations
-make_circular_roi!(stim_2, 100, 100, 100)
+make_circular_roi!(circular_ROI_data, (100, 100), 100)
+heatmap(getROImask(circular_ROI_data)) 
+
+circular_sig_rois = process_rois(circular_ROI_data, stim_idx = 1)
+
+circular_sig_arr = getROIarr(circular_ROI_data, circular_ROI_data.HeaderDict["sig_rois_idxs"])
+circular_sig_arr_zproj = mean(circular_sig_arr, dims = 1)[1,:,:]
+
+p1 = plot(circular_sig_arr_zproj[:,1])
+p2 = plot(circular_sig_arr_zproj[:,2])
+
+plot(p1, p2, layout = (2,1))
