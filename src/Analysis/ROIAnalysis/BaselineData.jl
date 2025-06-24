@@ -161,7 +161,7 @@ function baseline_trace(trace::AbstractVector{T};
     #dFoF = moving_average(baselined_trace; window = window)
     #Enter in linear_fill in the sections where we need to
     ma = moving_average(baselined_trace; window = window)
-    if !isnothing(linear_fill_start) && !isnothing(linear_fill_end)
+    if !isnothing(linear_fill_start) && !isnothing(linear_fill_end) && !isnothing(stim_frame)
         linear_fill!(ma, stim_frame - linear_fill_start, stim_frame + linear_fill_end)
     end
     dFoF = baselined_trace - ma
