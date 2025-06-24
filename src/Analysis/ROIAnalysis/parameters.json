@@ -1,0 +1,26 @@
+{
+  "truncation": {
+    "stimulus_idx": 2,
+    "trunc_before_stim": 50,
+    "trunc_after_stim": 100
+  },
+  "baselining": {
+    "window": 40,
+    "baseline_divisor_start": 20,
+    "baseline_divisor_end": 0,
+    "linear_fill_start": 40,
+    "linear_fill_end": 75
+  },
+  "roi_processing": {
+    "pixel_splits": 8,
+    "pos_sig_level": 1.0,
+    "neg_sig_level": 3.0,
+    "sig_threshold_std_start": 1,
+    "sig_threshold_std_end": 5,
+    "sig_threshold_mean_start": 12,
+    "sig_threshold_mean_end": 2,
+    "argmax_threshold_end": 25,
+    "max_dfof_end": 25,
+    "min_dfof_end": 100
+  }
+}
