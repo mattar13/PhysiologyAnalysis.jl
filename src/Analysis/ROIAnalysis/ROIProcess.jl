@@ -181,8 +181,8 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         data.HeaderDict["sig_rois_mask"] = [sig_rois]
         data.HeaderDict["sig_rois_indices"] = [findall(sig_rois)]
         # Maintain backward compatibility with old keys
-        data.HeaderDict["sig_rois_mask_segment"] = sig_rois
-        data.HeaderDict["sig_rois_idxs"] = findall(sig_rois)
+        # data.HeaderDict["sig_rois_mask_segment"] = sig_rois
+        # data.HeaderDict["sig_rois_idxs"] = findall(sig_rois)
         return sig_rois
     end
 
