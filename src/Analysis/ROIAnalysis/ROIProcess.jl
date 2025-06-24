@@ -73,7 +73,6 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             # Use provided stim_frame
             current_stim_frame = stim_frame
         end
-        println("current_stim_frame: $current_stim_frame")
         #Give warnings and make sure the indices are not out of bounds
         sig_threshold_std_start_idx = max(1, current_stim_frame - sig_threshold_std_start)
         sig_threshold_std_end_idx = min(size(data, 2), current_stim_frame - sig_threshold_std_end)
