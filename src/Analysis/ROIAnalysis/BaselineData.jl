@@ -127,19 +127,31 @@ Returns a baseline-corrected dF/F trace.
 """
 function baseline_trace(trace::AbstractVector{T}; 
     window::Int = 20,
-    stim_frame = 0,
+    stim_frame = nothing,
     baseline_divisor_start = 20, baseline_divisor_end = 5,
     linear_fill_start = nothing, linear_fill_end = nothing,
     kwargs...
 ) where T<:Real
 
     # Normalize using pre-stimulus baseline if stim_frame is set
-    if isnothing(baseline_divisor_end)
-        baseline_divisor_end = length(trace)    
+    if !isnothing(stim_frame) #We want to normalize using the pre-stimulus baseline
+        if isnothing(baseline_divisor_end)
+            baseline_divisor_end = length(trace)    
+        end
+        # Calculate the mean of the trace before the stimulus frame
+        @assert baseline_divisor_start > baseline_divisor_end "baseline_divisor_start must be greater than baseline_divisor_end"
+        baseline_divisor_start_idx = max(1, stim_frame - baseline_divisor_start)
+        if stim_frame - baseline_divisor_start < 1
+            @warn "Stimulus frame is less than baseline_divisor_start"
+            println("stim_frame: $(stim_frame), baseline_divisor_start: $(baseline_divisor_start)")
+            println("baseline_divisor_start_idx: $(baseline_divisor_start_idx)")
+        end
+
+        baseline_divisor_end_idx = min(1, stim_frame - baseline_divisor_end)
+        baseline_divisor = mean(trace[baseline_divisor_start_idx:baseline_divisor_end_idx])
+    else #We want to normalize using the entire trace
+        baseline_divisor = mean(trace)
     end
-    # Calculate the mean of the trace before the stimulus frame
-    baseline_divisor = mean(trace[stim_frame - baseline_divisor_start:stim_frame - baseline_divisor_end])
-    
     F0 = trace ./ baseline_divisor
     
     # Apply Asymmetric Least Squares (ALS) smoothing
@@ -156,3 +168,4 @@ function baseline_trace(trace::AbstractVector{T};
     
     return dFoF
 end
+

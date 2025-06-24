@@ -33,7 +33,9 @@ Args:
 Returns:
     Baseline corrected trace
 """
-function baseline_trace(parameter_fn::String, data_img; stim_frame = 1)
+function baseline_trace(parameter_fn::String, data_img::AbstractVector{T}; 
+    stim_frame = nothing
+) where T<:Real
     parameters = load_parameters(parameter_fn)
     baseline_params = parameters["baselining"]
     
@@ -84,7 +86,7 @@ function process_rois(parameter_fn::String, data; stim_idx = 1, kwargs...)
         sig_threshold_mean_end = roi_params["sig_threshold_mean_end"],
         argmax_threshold_end = roi_params["argmax_threshold_end"],
         max_dfof_end = roi_params["max_dfof_end"],
-        min_dfof_end = roi_params["min_dfof_end"];
+        min_dfof_end = roi_params["min_dfof_end"],
         kwargs...
     )
 end 
