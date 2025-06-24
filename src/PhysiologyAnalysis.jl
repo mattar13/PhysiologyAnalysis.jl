@@ -80,8 +80,10 @@ export findROIcentroid
 # export findROIcentroids
 
 using SparseArrays, OffsetArrays, ImageFiltering
+
 include("Analysis/ROIAnalysis/BaselineData.jl")
 export linear_fill, baseline_trace
+
 
 include("Analysis/ROIAnalysis/ParametricFit.jl")
 export single_stim_model, single_stim_model_drift
@@ -93,11 +95,13 @@ export ROITrace, ROIAnalysis
 export get_significant_rois, get_mean_response, get_roi_traces, get_dfof_traces, get_fit_parameters
 export get_significant_roi_pixels
 
-
 include("Analysis/ROIAnalysis/ROIProcess.jl")
 export roi_processing
 export process_rois
 export process_significant_rois
+
+include("Analysis/ROIAnalysis/load_parameters.jl")
+export load_parameters
 
 using Interpolations
 include("Analysis/Stats.jl")
