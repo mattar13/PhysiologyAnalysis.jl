@@ -64,12 +64,18 @@ Args:
 Returns:
     Significant ROIs mask(s)
 """
-function process_rois(parameter_fn::String, data; stim_idx = 1, kwargs...)
+function process_rois(parameter_fn::String, data; 
+    stim_idx::Union{Int, Vector{Int}, Nothing} = 1,
+    stim_frame::Union{Int, Nothing} = nothing, 
+    kwargs...
+)
     parameters = load_parameters(parameter_fn)
     baseline_params = parameters["baselining"]
     roi_params = parameters["roi_processing"]
     
-    return process_rois(data, stim_idx = stim_idx;
+    return process_rois(data, 
+        stim_idx = stim_idx, 
+        stim_frame = stim_frame,
         # Baselining parameters
         window = baseline_params["window"],
         baseline_divisor_start = baseline_params["baseline_divisor_start"],

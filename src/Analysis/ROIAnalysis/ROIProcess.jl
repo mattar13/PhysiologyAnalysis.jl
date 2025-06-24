@@ -73,10 +73,51 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             # Use provided stim_frame
             current_stim_frame = stim_frame
         end
+        println("current_stim_frame: $current_stim_frame")
+        #Give warnings and make sure the indices are not out of bounds
+        sig_threshold_std_start_idx = max(1, current_stim_frame - sig_threshold_std_start)
+        sig_threshold_std_end_idx = min(size(data, 2), current_stim_frame - sig_threshold_std_end)
+        if sig_threshold_std_start_idx == 1
+            @warn "Signal Threshold Std Start exceeds the Stimulus frame"
+            println("\t sig_threshold_std_start_idx: $sig_threshold_std_start, \n\t current_stim_frame: $current_stim_frame")
+        end
+        if sig_threshold_std_end_idx == size(data, 2)
+            @warn "Signal Threshold Mean End exceeds the Stimulus frame"
+            println("\t sig_threshold_std_end_idx: $sig_threshold_std_end, \n\t current_stim_frame: $current_stim_frame")
+        end
+        
+        sig_threshold_mean_start_idx = max(1, current_stim_frame - sig_threshold_mean_start)
+        sig_threshold_mean_end_idx = min(size(data, 2), current_stim_frame - sig_threshold_mean_end)
+        if sig_threshold_mean_start_idx == 1
+            @warn "Signal Threshold Mean Start exceeds the trace frame"
+            println("\t sig_threshold_mean_start_idx: $sig_threshold_mean_start, \n\t current_stim_frame: $current_stim_frame")
+        end
+        if sig_threshold_mean_end_idx == size(data, 2)
+            @warn "Signal Threshold Mean End exceeds the trace frame"
+            println("\t sig_threshold_mean_end_idx: $sig_threshold_mean_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+        end
 
+        argmax_threshold_end_idx = min(size(data, 2), current_stim_frame + argmax_threshold_end)
+        if argmax_threshold_end_idx == size(data, 2)
+            @warn "Argmax Threshold End exceeds the trace frame"
+            println("\t argmax_threshold_end_idx: $argmax_threshold_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+        end
+
+        max_dfof_end_idx = max(1, current_stim_frame + max_dfof_end)
+        min_dfof_end_idx = min(size(data, 2), current_stim_frame + min_dfof_end)
+        if max_dfof_end_idx == size(data, 2)
+            @warn "Max Dfof End exceeds the trace frame"
+            println("\t max_dfof_end_idx: $max_dfof_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+        end
+        if min_dfof_end_idx == size(data, 2)
+            @warn "Min Dfof End exceeds the trace frame"
+            println("\t min_dfof_end_idx: $min_dfof_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+        end
+        #Only give warnings once
+        warning = true
         for roi_idx in roi_indices
             if roi_idx == 0
-                println("Skipping ROI $roi_idx")
+                println("\t Skipping ROI $roi_idx")
                 continue
             end
             #println("Processing ROI $roi_idx")
@@ -89,23 +130,24 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
                 baseline_divisor_start = baseline_divisor_start, 
                 baseline_divisor_end = baseline_divisor_end, 
                 linear_fill_start = linear_fill_start, 
-                linear_fill_end = linear_fill_end
+                linear_fill_end = linear_fill_end,
+                warning = warning
             )
+            #Stop giving warnings
+            warning = false
 
-            #These are the parameters for the signal threshold
-            sig_std = std(dFoF[sig_threshold_std_start:current_stim_frame-sig_threshold_std_end])
-            sig_mean = mean(dFoF[current_stim_frame-sig_threshold_mean_start: current_stim_frame-sig_threshold_mean_end])
+            sig_std = std(dFoF[sig_threshold_std_start_idx:sig_threshold_std_end_idx])
+            sig_mean = mean(dFoF[sig_threshold_mean_start_idx:sig_threshold_mean_end_idx])
             #println("sig_mean: $sig_mean, sig_std: $sig_std")
             
             #Calculate the threshold for the signal
             sig_threshold = sig_mean + sig_std * pos_sig_level
             neg_threshold = sig_mean - sig_std * neg_sig_level
             #println("sig_threshold: $sig_threshold, neg_threshold: $neg_threshold")
-
-            trace_argmax = argmax(dFoF[current_stim_frame:current_stim_frame+argmax_threshold_end]) + current_stim_frame
-            
-            max_dfof = mean(dFoF[trace_argmax:trace_argmax+max_dfof_end])
-            min_dfof = minimum(dFoF[current_stim_frame:current_stim_frame+min_dfof_end])
+                        
+            trace_argmax = argmax(dFoF[current_stim_frame:argmax_threshold_end_idx]) + current_stim_frame
+            max_dfof = mean(dFoF[trace_argmax:max_dfof_end_idx])
+            min_dfof = minimum(dFoF[current_stim_frame:min_dfof_end_idx])
             #println("max_dfof: $max_dfof, min_dfof: $min_dfof")
 
             over_max = max_dfof > sig_threshold

@@ -130,6 +130,7 @@ function baseline_trace(trace::AbstractVector{T};
     stim_frame = nothing,
     baseline_divisor_start = 20, baseline_divisor_end = 5,
     linear_fill_start = nothing, linear_fill_end = nothing,
+    warning = false,
     kwargs...
 ) where T<:Real
 
@@ -141,13 +142,16 @@ function baseline_trace(trace::AbstractVector{T};
         # Calculate the mean of the trace before the stimulus frame
         @assert baseline_divisor_start > baseline_divisor_end "baseline_divisor_start must be greater than baseline_divisor_end"
         baseline_divisor_start_idx = max(1, stim_frame - baseline_divisor_start)
-        if stim_frame - baseline_divisor_start < 1
-            @warn "Stimulus frame is less than baseline_divisor_start"
-            println("stim_frame: $(stim_frame), baseline_divisor_start: $(baseline_divisor_start)")
-            println("baseline_divisor_start_idx: $(baseline_divisor_start_idx)")
+        if stim_frame - baseline_divisor_start < 1 && warning
+            @warn "Baseline Divisor Start exceeds the Stimulus frame"
+            println("\t stim_frame: $(stim_frame), \n\t baseline_divisor_start: $(baseline_divisor_start)")
         end
 
-        baseline_divisor_end_idx = min(1, stim_frame - baseline_divisor_end)
+        baseline_divisor_end_idx = max(1, stim_frame - baseline_divisor_end)
+        if stim_frame - baseline_divisor_end < 1 && warning
+            @warn "Baseline Divisor End exceeds the Stimulus frame"
+            println("\t stim_frame: $(stim_frame), \n\t baseline_divisor_end: $(baseline_divisor_end)")
+        end
         baseline_divisor = mean(trace[baseline_divisor_start_idx:baseline_divisor_end_idx])
     else #We want to normalize using the entire trace
         baseline_divisor = mean(trace)
@@ -162,7 +166,17 @@ function baseline_trace(trace::AbstractVector{T};
     #Enter in linear_fill in the sections where we need to
     ma = moving_average(baselined_trace; window = window)
     if !isnothing(linear_fill_start) && !isnothing(linear_fill_end) && !isnothing(stim_frame)
-        linear_fill!(ma, stim_frame - linear_fill_start, stim_frame + linear_fill_end)
+        linear_fill_start_idx = max(1, stim_frame - linear_fill_start)
+        linear_fill_end_idx = min(length(trace), stim_frame + linear_fill_end)
+        if linear_fill_start_idx == 1 && warning
+            @warn "Linear fill starts at the beginning of the trace"
+            println("\t linear_fill_start_idx: $linear_fill_start, \n\t stim_frame: $stim_frame")
+        end
+        if linear_fill_end_idx == length(trace) && warning
+            @warn "Linear fill ends at the end of the trace"
+            println("\t linear_fill_end_idx: $linear_fill_end, \n\t stim_frame: $stim_frame \n\t trace length: $(length(trace))")
+        end
+        linear_fill!(ma, linear_fill_start_idx, linear_fill_end_idx)
     end
     dFoF = baselined_trace - ma
     
