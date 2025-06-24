@@ -5,6 +5,10 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     channel=2,
     roi_indices=nothing,
 
+    #truncation parameters
+    trunc_before_stim = 50,
+    trunc_after_stim = 100,
+
     #Baseline correction parameters
     window::Int=40,
     baseline_divisor_start = 20,
@@ -74,7 +78,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
             current_stim_frame = stim_frame
         end
         #Give warnings and make sure the indices are not out of bounds
-        sig_threshold_std_start_idx = max(1, current_stim_frame - sig_threshold_std_start)
+        sig_threshold_std_start_idx = sig_threshold_std_start
         sig_threshold_std_end_idx = min(size(data, 2), current_stim_frame - sig_threshold_std_end)
         sig_threshold_mean_start_idx = max(1, current_stim_frame - sig_threshold_mean_start)
         sig_threshold_mean_end_idx = min(size(data, 2), current_stim_frame - sig_threshold_mean_end)
@@ -83,10 +87,6 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         min_dfof_end_idx = min(size(data, 2), current_stim_frame + min_dfof_end)
 
         if warning
-            if sig_threshold_std_start_idx == 1
-                @warn "Signal Threshold Std Start exceeds the Stimulus frame"
-                println("\t sig_threshold_std_start_idx: $sig_threshold_std_start, \n\t current_stim_frame: $current_stim_frame")
-            end
             if sig_threshold_std_end_idx == size(data, 2)
                 @warn "Signal Threshold Mean End exceeds the Stimulus frame"
                 println("\t sig_threshold_std_end_idx: $sig_threshold_std_end, \n\t current_stim_frame: $current_stim_frame")
