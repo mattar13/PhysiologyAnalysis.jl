@@ -26,7 +26,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
     argmax_threshold_end = 25,
     max_dfof_end = 25,
     min_dfof_end = 100,
-
+    warning = true
 ) where T<:Real
 
     if isnothing(roi_indices)
@@ -77,41 +77,44 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
         #Give warnings and make sure the indices are not out of bounds
         sig_threshold_std_start_idx = max(1, current_stim_frame - sig_threshold_std_start)
         sig_threshold_std_end_idx = min(size(data, 2), current_stim_frame - sig_threshold_std_end)
-        if sig_threshold_std_start_idx == 1
-            @warn "Signal Threshold Std Start exceeds the Stimulus frame"
-            println("\t sig_threshold_std_start_idx: $sig_threshold_std_start, \n\t current_stim_frame: $current_stim_frame")
-        end
-        if sig_threshold_std_end_idx == size(data, 2)
-            @warn "Signal Threshold Mean End exceeds the Stimulus frame"
-            println("\t sig_threshold_std_end_idx: $sig_threshold_std_end, \n\t current_stim_frame: $current_stim_frame")
-        end
-        
         sig_threshold_mean_start_idx = max(1, current_stim_frame - sig_threshold_mean_start)
         sig_threshold_mean_end_idx = min(size(data, 2), current_stim_frame - sig_threshold_mean_end)
-        if sig_threshold_mean_start_idx == 1
-            @warn "Signal Threshold Mean Start exceeds the trace frame"
-            println("\t sig_threshold_mean_start_idx: $sig_threshold_mean_start, \n\t current_stim_frame: $current_stim_frame")
-        end
-        if sig_threshold_mean_end_idx == size(data, 2)
-            @warn "Signal Threshold Mean End exceeds the trace frame"
-            println("\t sig_threshold_mean_end_idx: $sig_threshold_mean_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
-        end
-
         argmax_threshold_end_idx = min(size(data, 2), current_stim_frame + argmax_threshold_end)
-        if argmax_threshold_end_idx == size(data, 2)
-            @warn "Argmax Threshold End exceeds the trace frame"
-            println("\t argmax_threshold_end_idx: $argmax_threshold_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
-        end
-
         max_dfof_end_idx = max(1, current_stim_frame + max_dfof_end)
         min_dfof_end_idx = min(size(data, 2), current_stim_frame + min_dfof_end)
-        if max_dfof_end_idx == size(data, 2)
-            @warn "Max Dfof End exceeds the trace frame"
-            println("\t max_dfof_end_idx: $max_dfof_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
-        end
-        if min_dfof_end_idx == size(data, 2)
-            @warn "Min Dfof End exceeds the trace frame"
-            println("\t min_dfof_end_idx: $min_dfof_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+
+        if warning
+            if sig_threshold_std_start_idx == 1
+                @warn "Signal Threshold Std Start exceeds the Stimulus frame"
+                println("\t sig_threshold_std_start_idx: $sig_threshold_std_start, \n\t current_stim_frame: $current_stim_frame")
+            end
+            if sig_threshold_std_end_idx == size(data, 2)
+                @warn "Signal Threshold Mean End exceeds the Stimulus frame"
+                println("\t sig_threshold_std_end_idx: $sig_threshold_std_end, \n\t current_stim_frame: $current_stim_frame")
+            end
+            
+            if sig_threshold_mean_start_idx == 1
+                @warn "Signal Threshold Mean Start exceeds the trace frame"
+                println("\t sig_threshold_mean_start_idx: $sig_threshold_mean_start, \n\t current_stim_frame: $current_stim_frame")
+            end
+            if sig_threshold_mean_end_idx == size(data, 2)
+                @warn "Signal Threshold Mean End exceeds the trace frame"
+                println("\t sig_threshold_mean_end_idx: $sig_threshold_mean_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+            end
+
+            if argmax_threshold_end_idx == size(data, 2)
+                @warn "Argmax Threshold End exceeds the trace frame"
+                println("\t argmax_threshold_end_idx: $argmax_threshold_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+            end
+
+            if max_dfof_end_idx == size(data, 2)
+                @warn "Max Dfof End exceeds the trace frame"
+                println("\t max_dfof_end_idx: $max_dfof_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+            end
+            if min_dfof_end_idx == size(data, 2)
+                @warn "Min Dfof End exceeds the trace frame"
+                println("\t min_dfof_end_idx: $min_dfof_end_idx, \n\t current_stim_frame: $current_stim_frame, \n\t trace length: $(size(data, 2))")
+            end
         end
         #Only give warnings once
         warning = true
