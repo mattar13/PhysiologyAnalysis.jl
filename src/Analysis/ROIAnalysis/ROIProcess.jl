@@ -61,6 +61,7 @@ function process_rois(data::Experiment{TWO_PHOTON, T};
 
     # Process each stimulus index
     for (i, current_stim_idx) in enumerate(stim_indices_to_process)
+        
         if length(stim_indices_to_process) > 1
             sig_rois = falses(length(roi_indices))
         end
