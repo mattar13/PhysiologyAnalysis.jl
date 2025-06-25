@@ -209,9 +209,9 @@ sig_arr_dFoF[:,2] = baseline_trace(sig_arr_zproj[:,2],
 # --- Plot 4: ROI Heatmap and Traces --- #
 ax3a = Axis(fig[1,2], title = "Significant ROI Mask", aspect = 1)
 heatmap!(ax3a, reverse(sig_mask, dims = 2), colormap = :grays)
-ax3b = Axis(fig[2,2], title = "ROI Trace 1", xlabel = "Pixel Index", ylabel = "Mean Intensity")
+ax3b = Axis(fig[2,2], title = "GRAB-DA", xlabel = "Pixel Index", ylabel = "Mean Intensity")
 lines!(ax3b, sig_arr_dFoF[:,1], color = :green)
-ax3c = Axis(fig[3,2], title = "ROI Trace 2", xlabel = "Pixel Index", ylabel = "Mean Intensity")
+ax3c = Axis(fig[3,2], title = "nirCAT", xlabel = "Pixel Index", ylabel = "Mean Intensity")
 lines!(ax3c, sig_arr_dFoF[:,2], color = :red)
 
 # --- Add legends to row 0 --- #
