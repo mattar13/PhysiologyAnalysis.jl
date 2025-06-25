@@ -71,16 +71,8 @@ function set_calibration_path(pathname::String ;path = "$(homepath)/Datasheets/c
 end
 
 using FileIO, Images
-include("Analysis/ImagingAnalysis/PixelExtraction.jl")
-export zProject, frameAverage 
-export normalize, binarize
-export findROIcentroid
-
-# include("Analysis/ImagingAnalysis/ROIAnalysis.jl")
-# export findROIcentroids
 
 using SparseArrays, OffsetArrays, ImageFiltering
-
 include("Analysis/ROIAnalysis/BaselineData.jl")
 export linear_fill, baseline_trace
 
@@ -96,6 +88,9 @@ export load_parameters
 using Interpolations
 include("Analysis/Stats.jl")
 export cor_xy
+
+include("Analysis/ROIAnalysis/ROIAnalysis.jl")
+export segmentTraceByStimuli
 
 using Colors
 
