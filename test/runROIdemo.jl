@@ -78,7 +78,6 @@ lines!(ax0, data_img.t, mean(data_img.data_array[:,:,2], dims = 1)[1,:], color =
 vlines!(ax0, getStimulusEndTime(data_img), color = :red, label = "Stimulus", linewidth = 2, alpha = 0.2)
 vlines!(ax0, [main_t_stim], color = :green, label = "Main Stimulus", linewidth = 2)
 vspan!(ax0, trunc_start, trunc_end, color = (:blue, 0.2))
-axislegend(ax0)
 
 #===============================================#
 #Conduct the baseline correction
@@ -108,7 +107,6 @@ vspan!(ax1, t_baseline_start, t_baseline_end, color = (:red, 0.2), label = "Base
 t_linear_fill_start = pixel_ROI_data.t[linear_fill_start_idx]
 t_linear_fill_end = pixel_ROI_data.t[linear_fill_end_idx]
 vspan!(ax1, t_linear_fill_start, t_linear_fill_end, color = (:blue, 0.2), label = "Linear Fill")
-axislegend(ax1, postion = :rb)
 
 dFoF = baseline_trace(ir_img;
     window = window,
@@ -135,6 +133,7 @@ sig_std = std(dFoF[sig_threshold_std_start_idx:sig_threshold_std_end_idx])
 sig_mean = mean(dFoF[sig_threshold_mean_start_idx: sig_threshold_mean_end_idx])
 sig_threshold = sig_mean + sig_std * pos_sig_level
 neg_threshold = sig_mean - sig_std * neg_sig_level
+
 # --- Plot 3: dF/F and Signal Thresholds --- #
 ax2 = Axis(fig[3, 1], title = "dF/F and Signal Thresholds", xlabel = "Time (s)", ylabel = "dF/F")
 lines!(ax2, pixel_ROI_data.t, dFoF, color = :black)
@@ -157,7 +156,6 @@ min_dfof = minimum(dFoF[current_stim_frame:min_dfof_end_idx])
 hlines!(ax2, [max_dfof, min_dfof], color = :orange, label = "Max/Min DF/F", linewidth = 2, alpha = 0.5)
 vspan!(ax2, t_min_dfof_start, t_min_dfof_end, color = (:blue, 0.2), label = "Min DFF region")
 vspan!(ax2, t_max_dfof_start, t_max_dfof_end, color = (:green, 0.2), label = "Max DFF region")
-axislegend(ax2)
 
 fig
 #===============================================#
@@ -186,7 +184,7 @@ sig_rois = process_rois(pixel_ROI_data,
     min_dfof_end = min_dfof_end
 )
 
-sig_arr = getROIarr(pixel_ROI_data, pixel_ROI_data.HeaderDict["sig_rois_idxs"])
+sig_arr = getROIarr(pixel_ROI_data, pixel_ROI_data.HeaderDict["sig_rois_indices"][1])
 sig_arr_zproj = mean(sig_arr, dims = 1)[1,:,:]
 sig_mask = reshape(sig_rois, nx÷8, ny÷8)
 sig_arr_dFoF = zeros(size(sig_arr_zproj))
@@ -207,6 +205,7 @@ sig_arr_dFoF[:,2] = baseline_trace(sig_arr_zproj[:,2],
     linear_fill_start = linear_fill_start,
     linear_fill_end = linear_fill_end
 )
+
 # --- Plot 4: ROI Heatmap and Traces --- #
 ax3a = Axis(fig[1,2], title = "Significant ROI Mask", aspect = 1)
 heatmap!(ax3a, rotl90(sig_mask), colormap = :viridis)
@@ -215,4 +214,14 @@ lines!(ax3b, sig_arr_dFoF[:,1], color = :blue)
 ax3c = Axis(fig[3,2], title = "ROI Trace 2", xlabel = "Pixel Index", ylabel = "Mean Intensity")
 lines!(ax3c, sig_arr_dFoF[:,2], color = :red)
 
+# --- Add legends to row 0 --- #
+Legend(fig[1,0], ax0, "Raw Trace Elements", position = :center)
+Legend(fig[2,0], ax1, "Baseline Correction", position = :center)
+Legend(fig[3,0], ax2, "dF/F and Signal Thresholds", position = :center)
 fig
+
+#%%
+CairoMakie.activate!()  # Switch to CairoMakie backend
+save(raw"G:\Journal Submissions\2024 Dopamine Manuscript\Figures\how_to_find_ROIs.svg", fig)
+GLMakie.activate!()  # Switch back to GLMakie for display
+save(raw"G:\Journal Submissions\2024 Dopamine Manuscript\Figures\how_to_find_ROIs.png", fig)
